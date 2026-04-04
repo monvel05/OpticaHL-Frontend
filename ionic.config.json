@@ -1,0 +1,7 @@
+{
+  "name": "OpticaHL",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
