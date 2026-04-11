@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule } from '@ionic/angular';
-import { AuthService } from '../../../core/services/auth.service';
+import { AuthService } from '../../core/services/auth.service';
 import { addIcons } from 'ionicons';
 import { personCircleOutline, logInOutline } from 'ionicons/icons';
 addIcons({ personCircleOutline, logInOutline });

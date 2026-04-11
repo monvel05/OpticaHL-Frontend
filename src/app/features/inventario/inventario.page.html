@@ -1,0 +1,70 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Gestión de Inventario</ion-title>
+  </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-searchbar 
+      placeholder="Buscar por marca o modelo..." 
+      (ionInput)="onSearchChange($event)"
+      debounce="300">
+    </ion-searchbar>
+  </ion-toolbar>
+
+  <ion-toolbar>
+    <ion-segment [value]="segmentoActual" (ionChange)="cambiarSegmento($event)">
+      <ion-segment-button value="armazones">
+        <ion-label>Armazones</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="lentes">
+        <ion-label>Lentes</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="accesorios">
+        <ion-label>Accesorios</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="sucursales">
+        <ion-label>Sucursales</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <div class="ion-padding-horizontal">
+    <app-selector-entidad 
+      label="Filtrar por Marca" 
+      icon="pricetag-outline" 
+      [opciones]="marcas"
+      (seleccionCambiada)="tuFuncionDePrueba($event)">
+    </app-selector-entidad>
+  </div>
+
+  <ion-list>
+    @for (producto of productosFiltrados; track producto.id) {
+      <ion-item lines="full">
+        <ion-thumbnail slot="start">
+          <img alt="Producto" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
+        </ion-thumbnail>
+
+        <ion-label>
+          <h2>{{ producto.nombre }}</h2>
+          <p>Marca: {{ producto.marca }} | Stock: {{ producto.cantidad }}</p>
+        </ion-label>
+
+        <ion-badge slot="end" [color]="producto.cantidad <= producto.stockMinimo ? 'danger' : 'success'">
+          {{ producto.cantidad <= producto.stockMinimo ? 'REABASTECER' : 'OK' }} 
+        </ion-badge>
+      </ion-item>
+    } @empty {
+      <div class="ion-padding ion-text-center">
+        <ion-text color="medium">No se encontraron artículos.</ion-text>
+      </div>
+    }
+  </ion-list>
+
+  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+    <ion-fab-button (click)="agregarProducto()">
+      <ion-icon name="add"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+</ion-content>
