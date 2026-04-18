@@ -1,11 +1,11 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { Router } from '@angular/router'; 
+import { IonicModule, ToastController } from '@ionic/angular';
 import { AuthService } from '../../core/services/auth.service';
 import { addIcons } from 'ionicons';
-import { personCircleOutline, logInOutline } from 'ionicons/icons';
-addIcons({ personCircleOutline, logInOutline });
+import { personOutline, keyOutline, businessOutline, arrowForwardOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-login',
@@ -19,11 +19,16 @@ export class LoginPage implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    private toastController: ToastController
   ) {
+    addIcons({ personOutline, keyOutline, businessOutline, arrowForwardOutline });
+
     this.loginForm = this.fb.group({
-      email: ['', [Validators.required, Validators.email]],
-      password: ['', [Validators.required, Validators.minLength(6)]]
+      usuario: ['', [Validators.required]],        // <--- Cambiado de 'email' a 'usuario'
+      password: ['', [Validators.required]],
+      sucursal_actual: ['HL01', [Validators.required]]
     });
   }
 
@@ -31,16 +36,50 @@ export class LoginPage implements OnInit {
 
   async onLogin() {
     if (this.loginForm.valid) {
-      const { email, password } = this.loginForm.value;
-      console.log('Intentando login con:', email);
+      const credentials = this.loginForm.value;
       
-      // Simulación: Aquí recibes el JWT del backend
-      const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
-      
-      // GUARDAR EN CAPACITOR PREFERENCES
-      await this.authService.setToken(mockToken);
-      
-      alert('¡Sesión guardada con Capacitor!');
+      this.authService.login(credentials).subscribe({
+        next: async (res: any) => {
+          // 1. Guardar sesión
+          await this.authService.setToken(res.token);
+          localStorage.setItem('id_operador', res.user.id_operador);
+          localStorage.setItem('sucursal', res.user.sucursal);
+
+          // 2. Saludo
+          this.mostrarToast(`¡Bienvenida ${res.user.nombre}!`, 'success');
+
+          // 3. REDIRECCIÓN DINÁMICA POR ROL
+          this.redirigirSegunRol(res.user.roles);
+        },
+        error: async (err) => {
+          this.mostrarToast(err.error.message || 'Error de conexión', 'danger');
+        }
+      });
     }
+  }
+
+  // LA FUNCIÓN QUE ME PEDISTE INTEGRADA
+  redirigirSegunRol(roles: string[]) {
+    console.log('Validando roles para navegación:', roles);
+    
+    if (roles.includes('ADMINISTRADOR')) {
+      this.router.navigate(['/inventario']);
+    } else if (roles.includes('VENDEDOR')) {
+      this.router.navigate(['/ventas']);
+    } else {
+      // Por si acaso hay un usuario sin rol definido
+      this.router.navigate(['/home']);
+    }
+  }
+
+  // Función auxiliar para no repetir código de los mensajes
+  async mostrarToast(mensaje: string, color: 'success' | 'danger') {
+    const toast = await this.toastController.create({
+      message: mensaje,
+      duration: 2000,
+      color: color,
+      position: 'top'
+    });
+    toast.present();
   }
 }

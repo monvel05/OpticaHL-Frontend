@@ -1,0 +1,49 @@
+.form-wrapper {
+  max-width: 600px; // Evita que se estire horrible en tablets o PC
+  margin: 0 auto;
+  padding-top: 10px;
+}
+
+.form-card {
+  margin: 10px 16px 20px 16px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+}
+
+.custom-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  
+  ion-label {
+    font-weight: 600 !important;
+    font-size: 0.85rem !important;
+    margin-bottom: 8px !important;
+    color: var(--ion-color-step-700) !important;
+  }
+}
+
+.brand-selector-container {
+  padding: 10px 0;
+  
+  .fake-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--ion-color-step-700);
+    display: block;
+    margin-bottom: 8px;
+  }
+}
+
+.btn-guardar {
+  --border-radius: 8px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+// Estilo para los iconos dentro de los items
+ion-icon {
+  font-size: 1.4rem;
+  margin-right: 12px;
+}
