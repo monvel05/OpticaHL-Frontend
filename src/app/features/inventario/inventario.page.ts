@@ -7,7 +7,7 @@ import { SelectorEntidadComponent } from '../../shared/components/selector-entid
 import { InventarioService } from '../../core/services/inventario.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
 
-// ✅ Añadí los iconos que faltaban según tu HTML
+
 import {
   add,
   addOutline,
@@ -19,11 +19,11 @@ import {
   eyeOutline,
   watchOutline,
   refreshOutline,
-  checkmarkCircleOutline, // ✅ Antes tenía guiones, ahora es CamelCase
-  cubeOutline             // ✅ Antes tenía guiones, ahora es CamelCase
+  checkmarkCircleOutline, 
+  cubeOutline             
 } from 'ionicons/icons';
 
-// ✅ Definimos una interfaz sencilla para tener orden
+// Definimos una interfaz sencilla para tener orden
 interface Producto {
   id: number;
   nombre: string;
@@ -56,12 +56,11 @@ export class InventarioPage implements OnInit {
   productosFiltrados: Producto[] = [];
 
   sucursales = [
-    { id: 1, nombre: 'Matriz', totalArticulos: 450 },
-    { id: 2, nombre: 'Pulgas', totalArticulos: 120 },
-    { id: 3, nombre: 'Universidad', totalArticulos: 85 },
-    { id: 4, nombre: 'Centro', totalArticulos: 210 },
-    { id: 5, nombre: 'Sur', totalArticulos: 95 },
-    { id: 6, nombre: 'Norte', totalArticulos: 130 }
+    { id: 2, nombre: 'SUC.VILLAASUNCION', totalArticulos: 120 },
+    { id: 3, nombre: 'SUC.PULGASPANDAS', totalArticulos: 85 },
+    { id: 4, nombre: 'SUC.DELPARQUE', totalArticulos: 210 },
+    { id: 5, nombre: 'SUC.UNIVERSIDAD', totalArticulos: 95 },
+    { id: 6, nombre: 'SUC.CUAUHTEMOC', totalArticulos: 130 }
   ];
 
   constructor(
@@ -79,8 +78,8 @@ export class InventarioPage implements OnInit {
       'eye-outline': eyeOutline,
       'watch-outline': watchOutline,
       'refresh-outline': refreshOutline,
-      'checkmark-circle-outline': checkmarkCircleOutline, // ✅ Variable corregida
-      'cube-outline': cubeOutline                         // ✅ Variable corregida
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'cube-outline': cubeOutline                        
     });
   }
 
@@ -117,7 +116,7 @@ export class InventarioPage implements OnInit {
   }
 
   filtrar() {
-    // ✅ Si estamos en sucursales, no filtramos la lista de productos (porque no se muestra)
+    
     if (this.segmentoActual === 'sucursales') return;
 
     this.productosFiltrados = this.productos.filter(p => {

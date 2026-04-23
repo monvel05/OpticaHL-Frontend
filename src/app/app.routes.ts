@@ -18,6 +18,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage),
   },
   {
+    path: 'calizdeformulario',
+    loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then( m => m.CalizdeformularioPage)
+  },
+  {
     path: '',
     redirectTo: 'auth/login', // Ruta completa para evitar confusiones
     pathMatch: 'full',

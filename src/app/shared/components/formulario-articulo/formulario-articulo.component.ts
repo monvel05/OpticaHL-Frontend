@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { SelectorEntidadComponent } from '../selector-entidad/selector-entidad.component';
 
-// 1. IMPORTACIONES NECESARIAS (Servicio e Iconos)
+//IMPORTACIONES NECESARIAS (Servicio e Iconos)
 import { InventarioService } from 'src/app/core/services/inventario.service';
 import { addIcons } from 'ionicons';
 import { 
@@ -37,7 +37,7 @@ export class FormularioArticuloComponent implements OnInit {
     descripcion: ''
   };
 
-  // 2. INYECCIÓN DEL SERVICIO EN EL CONSTRUCTOR
+  // INYECCIÓN DEL SERVICIO EN EL CONSTRUCTOR
   constructor(
     private modalCtrl: ModalController,
     private inventarioService: InventarioService
@@ -65,7 +65,7 @@ export class FormularioArticuloComponent implements OnInit {
     this.modalCtrl.dismiss(); 
   }
 
-  // 3. LÓGICA DE GUARDADO CORREGIDA
+  // LÓGICA DE GUARDADO CORREGIDA
   guardar() {
     // Construimos el Payload exacto que pide el controlador de Node.js
     const articuloParaEnviar = {
@@ -94,17 +94,17 @@ export class FormularioArticuloComponent implements OnInit {
       ubicacion: 'Mostrador' 
     };
 
-    console.log('🚀 Enviando al backend:', articuloParaEnviar);
+    console.log('Enviando al backend:', articuloParaEnviar);
 
     // Llamada al servicio con suscripción correcta
     this.inventarioService.crearProducto(articuloParaEnviar).subscribe({
       next: (response) => {
-        console.log('✅ Éxito:', response.message);
+        console.log('Éxito:', response.message);
         // Cerramos el modal y avisamos que hubo un cambio exitoso
         this.modalCtrl.dismiss(articuloParaEnviar, 'confirm');
       },
       error: (err) => {
-        console.error('❌ Error al guardar:', err);
+        console.error('Error al guardar:', err);
         // Aquí podrías mostrar una alerta al usuario
       }
     });

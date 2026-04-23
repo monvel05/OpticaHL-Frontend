@@ -4,8 +4,7 @@ import { IonicRouteStrategy, provideIonicAngular } from '@ionic/angular/standalo
 
 import { routes } from './app/app.routes';
 import { AppComponent } from './app/app.component';
-
-// ✅ 1. IMPORTA ESTO
+//importar HttpClientModule para poder usar HttpClient en los servicios
 import { provideHttpClient } from '@angular/common/http';
 
 bootstrapApplication(AppComponent, {
@@ -13,7 +12,6 @@ bootstrapApplication(AppComponent, {
     { provide: RouteReuseStrategy, useClass: IonicRouteStrategy },
     provideIonicAngular(),
     provideRouter(routes, withPreloading(PreloadAllModules)),
-    // ✅ 2. AGREGA ESTA LÍNEA AQUÍ
     provideHttpClient(),
   ],
 });

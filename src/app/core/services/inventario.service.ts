@@ -16,7 +16,7 @@ export class InventarioService {
     return this.http.get<any[]>(this.API_URL);
   }
 
-  // ✅ Añadimos esta función para que el botón "Guardar" de tu modal funcione
+  // Añadimos esta función para que el botón "Guardar" de tu modal funcione
   crearProducto(producto: any): Observable<any> {
     return this.http.post<any>(this.API_URL, producto);
   }

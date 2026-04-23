@@ -26,7 +26,7 @@ export class LoginPage implements OnInit {
     addIcons({ personOutline, keyOutline, businessOutline, arrowForwardOutline });
 
     this.loginForm = this.fb.group({
-      usuario: ['', [Validators.required]],        // <--- Cambiado de 'email' a 'usuario'
+      usuario: ['', [Validators.required]],        
       password: ['', [Validators.required]],
       sucursal_actual: ['HL01', [Validators.required]]
     });
@@ -40,15 +40,15 @@ export class LoginPage implements OnInit {
       
       this.authService.login(credentials).subscribe({
         next: async (res: any) => {
-          // 1. Guardar sesión
+          // Guardar sesión
           await this.authService.setToken(res.token);
           localStorage.setItem('id_operador', res.user.id_operador);
           localStorage.setItem('sucursal', res.user.sucursal);
 
-          // 2. Saludo
+          // Saludo
           this.mostrarToast(`¡Bienvenida ${res.user.nombre}!`, 'success');
 
-          // 3. REDIRECCIÓN DINÁMICA POR ROL
+          // REDIRECCIÓN DINÁMICA POR ROL
           this.redirigirSegunRol(res.user.roles);
         },
         error: async (err) => {
@@ -58,7 +58,7 @@ export class LoginPage implements OnInit {
     }
   }
 
-  // LA FUNCIÓN QUE ME PEDISTE INTEGRADA
+  // LA FUNCIÓN DEPENDIENDO DEL ROL
   redirigirSegunRol(roles: string[]) {
     console.log('Validando roles para navegación:', roles);
     
