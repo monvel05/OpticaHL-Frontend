@@ -1,0 +1,47 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Registrar Pago</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cerrar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card>
+    <ion-card-header>
+      <ion-card-subtitle>Saldo Pendiente</ion-card-subtitle>
+      <ion-card-title color="danger">{{ saldoPendiente() | currency }}</ion-card-title>
+    </ion-card-header>
+  </ion-card>
+
+  <ion-list>
+    <ion-item>
+      <ion-select label="Método de Pago" label-placement="floating" [ngModel]="metodoPago()" (ngModelChange)="metodoPago.set($event)">
+        <ion-select-option value="Efectivo">Efectivo</ion-select-option>
+        <ion-select-option value="Tarjeta">Tarjeta (Crédito/Débito)</ion-select-option>
+        <ion-select-option value="Transferencia">Transferencia</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-input 
+        label="Monto Recibido" 
+        label-placement="floating" 
+        type="number" 
+        [ngModel]="montoRecibido()" 
+        (ngModelChange)="montoRecibido.set($event)">
+      </ion-input>
+    </ion-item>
+  </ion-list>
+
+  @if (cambio() > 0 && metodoPago() === 'Efectivo') {
+  <ion-note color="success" class="ion-padding">
+    <h2>Cambio a entregar: {{ cambio() | currency }}</h2>
+  </ion-note>
+  }
+
+  <ion-button expand="block" class="ion-margin-top" [disabled]="!esValido()" (click)="procesarPago()">
+    Confirmar Pago
+  </ion-button>
+</ion-content>

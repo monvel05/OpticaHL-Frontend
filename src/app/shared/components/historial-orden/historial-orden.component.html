@@ -1,0 +1,54 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Historial de Órdenes</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarOrdenes()">
+        <ion-icon name="refresh"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+  
+  @if (cargando()) {
+    <div class="ion-text-center ion-padding" style="margin-top: 50px;">
+      <ion-spinner name="crescent"></ion-spinner>
+      <p>Cargando órdenes...</p>
+    </div>
+  } @else {
+    <ion-list>
+      @for (order of orders(); track order.id) {
+        <ion-item>
+          <ion-label>
+            <h2>Orden #{{ order.id }}</h2>
+            <p>Paciente: {{ order.paciente_nombre }}</p>
+            <p>Fecha: {{ order.fecha | date:'dd/MM/yyyy' }}</p>
+            <p>Total: {{ order.total | currency }}</p>
+            
+            <ion-badge [color]="order.estatus === 'Cancelada' ? 'danger' : 'success'">
+              {{ order.estatus }}
+            </ion-badge>
+          </ion-label>
+
+          @if (authService.tieneRol('ADMINISTRADOR') && order.estatus !== 'Cancelada') {
+            <ion-button 
+              slot="end"
+              fill="clear" 
+              color="danger"
+              (click)="confirmarCancelacion(order.id)">
+              <ion-icon name="close-circle" slot="start"></ion-icon>
+              Cancelar
+            </ion-button>
+          }
+        </ion-item>
+      } @empty {
+        <ion-item>
+          <ion-label class="ion-text-center ion-padding text-muted">
+            No hay órdenes registradas.
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  }
+</ion-content>

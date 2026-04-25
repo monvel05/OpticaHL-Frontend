@@ -4,17 +4,20 @@ import { Observable } from 'rxjs';
 import { environment } from 'src/environment/environment';
 import { Cliente } from 'src/app/shared/interfaces/cliente.interface';
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
-
 export class ClienteService {
   private http = inject(HttpClient);
   private apiUrl = `${environment.apiUrl}/clientes`;
 
   crearCliente(cliente: Cliente): Observable<any> {
-    return this.http.post(this.apiUrl, cliente);
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    const payload = {
+      ...cliente,
+      creado_por: user.id_operador || null,
+    };
+    return this.http.post(this.apiUrl, payload);
   }
 
   buscarClientes(termino: string): Observable<Cliente[]> {
