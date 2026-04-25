@@ -1,11 +1,37 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule } from '@ionic/angular';
+import { IonicModule, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-import { add, searchOutline, alertCircleOutline, pricetagOutline, businessOutline } from 'ionicons/icons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
-import { InventarioService } from '../../core/services/inventario';
+import { InventarioService } from '../../core/services/inventario.service';
+import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
+
+
+import {
+  add,
+  addOutline,
+  searchOutline,
+  alertCircleOutline,
+  pricetagOutline,
+  businessOutline,
+  glassesOutline,
+  eyeOutline,
+  watchOutline,
+  refreshOutline,
+  checkmarkCircleOutline, 
+  cubeOutline             
+} from 'ionicons/icons';
+
+// Definimos una interfaz sencilla para tener orden
+interface Producto {
+  id: number;
+  nombre: string;
+  marca: string;
+  cantidad: number;
+  stockMinimo: number;
+  tipo: string;
+}
 
 @Component({
   selector: 'app-inventario',
@@ -18,7 +44,7 @@ export class InventarioPage implements OnInit {
 
   segmentoActual: string = 'armazones';
   searchTerm: string = '';
-  
+
   marcas = [
     { id: 1, nombre: 'Ray-Ban' },
     { id: 2, nombre: 'Oakley' },
@@ -26,30 +52,49 @@ export class InventarioPage implements OnInit {
     { id: 4, nombre: 'Arnette' }
   ];
 
-  // Inicializamos vacío para recibir los datos del backend
-  productos: any[] = [];
-  productosFiltrados: any[] = [];
+  productos: Producto[] = [];
+  productosFiltrados: Producto[] = [];
 
-  constructor(private inventarioService: InventarioService) {
-    // Registramos todos los iconos que usamos en el HTML
-    addIcons({ add, searchOutline, alertCircleOutline, pricetagOutline, businessOutline });
+  sucursales = [
+    { id: 2, nombre: 'SUC.VILLAASUNCION', totalArticulos: 120 },
+    { id: 3, nombre: 'SUC.PULGASPANDAS', totalArticulos: 85 },
+    { id: 4, nombre: 'SUC.DELPARQUE', totalArticulos: 210 },
+    { id: 5, nombre: 'SUC.UNIVERSIDAD', totalArticulos: 95 },
+    { id: 6, nombre: 'SUC.CUAUHTEMOC', totalArticulos: 130 }
+  ];
+
+  constructor(
+    private inventarioService: InventarioService,
+    private modalCtrl: ModalController
+  ) {
+    addIcons({
+      add,
+      'add-outline': addOutline,
+      'search-outline': searchOutline,
+      'alert-circle-outline': alertCircleOutline,
+      'pricetag-outline': pricetagOutline,
+      'business-outline': businessOutline,
+      'glasses-outline': glassesOutline,
+      'eye-outline': eyeOutline,
+      'watch-outline': watchOutline,
+      'refresh-outline': refreshOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'cube-outline': cubeOutline                        
+    });
   }
 
   ngOnInit() {
     this.cargarDatos();
   }
 
-  // Función para conectar con tu Backend
   cargarDatos() {
     this.inventarioService.getInventario().subscribe({
       next: (data) => {
         this.productos = data;
         this.filtrar();
-        console.log('Datos cargados del backend con éxito');
       },
       error: (err) => {
-        console.error('Error conectando al backend, usando datos de prueba local.', err);
-        // Backup por si el backend falla durante el desarrollo
+        console.warn('Backend no disponible, usando locales.');
         this.productos = [
           { id: 1, nombre: 'Ray-Ban Aviator', marca: 'Ray-Ban', cantidad: 2, stockMinimo: 5, tipo: 'armazones' },
           { id: 2, nombre: 'Oakley Sport', marca: 'Oakley', cantidad: 10, stockMinimo: 3, tipo: 'armazones' },
@@ -71,31 +116,54 @@ export class InventarioPage implements OnInit {
   }
 
   filtrar() {
+    
+    if (this.segmentoActual === 'sucursales') return;
+
     this.productosFiltrados = this.productos.filter(p => {
       const coincideTipo = p.tipo === this.segmentoActual;
-      const coincideBusqueda = p.nombre.toLowerCase().includes(this.searchTerm) || 
-                               p.marca.toLowerCase().includes(this.searchTerm);
+      const coincideBusqueda = p.nombre.toLowerCase().includes(this.searchTerm) ||
+        p.marca.toLowerCase().includes(this.searchTerm);
       return coincideTipo && coincideBusqueda;
     });
   }
 
-  // Esta es la función que llama tu componente compartido SelectorEntidad
   tuFuncionDePrueba(idSeleccionado: any) {
-    console.log('Filtrando por marca ID:', idSeleccionado);
-    
     if (idSeleccionado) {
       const marcaObj = this.marcas.find(m => m.id === idSeleccionado);
       if (marcaObj) {
-        this.productosFiltrados = this.productos.filter(p => 
+        this.productosFiltrados = this.productos.filter(p =>
           p.marca === marcaObj.nombre && p.tipo === this.segmentoActual
         );
       }
     } else {
-      this.filtrar(); // Si quitan la selección, resetear filtros
+      this.filtrar();
     }
   }
 
-  agregarProducto() {
-    console.log('Abrir modal de formulario para:', this.segmentoActual);
+  async agregarProducto() {
+    const modal = await this.modalCtrl.create({
+      component: FormularioArticuloComponent,
+      componentProps: {
+        tipoArticulo: this.segmentoActual
+      }
+    });
+
+    await modal.present();
+
+    const { data } = await modal.onWillDismiss();
+    // Dentro de agregarProducto() en inventario.page.ts:
+    if (data) {
+      this.inventarioService.crearProducto(data).subscribe({
+        next: (res) => {
+          console.log('¡Producto guardado!', res);
+          this.cargarDatos(); // Para que aparezca en la lista sin refrescar manual
+        },
+        error: (err) => console.error('Error al guardar', err)
+      });
+    }
+  }
+
+  verDetalleSucursal(sucursal: any) {
+    console.log('Navegando a detalle de:', sucursal.nombre);
   }
 }

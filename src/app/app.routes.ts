@@ -9,20 +9,25 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () => import('./features/login/login.page').then(m => m.LoginPage)
       },
+      // Si alguien entra a /auth, lo mandamos directo a /auth/login
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
   {
     path: 'inventario',
-    loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage)
+    loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage),
+  },
+  {
+    path: 'calizdeformulario',
+    loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then( m => m.CalizdeformularioPage)
   },
   {
     path: '',
-    redirectTo: 'auth/login',
+    redirectTo: 'auth/login', // Ruta completa para evitar confusiones
     pathMatch: 'full',
   },
-  { 
-    path: '**', 
-    redirectTo: 'auth/login' 
+  {
+    path: '**',
+    redirectTo: 'inventario' // Si se pierden, mejor mandarlos al inventario (o al login)
   }
 ];

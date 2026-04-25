@@ -1,0 +1,132 @@
+// Estilos minimalistas pero con detalle
+.title-modern {
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  font-size: 1.4rem;
+}
+
+.search-toolbar {
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --background: transparent;
+  box-shadow: none;
+}
+
+.segment-toolbar {
+  --background: transparent;
+  --border-width: 0;
+  padding-bottom: 8px;
+}
+
+.filter-card {
+  margin: 16px;
+  background: var(--ion-card-background);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  padding: 8px 0;
+}
+
+.product-list-container {
+  padding: 0 12px 80px 12px;
+}
+
+.product-card {
+  background: var(--ion-card-background);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+.product-thumbnail {
+  --border-radius: 10px;
+  img {
+    object-fit: cover;
+  }
+}
+
+.product-title {
+  font-weight: 600;
+  font-size: 1rem;
+  margin-bottom: 4px;
+}
+
+.product-details {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.separator {
+  color: var(--ion-color-medium);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+}
+
+.empty-state {
+  text-align: center;
+  margin-top: 80px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.6;
+}
+
+.custom-fab {
+  --box-shadow: 0 4px 12px rgba(var(--ion-color-primary-rgb), 0.3);
+  transition: all 0.2s;
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+.sucursal-card {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  border: 1px solid #f0f0f0;
+  transition: transform 0.2s;
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  ion-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+  }
+
+  h3 {
+    margin: 8px 0;
+    font-weight: bold;
+    color: var(--ion-color-dark);
+    text-transform: uppercase;
+    font-size: 14px;
+  }
+
+  .stock-info {
+    margin: 10px 0;
+    p {
+      margin: 0;
+      font-size: 18px;
+      color: var(--ion-color-primary);
+    }
+  }
+}
