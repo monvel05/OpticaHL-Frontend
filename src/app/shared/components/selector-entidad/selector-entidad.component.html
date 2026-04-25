@@ -1,0 +1,14 @@
+<ion-item lines="inset">
+  <ion-icon [name]="icon" slot="start" color="primary"></ion-icon>
+  <ion-select 
+    [label]="label" 
+    label-placement="floating" 
+    placeholder="Seleccione uno"
+    (ionChange)="onValueChange($event)">
+    @for (opcion of opciones; track opcion.id) {
+      <ion-select-option [value]="opcion.id">
+        {{ opcion.nombre }}
+      </ion-select-option>
+    }
+  </ion-select>
+</ion-item>
