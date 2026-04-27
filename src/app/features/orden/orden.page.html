@@ -1,0 +1,66 @@
+<ion-content>
+  <div class="order-container">
+    
+    <section class="selection-area">
+      <ion-list>
+        <ion-list-header>
+          <ion-label>Nueva Orden Óptica</ion-label>
+        </ion-list-header>
+
+        <ion-item>
+          <ion-icon name="person-outline" slot="start"></ion-icon>
+          <ion-label>
+            {{ cartService.selectedPatient()?.nombre || 'Seleccionar Paciente' }}
+          </ion-label>
+          <ion-button slot="end" fill="clear" (click)="openPatientModal()">Buscar</ion-button>
+        </ion-item>
+
+        <ion-searchbar (ionInput)="onSearchProduct($event)"></ion-searchbar>
+      </ion-list>
+    </section>
+
+    <section class="summary-area">
+      <ion-card>
+        <ion-card-header>
+          <ion-card-title>Resumen</ion-card-title>
+        </ion-card-header>
+
+        <ion-card-content>
+          <ion-list lines="none">
+            @for (item of cartService.items(); track item.id; let i = $index) {
+              <ion-item>
+                <ion-label>
+                  <h2>{{ item.name }}</h2>
+                  <p>{{ item.price | currency }} x {{ item.quantity }}</p>
+                </ion-label>
+                <ion-button slot="end" color="danger" fill="clear" (click)="cartService.removeItem(i)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </ion-button>
+              </ion-item>
+            }
+          </ion-list>
+
+          <hr />
+          
+          <div class="totals">
+            <p>Subtotal: <span>{{ cartService.subtotal() | currency }}</span></p>
+            <p>IVA (16%): <span>{{ cartService.iva() | currency }}</span></p>
+            <h3>Total: <span>{{ cartService.total() | currency }}</span></h3>
+          </div>
+
+          <ion-button 
+            expand="block" 
+            [disabled]="!cartService.isOrderValid()"
+            (click)="goToPayments()">
+            Proceder al Pago
+          </ion-button>
+          
+          @if (!cartService.isOrderValid()) {
+            <p class="error-msg">Debe seleccionar un paciente y al menos un producto.</p>
+          }
+        </ion-card-content>
+      </ion-card>
+    </section>
+
+  </div>
+</ion-content>

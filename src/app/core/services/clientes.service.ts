@@ -19,4 +19,7 @@ export class ClientesService {
     };
     return this.http.post(this.apiUrl, payload);
   }
+  getClientes(): Observable<any[]> {
+    return this.http.get<any[]>(this.apiUrl);
+  }
 }
