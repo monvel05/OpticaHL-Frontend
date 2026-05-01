@@ -31,7 +31,7 @@ export class AuthService {
   private router = inject(Router);
 
   private apiUrl = 'http://localhost:3000/api/auth';
-  
+
   // LOGIN
 
   login(credenciales: LoginCredentials): Observable<AuthResponse> {
@@ -60,8 +60,20 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
-  }
+  const token = this.getToken();
+  if (!token) return false;
+
+  const payload = this.getPayload();
+  if (!payload) return false;
+
+  // validar expiración
+  const exp = payload.exp;
+  if (!exp) return true;
+
+  const now = Math.floor(Date.now() / 1000);
+
+  return exp > now;
+}
 
   //USUARIO
 
