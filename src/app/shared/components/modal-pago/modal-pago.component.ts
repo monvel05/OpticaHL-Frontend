@@ -7,6 +7,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-modal-pago',
   templateUrl: './modal-pago.component.html',
   styleUrls: ['./modal-pago.component.scss'],
+  imports: [IonicModule, CommonModule, FormsModule],
 })
 export class ModalPagoComponent {
 

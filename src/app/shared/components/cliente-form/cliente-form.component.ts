@@ -2,7 +2,7 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule } from '@ionic/angular';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { ClientesService } from '../../../core/services/clientes.service'; 
+import { ClienteService } from '../../../core/services/cliente.service'; 
 
 @Component({
   selector: 'app-cliente-form',
@@ -19,7 +19,7 @@ export class ClienteFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder, 
-    private clientesService: ClientesService // Inyectado correctamente
+    private clientesService: ClienteService // Inyectado correctamente
   ) {
     this.initForm();
   }
