@@ -1,0 +1,221 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>Refracción e Historial</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <ion-grid>
+
+    <ion-row *ngIf="!clienteSeleccionado">
+
+      <ion-col size="12">
+
+        <h2>Cliente</h2>
+
+        <ion-searchbar
+          placeholder="Buscar cliente por nombre, RFC o teléfono..."
+          [(ngModel)]="textoBusquedaCliente"
+          (ionInput)="buscarCliente()">
+        </ion-searchbar>
+
+        <ion-button expand="block" color="primary" (click)="toggleNuevoCliente()">
+          + Nuevo Cliente
+        </ion-button>
+
+        <ion-card *ngIf="mostrarFormNuevoCliente">
+          <ion-card-header>
+            <ion-card-title>Registrar Cliente</ion-card-title>
+          </ion-card-header>
+
+          <ion-card-content>
+
+            <ion-item>
+              <ion-label position="stacked">Nombre Completo</ion-label>
+              <ion-input [(ngModel)]="nuevoCliente.nombre_completo"></ion-input>
+            </ion-item>
+
+            <ion-item>
+              <ion-label position="stacked">Teléfono</ion-label>
+              <ion-input [(ngModel)]="nuevoCliente.telefono"></ion-input>
+            </ion-item>
+
+            <ion-row>
+              <ion-col size="6">
+                <ion-button expand="block" fill="outline" (click)="toggleNuevoCliente()">
+                  Cancelar
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="6">
+                <ion-button expand="block" color="success" (click)="guardarNuevoCliente()">
+                  Guardar
+                </ion-button>
+              </ion-col>
+            </ion-row>
+
+          </ion-card-content>
+        </ion-card>
+
+        <ion-list>
+          <ion-item
+            button
+            *ngFor="let cliente of clientesFiltrados"
+            (click)="seleccionarCliente(cliente)">
+
+            <ion-icon name="person-circle" slot="start" color="primary"></ion-icon>
+
+            <ion-label>
+              <h2>{{ cliente.nombre_completo }}</h2>
+              <p *ngIf="cliente.telefono">{{ cliente.telefono }}</p>
+            </ion-label>
+
+          </ion-item>
+        </ion-list>
+
+      </ion-col>
+    </ion-row>
+
+    <ion-row *ngIf="clienteSeleccionado">
+
+      <ion-col size="12">
+        <ion-button fill="clear" color="medium" (click)="limpiarCliente()">
+          ← Cambiar cliente
+        </ion-button>
+      </ion-col>
+
+      <ion-col size="12" size-md="4">
+
+        <h2>Historial Óptico</h2>
+
+        <ion-searchbar
+          placeholder="Buscar por doctor, fecha o folio..."
+          [(ngModel)]="textoBusqueda"
+          (ionInput)="filtrarHistorial()">
+        </ion-searchbar>
+
+        <ion-card>
+          <ion-card-content>
+            <strong>ID Paciente: {{ idCliente }}</strong>
+          </ion-card-content>
+        </ion-card>
+
+        <div *ngIf="historialFiltrado.length === 0" class="ion-text-center ion-margin-top">
+          No hay resultados
+        </div>
+
+        <ion-card *ngFor="let r of historialFiltrado">
+
+          <ion-card-header>
+            <ion-card-title>{{ r.doctor }}</ion-card-title>
+            <ion-card-subtitle>{{ r.fecha | date:'mediumDate' }}</ion-card-subtitle>
+          </ion-card-header>
+
+          <ion-card-content>
+
+            <ion-grid>
+              <ion-row>
+
+                <ion-col size="6">
+                  <ion-badge color="primary">OD</ion-badge>
+                  <p>
+                    {{ r.od?.esfera }} /
+                    {{ r.od?.cilindro }} /
+                    {{ r.od?.eje }}
+                  </p>
+                </ion-col>
+
+                <ion-col size="6">
+                  <ion-badge color="secondary">OI</ion-badge>
+                  <p>
+                    {{ r.oi?.esfera }} /
+                    {{ r.oi?.cilindro }} /
+                    {{ r.oi?.eje }}
+                  </p>
+                </ion-col>
+
+              </ion-row>
+            </ion-grid>
+
+          </ion-card-content>
+
+        </ion-card>
+
+      </ion-col>
+
+      <ion-col size="12" size-md="8">
+
+        <h2>Nueva Receta</h2>
+
+        <ion-row>
+
+          <ion-col size="12" size-md="8">
+
+            <ion-item>
+              <ion-label position="stacked">Doctor *</ion-label>
+              <ion-input
+                [(ngModel)]="nuevaRx.doctor"
+                (ionFocus)="mostrarTodosDoctores()"
+                (ionInput)="buscarDoctor()"
+                placeholder="Buscar doctor">
+              </ion-input>
+            </ion-item>
+
+            <ion-list *ngIf="mostrarListaDoctores">
+              <ion-item
+                button
+                *ngFor="let doc of doctoresFiltrados"
+                (click)="seleccionarDoctor(doc)">
+
+                <ion-label>
+                  {{ doc.nombre }}
+                  <p>{{ doc.cedula }}</p>
+                </ion-label>
+
+              </ion-item>
+            </ion-list>
+
+          </ion-col>
+
+          <ion-col size="12" size-md="4">
+            <ion-item>
+              <ion-label position="stacked">Cédula *</ion-label>
+              <ion-input [(ngModel)]="nuevaRx.cedula"></ion-input>
+            </ion-item>
+          </ion-col>
+
+        </ion-row>
+
+        <ion-list-header>Ojo Derecho (OD)</ion-list-header>
+        <ion-row>
+          <ion-col size="3"><ion-input type="number" placeholder="Esfera" [(ngModel)]="nuevaRx.od.esfera"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Cilindro" [(ngModel)]="nuevaRx.od.cilindro"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Eje" [(ngModel)]="nuevaRx.od.eje"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Adición" [(ngModel)]="nuevaRx.od.adicion"></ion-input></ion-col>
+        </ion-row>
+
+        <ion-list-header>Ojo Izquierdo (OI)</ion-list-header>
+        <ion-row>
+          <ion-col size="3"><ion-input type="number" placeholder="Esfera" [(ngModel)]="nuevaRx.oi.esfera"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Cilindro" [(ngModel)]="nuevaRx.oi.cilindro"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Eje" [(ngModel)]="nuevaRx.oi.eje"></ion-input></ion-col>
+          <ion-col size="3"><ion-input type="number" placeholder="Adición" [(ngModel)]="nuevaRx.oi.adicion"></ion-input></ion-col>
+        </ion-row>
+
+        <ion-item>
+          <ion-label position="stacked">Observaciones</ion-label>
+          <ion-textarea [(ngModel)]="nuevaRx.observaciones"></ion-textarea>
+        </ion-item>
+
+        <ion-button expand="block" color="success" (click)="guardarExamen()" class="ion-margin-top">
+          GUARDAR REFRACCIÓN
+        </ion-button>
+
+      </ion-col>
+
+    </ion-row>
+
+  </ion-grid>
+
+</ion-content>

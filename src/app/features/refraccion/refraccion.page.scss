@@ -1,0 +1,153 @@
+/* 🔹 FONDO GENERAL */
+:host {
+  ion-content {
+    --background: #F4F4F4;
+  }
+}
+
+/* 🔹 HEADER */
+ion-toolbar {
+  --background: linear-gradient(90deg, #2C5F9E, #1E3A5F);
+  --color: #FFFFFF;
+}
+
+/* 🔹 TITULOS */
+h2 {
+  color: #2C5F9E;
+  font-weight: 600;
+}
+
+/* 🔹 BUSCADOR */
+ion-searchbar {
+  --background: #FFFFFF;
+  --border-radius: 12px;
+  margin-bottom: 10px;
+}
+
+/* 🔹 CARDS HISTORIAL */
+ion-card {
+  border-radius: 14px;
+  background: #FFFFFF;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  transition: 0.2s;
+}
+
+ion-card:hover {
+  transform: translateY(-3px);
+}
+
+ion-card-title {
+  color: #1C1C1C;
+  font-weight: 600;
+}
+
+ion-card-subtitle {
+  color: #666;
+}
+
+/* 🔹 BADGES OD / OI */
+ion-badge[color="primary"] {
+  background: #2C5F9E;
+}
+
+ion-badge[color="secondary"] {
+  background: #C73E4A;
+}
+
+/* 🔹 FORMULARIO */
+ion-item {
+  --background: #FFFFFF;
+  --border-radius: 10px;
+  margin-bottom: 10px;
+}
+
+ion-label {
+  color: #1C1C1C;
+  font-size: 0.85rem;
+}
+
+ion-input,
+ion-textarea {
+  font-size: 0.9rem;
+}
+
+/* 🔹 SUGERENCIAS DOCTOR */
+ion-list {
+  background: #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+/* 🔹 BOTÓN */
+ion-button {
+  --border-radius: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Botón principal */
+ion-button[color="primary"] {
+  --background: #2C5F9E;
+}
+
+/* Hover */
+ion-button:hover {
+  transform: scale(1.02);
+  transition: 0.2s;
+}
+
+/* 🔹 INPUTS DE GRADUACIÓN */
+ion-row ion-input {
+  text-align: center;
+}
+
+/* 🔹 RESPONSIVE */
+@media (max-width: 768px) {
+  h2 {
+    text-align: center;
+  }
+}
+/* 🔍 SEARCHBAR ESTILO MODERNO */
+ion-searchbar {
+  --background: #FFFFFF;
+  --color: #1C1C1C;
+  --placeholder-color: #888;
+
+  --border-radius: 25px; /* más redondeado */
+  --box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+
+  padding: 4px 10px;
+  margin-bottom: 12px;
+}
+
+/* 🔍 ICONO LUPA */
+ion-searchbar::part(search-icon) {
+  color: #666;
+}
+
+/* 🔍 INPUT INTERNO */
+ion-searchbar input {
+  padding-left: 10px !important;
+  font-size: 0.95rem;
+}
+
+/* 🔍 EFECTO FOCUS (como navegador moderno) */
+ion-searchbar.searchbar-has-focus {
+  --box-shadow: 0 6px 14px rgba(44, 95, 158, 0.3);
+  transform: scale(1.01);
+  transition: 0.2s;
+}
+
+ion-searchbar {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  ion-searchbar {
+    max-width: 90%;
+  }
+}
+
