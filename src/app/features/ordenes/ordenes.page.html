@@ -1,0 +1,149 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Órdenes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- CATÁLOGO -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Productos / Servicios</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-grid>
+        <ion-row>
+
+          <ion-col size="6" size-md="4" size-lg="3" *ngFor="let a of articulos">
+
+            <ion-card class="producto-card" (click)="agregar(a)">
+
+              <ion-card-header>
+                <ion-card-title>{{a.nombre}}</ion-card-title>
+              </ion-card-header>
+
+              <ion-card-content>
+
+                <p class="precio">$ {{a.precio_venta}}</p>
+
+                <ion-badge
+                  [color]="a.stock_actual <= 2 ? 'danger' : 'success'">
+                  Stock: {{a.stock_actual}}
+                </ion-badge>
+
+                <ion-button
+                  expand="block"
+                  size="small"
+                  color="primary"
+                  [disabled]="a.stock_actual <= 0">
+
+                  Agregar
+                </ion-button>
+
+              </ion-card-content>
+
+            </ion-card>
+
+          </ion-col>
+
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <!-- CARRITO -->
+  <ion-card>
+    <ion-card-header>
+      <ion-card-title>Carrito</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-list *ngIf="carrito.length > 0">
+
+        <ion-item *ngFor="let c of carrito">
+
+          <ion-label>
+            <h2>{{c.nombre}}</h2>
+            <p>
+              ${{c.precio_venta}} x {{c.cantidad}} =
+              <strong>${{c.precio_venta * c.cantidad}}</strong>
+            </p>
+          </ion-label>
+
+          <!-- BOTONES -->
+          <ion-buttons slot="end">
+            <ion-button
+            size="small"
+            color="medium"
+            (click)="disminuir(c)">
+            -
+          </ion-button>
+
+            <ion-button
+              size="small"
+              color="primary"
+              (click)="agregar(c)">
+              +
+            </ion-button>
+
+            <ion-button
+              size="small"
+              color="danger"
+              (click)="quitar(c)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+
+          </ion-buttons>
+
+        </ion-item>
+
+      </ion-list>
+
+      <!-- VACÍO -->
+      <div *ngIf="carrito.length === 0" class="ion-text-center">
+        <ion-text color="medium">
+          El carrito está vacío
+        </ion-text>
+      </div>
+
+    </ion-card-content>
+  </ion-card>
+
+  <!--PAGO -->
+  <ion-card *ngIf="carrito.length > 0">
+    <ion-card-header>
+      <ion-card-title>Pago</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+
+      <ion-item>
+        <ion-label>Método de pago</ion-label>
+        <ion-select [(ngModel)]="metodoPago">
+          <ion-select-option value="EFECTIVO">Efectivo</ion-select-option>
+          <ion-select-option value="TARJETA">Tarjeta</ion-select-option>
+          <ion-select-option value="TRANSFERENCIA">Transferencia</ion-select-option>
+        </ion-select>
+      </ion-item>
+
+      <h2 class="total">
+        Total: ${{total}}
+      </h2>
+
+      <ion-button
+        expand="block"
+        color="success"
+        size="large"
+        (click)="guardarOrden()">
+
+        Guardar Orden
+
+      </ion-button>
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
