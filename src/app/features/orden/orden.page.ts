@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService, OrderItem } from '../../core/services/cart.service';
 import { ClientesService } from '../../core/services/clientes.service';
-import { InventarioService } from 'src/app/core/services/inventario.service';
+import { InventarioService } from '../../core/services/inventario.service';
 import { addIcons } from 'ionicons';
 import {
   personOutline, trashOutline, cartOutline,
