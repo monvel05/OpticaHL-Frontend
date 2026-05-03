@@ -5,6 +5,7 @@
  */
 
 /* Core CSS requerido para que los componentes de Ionic funcionen */
+@use "theme/variables";
 @import "@ionic/angular/css/core.css";
 
 /* CSS básico para apps de Ionic */
@@ -34,4 +35,4 @@
  * Variables de tema personalizadas (Colores, fuentes de la app, etc.)
  * Usamos "./theme/variables" para asegurar que la ruta relativa sea correcta.
  */
-@import "theme/variables";
+
