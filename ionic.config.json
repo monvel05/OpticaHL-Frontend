@@ -1,5 +1,7 @@
 {
-  "name": "New Ionic App",
-  "integrations": {},
-  "type": "angular"
+  "name": "OpticaHL",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
 }
