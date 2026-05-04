@@ -1,0 +1,63 @@
+<ion-content [fullscreen]="true" class="ion-padding modern-bg">
+  <div class="login-container">
+    
+    <div class="brand-section">
+      <div class="logo-wrapper">
+        <img src="assets/hll.png" alt="Logo de la Óptica" class="logo-image">
+      </div>
+      <h1 class="main-title">Visión Clara</h1>
+      <p class="welcome-text">Bienvenido de nuevo</p>
+    </div>
+
+    <form [formGroup]="loginForm" (ngSubmit)="onLogin()" class="login-form">
+      
+      <div class="form-field">
+        <ion-item lines="none" class="custom-input-item">
+          <ion-icon name="person-outline" slot="start" class="field-icon"></ion-icon>
+          <ion-input 
+            type="text" 
+            formControlName="usuario" 
+            placeholder="Nombre de usuario"
+            class="custom-input">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="form-field">
+        <ion-item lines="none" class="custom-input-item">
+          <ion-icon name="key-outline" slot="start" class="field-icon"></ion-icon>
+          <ion-input 
+            type="password" 
+            formControlName="password" 
+            placeholder="Contraseña"
+            class="custom-input">
+          </ion-input>
+        </ion-item>
+      </div>
+
+      <div class="form-field">
+        <ion-item lines="none" class="custom-input-item">
+          <ion-icon name="business-outline" slot="start" class="field-icon"></ion-icon>
+          <ion-select 
+            formControlName="sucursal_actual" 
+            placeholder="Selecciona Sucursal" 
+            interface="popover"
+            class="custom-input">
+            <ion-select-option value="HL01">Óptica HL01 - Matriz</ion-select-option>
+            </ion-select>
+        </ion-item>
+      </div>
+
+      <ion-button 
+        expand="block" 
+        type="submit" 
+        [disabled]="loginForm.invalid" 
+        class="login-button ion-margin-top">
+        Iniciar Sesión
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+
+    </form>
+    
+  </div>
+</ion-content>

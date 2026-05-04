@@ -1,0 +1,42 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Recibo</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  @if (loading) {
+    <ion-spinner class="spinner-center"></ion-spinner>
+  }
+
+  @if (recibo) {
+    <ion-card>
+
+      <ion-card-header>
+        <ion-card-title>Folio: {{ recibo.folio }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+
+        <p><b>Total:</b> {{ recibo.total | currency }}</p>
+        <p><b>Pagado:</b> {{ recibo.pagado | currency }}</p>
+        <p><b>Restante:</b> {{ recibo.restante | currency }}</p>
+
+        <ion-list>
+          @for (p of recibo.pagos; track p.fecha_hora) {
+            <ion-item>
+              <ion-label>
+                {{ p.metodo_pago }}
+                <p>{{ p.fecha_hora | date:'short' }}</p>
+              </ion-label>
+              <ion-badge color="success">{{ p.monto | currency }}</ion-badge>
+            </ion-item>
+          }
+        </ion-list>
+
+      </ion-card-content>
+    </ion-card>
+  }
+
+</ion-content>

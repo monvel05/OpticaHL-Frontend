@@ -1,0 +1,31 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Cuentas por Cobrar</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content>
+
+  @if (loading) {
+    <ion-spinner class="spinner-center"></ion-spinner>
+  }
+
+  @for (c of cuentas; track c.folio) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>{{ c.folio }}</ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content>
+        <p><b>Total:</b> {{ c.total | currency }}</p>
+        <p><b>Pagado:</b> {{ c.pagado | currency }}</p>
+        <p><b>Saldo:</b> {{ c.saldo | currency }}</p>
+
+        <ion-button expand="block" [routerLink]="['/recibo', c.folio]">
+          Ver Recibo
+        </ion-button>
+      </ion-card-content>
+    </ion-card>
+  }
+
+</ion-content>

@@ -1,0 +1,38 @@
+/*
+ * App Global CSS
+ * ----------------------------------------------------------------------------
+ * Estilos globales para toda la aplicación.
+ */
+
+/* Core CSS requerido para que los componentes de Ionic funcionen */
+@use "theme/variables";
+@import "@ionic/angular/css/core.css";
+
+/* CSS básico para apps de Ionic */
+@import "@ionic/angular/css/normalize.css";
+@import "@ionic/angular/css/structure.css";
+@import "@ionic/angular/css/typography.css";
+@import "@ionic/angular/css/display.css";
+
+/* Utilidades opcionales (puedes comentar las que no uses) */
+@import "@ionic/angular/css/padding.css";
+@import "@ionic/angular/css/float-elements.css";
+@import "@ionic/angular/css/text-alignment.css";
+@import "@ionic/angular/css/text-transformation.css";
+@import "@ionic/angular/css/flex-utils.css";
+
+/**
+ * Ionic Dark Mode (Modo Oscuro)
+ */
+@import '@ionic/angular/css/palettes/dark.system.css';
+
+/**
+ * Fuentes personalizadas
+ */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+
+/**
+ * Variables de tema personalizadas (Colores, fuentes de la app, etc.)
+ * Usamos "./theme/variables" para asegurar que la ruta relativa sea correcta.
+ */
+
