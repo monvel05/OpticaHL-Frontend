@@ -1,0 +1,70 @@
+<ion-header>
+  <ion-toolbar color="dark">
+    <ion-title>Corte de Caja</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="imprimirResumen()">
+        <ion-icon name="print-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="4">
+        <ion-card class="resumen-card efectivo">
+          <ion-card-content>
+            <ion-text color="medium">Efectivo en Caja</ion-text>
+            <h2>$12,450.00</h2>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="12" size-md="4">
+        <ion-card class="resumen-card tarjeta">
+          <ion-card-content>
+            <ion-text color="medium">Ventas Tarjeta/Transf.</ion-text>
+            <h2>$8,900.00</h2>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+      <ion-col size="12" size-md="4">
+        <ion-card class="resumen-card total-dia">
+          <ion-card-content>
+            <ion-text color="medium">Total del Día</ion-text>
+            <h2 color="primary">$21,350.00</h2>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <h5 class="ion-margin-start">Últimos Movimientos del Turno</h5>
+  <ion-list lines="inset" class="ion-margin-top">
+    <ion-item>
+      <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
+      <ion-label>
+        <h3>Folio: OPT-001</h3>
+        <p>Pago en Efectivo - Lentes de Sol</p>
+      </ion-label>
+      <ion-note slot="end" color="dark">$2,500.00</ion-note>
+    </ion-item>
+
+    <ion-item>
+      <ion-icon name="card-outline" slot="start" color="primary"></ion-icon>
+      <ion-label>
+        <h3>Folio: OPT-002</h3>
+        <p>Pago con Tarjeta - Examen y Micas</p>
+      </ion-label>
+      <ion-note slot="end" color="dark">$1,200.00</ion-note>
+    </ion-item>
+  </ion-list>
+
+  <div class="ion-padding">
+    <ion-button expand="block" color="danger" (click)="confirmarCierre()">
+      Cerrar Turno y Guardar Corte
+    </ion-button>
+  </div>
+
+</ion-content>

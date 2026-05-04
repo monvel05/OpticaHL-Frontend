@@ -1,0 +1,21 @@
+.producto-card {
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.producto-card:hover {
+  transform: scale(1.03);
+}
+
+.precio {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.total {
+  text-align: right;
+  font-size: 22px;
+  font-weight: bold;
+  margin: 15px 0;
+}

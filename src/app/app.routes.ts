@@ -26,6 +26,14 @@ export const routes: Routes = [
     loadComponent: () => import('./features/orden/orden.page').then( m => m.OrdenPage)
   },
   {
+    path: 'caja',
+    loadComponent: () => import('./features/caja/caja.page').then( m => m.CajaPage)
+  },
+  {
+    path: 'cortecaja',
+    loadComponent: () => import('./features/cortecaja/cortecaja.page').then( m => m.CorteCajaPage)
+  },
+  {
     path: '',
     redirectTo: 'auth/login', // Ruta completa para evitar confusiones
     pathMatch: 'full',
@@ -33,5 +41,6 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'inventario' // Si se pierden, mejor mandarlos al inventario (o al login)
-  }
+  },
+  
 ];

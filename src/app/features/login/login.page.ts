@@ -41,7 +41,6 @@ export class LoginPage implements OnInit {
       this.authService.login(credentials).subscribe({
         next: async (res: any) => {
           // Guardar sesión
-          await this.authService.setToken(res.token);
           localStorage.setItem('id_operador', res.user.id_operador);
           localStorage.setItem('sucursal', res.user.sucursal);
 

@@ -1,0 +1,29 @@
+/* src/app/pages/corte-caja/corte-caja.page.scss */
+@use "src/theme/variables" as v;
+
+.resumen-card {
+  text-align: center;
+  border-radius: 15px;
+  border-left: 5px solid;
+  
+  h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin: 10px 0 0 0;
+  }
+
+  &.efectivo { border-color: #2dd36f; }
+  &.tarjeta { border-color: #3880ff; }
+  &.total-dia { border-color: #ffd534; }
+}
+
+ion-list {
+  background: transparent;
+  border-radius: 12px;
+}
+
+ion-item {
+  --padding-start: 16px;
+  --inner-padding-end: 16px;
+  margin-bottom: 5px;
+}

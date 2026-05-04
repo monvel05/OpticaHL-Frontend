@@ -1,0 +1,56 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>Punto de Cobro - Óptica</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <div class="search-container">
+    <ion-item lines="outline">
+      <ion-label position="floating">Ingrese Folio de Orden</ion-label>
+      <ion-input [formControl]="folioBusqueda" placeholder="Ej: OPT-001"></ion-input>
+      <ion-button slot="end" (click)="buscarOrden()">
+        <ion-icon name="search-outline"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </div>
+
+  <ion-card *ngIf="ordenSeleccionada">
+    <ion-card-header>
+      <ion-card-title>Orden de: {{ ordenSeleccionada.cliente }}</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content>
+      <ion-list lines="none">
+        <ion-item *ngFor="let item of ordenSeleccionada.items">
+          <ion-label>{{ item.desc }}</ion-label>
+          <ion-note slot="end">${{ item.precio }}</ion-note>
+        </ion-item>
+        <hr>
+        <ion-item>
+          <ion-label><strong>TOTAL:</strong></ion-label>
+          <ion-note slot="end" color="success"><strong>${{ ordenSeleccionada.total }}</strong></ion-note>
+        </ion-item>
+      </ion-list>
+
+      <div class="metodos-pago ion-margin-top">
+        <p>Seleccione Método de Pago:</p>
+        <ion-segment value="efectivo" color="tertiary">
+          <ion-segment-button value="efectivo">
+            <ion-label>Efectivo</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="tarjeta">
+            <ion-label>Tarjeta</ion-label>
+          </ion-segment-button>
+          <ion-segment-button value="transferencia">
+            <ion-label>Transf.</ion-label>
+          </ion-segment-button>
+        </ion-segment>
+      </div>
+
+      <ion-button expand="block" color="success" class="ion-margin-top">
+        Registrar Pago y Finalizar
+      </ion-button>
+    </ion-card-content>
+  </ion-card>
+</ion-content>

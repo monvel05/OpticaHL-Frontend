@@ -2,8 +2,9 @@ import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService, OrderItem } from '../../core/services/cart.service';
-import { ClientesService } from '../../core/services/clientes.service';
-import { InventarioService } from 'src/app/core/services/inventario.service';
+import { ClienteService } from '../../core/services/cliente.service';
+import { InventarioService } from '../../core/services/inventario.service'; 
+import { OrdenService } from '../../core/services/orden.service';
 import { addIcons } from 'ionicons';
 import {
   personOutline, trashOutline, cartOutline,
@@ -12,7 +13,7 @@ import {
 import {
   IonContent, IonList, IonItem, IonLabel, IonSearchbar,
   IonButton, IonIcon, IonCard, IonCardHeader,
-  IonCardTitle, IonCardContent, IonListHeader, IonNote, IonHeader, IonToolbar, IonTitle
+  IonCardTitle, IonCardContent, IonListHeader,
 } from '@ionic/angular/standalone';
 
 @Component({
@@ -29,9 +30,9 @@ import {
 export class OrdenPage implements OnInit {
   // Inyección de servicios
   public cartService = inject(CartService);
-  private clientesService = inject(ClientesService);
+  private clientesService = inject(ClienteService);
   private inventarioService = inject(InventarioService);
-
+  private ordenService = inject(OrdenService);
   // Signals para la UI
   public filteredProducts = signal<any[]>([]);
   public searchTerm = signal('');
