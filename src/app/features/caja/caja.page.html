@@ -15,42 +15,46 @@
     </ion-item>
   </div>
 
-  <ion-card *ngIf="ordenSeleccionada">
-    <ion-card-header>
-      <ion-card-title>Orden de: {{ ordenSeleccionada.cliente }}</ion-card-title>
-    </ion-card-header>
+  @if (ordenSeleccionada) {
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Orden de: {{ ordenSeleccionada.cliente }}</ion-card-title>
+      </ion-card-header>
 
-    <ion-card-content>
-      <ion-list lines="none">
-        <ion-item *ngFor="let item of ordenSeleccionada.items">
-          <ion-label>{{ item.desc }}</ion-label>
-          <ion-note slot="end">${{ item.precio }}</ion-note>
-        </ion-item>
-        <hr>
-        <ion-item>
-          <ion-label><strong>TOTAL:</strong></ion-label>
-          <ion-note slot="end" color="success"><strong>${{ ordenSeleccionada.total }}</strong></ion-note>
-        </ion-item>
-      </ion-list>
+      <ion-card-content>
+        <ion-list lines="none">
+          @for (item of ordenSeleccionada.items; track item.desc) {
+            <ion-item>
+              <ion-label>{{ item.desc }}</ion-label>
+              <ion-note slot="end">${{ item.precio }}</ion-note>
+            </ion-item>
+          }
+          <hr>
+          <ion-item>
+            <ion-label><strong>TOTAL:</strong></ion-label>
+            <ion-note slot="end" color="success"><strong>${{ ordenSeleccionada.total }}</strong></ion-note>
+          </ion-item>
+        </ion-list>
 
-      <div class="metodos-pago ion-margin-top">
-        <p>Seleccione Método de Pago:</p>
-        <ion-segment value="efectivo" color="tertiary">
-          <ion-segment-button value="efectivo">
-            <ion-label>Efectivo</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="tarjeta">
-            <ion-label>Tarjeta</ion-label>
-          </ion-segment-button>
-          <ion-segment-button value="transferencia">
-            <ion-label>Transf.</ion-label>
-          </ion-segment-button>
-        </ion-segment>
-      </div>
+        <div class="metodos-pago ion-margin-top">
+          <p>Seleccione Método de Pago:</p>
+          <ion-segment value="efectivo" color="tertiary">
+            <ion-segment-button value="efectivo">
+              <ion-label>Efectivo</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="tarjeta">
+              <ion-label>Tarjeta</ion-label>
+            </ion-segment-button>
+            <ion-segment-button value="transferencia">
+              <ion-label>Transf.</ion-label>
+            </ion-segment-button>
+          </ion-segment>
+        </div>
 
-      <ion-button expand="block" color="success" class="ion-margin-top">
-        Registrar Pago y Finalizar
-      </ion-button>
-    </ion-card-content>
-  </ion-card>
+        <ion-button expand="block" color="success" class="ion-margin-top">
+          Registrar Pago y Finalizar
+        </ion-button> 
+      </ion-card-content>
+    </ion-card>
+  }
 </ion-content>
