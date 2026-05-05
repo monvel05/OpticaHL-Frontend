@@ -19,19 +19,23 @@ export const routes: Routes = [
   },
   {
     path: 'calizdeformulario',
-    loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then( m => m.CalizdeformularioPage)
+    loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then(m => m.CalizdeformularioPage)
   },
   {
     path: 'orden',
-    loadComponent: () => import('./features/orden/orden.page').then( m => m.OrdenPage)
+    loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage)
   },
   {
     path: 'caja',
-    loadComponent: () => import('./features/caja/caja.page').then( m => m.CajaPage)
+    loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage)
   },
   {
     path: 'cortecaja',
-    loadComponent: () => import('./features/cortecaja/cortecaja.page').then( m => m.CorteCajaPage)
+    loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CorteCajaPage)
+  },
+  {
+    path: 'ordenes',
+    loadComponent: () => import('./features/ordenes/ordenes.page').then(m => m.OrdenesPage)
   },
   {
     path: '',
@@ -41,6 +45,6 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'inventario' // Si se pierden, mejor mandarlos al inventario (o al login)
-  },
-  
+  }
+
 ];

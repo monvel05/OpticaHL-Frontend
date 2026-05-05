@@ -3,9 +3,9 @@ import { IonicModule } from '@ionic/angular';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
-import { ArticulosService } from '../../core/auth/services/articulos.service';
-import { OrdenesService } from '../../core/auth/services/ordenes.service';
-import { CajaService } from '../../core/auth/services/caja.service';
+import { ArticulosService } from '../../core/services/articulos.service';
+import { OrdenService } from '../../core/services/orden.service';
+import { CajaService } from '../../core/services/caja.service';
 
 @Component({
   selector: 'app-ordenes',
@@ -24,7 +24,7 @@ export class OrdenesPage implements OnInit {
 
   constructor(
     private articulosService: ArticulosService,
-    private ordenesService: OrdenesService,
+    private ordenService: OrdenService,
     private cajaService: CajaService
   ) {}
 
@@ -134,7 +134,7 @@ export class OrdenesPage implements OnInit {
       }))
     };
 
-    this.ordenesService.crearOrden(orden).subscribe({
+    this.ordenService.crearOrden(orden).subscribe({
       next: (res: any) => {
 
         // REGISTRAR EN CAJA
