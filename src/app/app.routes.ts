@@ -47,4 +47,6 @@ export const routes: Routes = [
     redirectTo: 'inventario' // Si se pierden, mejor mandarlos al inventario (o al login)
   }
 
+
+
 ];

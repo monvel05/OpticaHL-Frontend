@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
-import { InventarioService } from '../../core/services/inventario.service';
+import { InventarioService, Producto } from '../../core/services/inventario.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
 
 
@@ -23,15 +23,6 @@ import {
   cubeOutline             
 } from 'ionicons/icons';
 
-// Definimos una interfaz sencilla para tener orden
-interface Producto {
-  id: number;
-  nombre: string;
-  marca: string;
-  cantidad: number;
-  stockMinimo: number;
-  tipo: string;
-}
 
 @Component({
   selector: 'app-inventario',
@@ -96,9 +87,6 @@ export class InventarioPage implements OnInit {
       error: (err) => {
         console.warn('Backend no disponible, usando locales.');
         this.productos = [
-          { id: 1, nombre: 'Ray-Ban Aviator', marca: 'Ray-Ban', cantidad: 2, stockMinimo: 5, tipo: 'armazones' },
-          { id: 2, nombre: 'Oakley Sport', marca: 'Oakley', cantidad: 10, stockMinimo: 3, tipo: 'armazones' },
-          { id: 3, nombre: 'Líquido Limpiador', marca: 'Splash', cantidad: 1, stockMinimo: 5, tipo: 'accesorios' },
         ];
         this.filtrar();
       }

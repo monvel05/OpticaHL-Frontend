@@ -1,19 +1,28 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
-// Importamos el environment para que funcione en desarrollo y producción
+import { tap, map } from 'rxjs/operators'; // Importamos map para los filtros
 import { environment } from '../../../environment/envs'; 
+
+// Definición de Interfaz (Movida arriba para mejor legibilidad)
+// En src/app/core/services/inventario.service.ts
+export interface Producto {
+  id: any;
+  nombre: string;
+  marca: string;      // <--- Asegúrate de que diga 'marca'
+  cantidad: number;   // <--- Cambia 'stockActual' por 'cantidad' para que coincida con tu HTML
+  stockMinimo: number;
+  tipo: string; 
+  stockActual: number;
+  // <--- Cambia 'categoria' por 'tipo' para que coincida con tu HTML
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class InventarioService {
-  // 1. Usamos la URL del environment
   private API_URL = `${environment.apiUrl}/articulos`;
-
-  // 2. Estado reactivo para el inventario
-  private inventario$ = new BehaviorSubject<any[]>([]);
+  private inventario$ = new BehaviorSubject<Producto[]>([]);
 
   constructor(private http: HttpClient) {}
 
@@ -22,13 +31,22 @@ export class InventarioService {
   // =====================
 
   /** Obtiene todos los productos */
-  getInventario(): Observable<any[]> {
-    return this.http.get<any[]>(this.API_URL);
+  getInventario(): Observable<Producto[]> {
+    return this.http.get<Producto[]>(this.API_URL);
+  }
+
+  /** * REGLA DE NEGOCIO: Obtiene solo productos en stock crítico
+   * Filtra los productos donde el stock actual es menor o igual al mínimo
+   */
+  getStockCritico(): Observable<Producto[]> {
+    return this.getInventario().pipe(
+      map(productos => productos.filter(p => p.stockActual <= p.stockMinimo))
+    );
   }
 
   /** Obtiene productos por sucursal específica */
-  getPorSucursal(idSucursal: string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.API_URL}/sucursal/${idSucursal}`);
+  getPorSucursal(idSucursal: string): Observable<Producto[]> {
+    return this.http.get<Producto[]>(`${this.API_URL}/sucursal/${idSucursal}`);
   }
 
   // =====================
@@ -38,14 +56,14 @@ export class InventarioService {
   /** Crea un nuevo producto y refresca el estado */
   crearProducto(producto: any): Observable<any> {
     return this.http.post<any>(this.API_URL, producto).pipe(
-      tap(() => this.cargarInventario()) // Actualiza la lista automáticamente al crear
+      tap(() => this.cargarInventario()) 
     );
   }
 
   /** Actualiza el stock de un producto */
   actualizarStock(data: any): Observable<any> {
     return this.http.put(`${this.API_URL}/stock`, data).pipe(
-      tap(() => this.cargarInventario()) // Actualiza la lista tras el cambio
+      tap(() => this.cargarInventario())
     );
   }
 
@@ -53,8 +71,7 @@ export class InventarioService {
   // GESTIÓN DE ESTADO (RxJS)
   // =====================
 
-  /** * Carga el inventario desde el servidor y lo emite al BehaviorSubject 
-   */
+  /** Carga el inventario desde el servidor y lo emite al BehaviorSubject */
   cargarInventario() {
     this.getInventario().subscribe({
       next: (data) => this.inventario$.next(data),
@@ -62,9 +79,8 @@ export class InventarioService {
     });
   }
 
-  /** * Retorna el Observable para que los componentes se suscriban a cambios en tiempo real 
-   */
-  inventarioStream(): Observable<any[]> {
+  /** Retorna el Observable para suscripción en tiempo real */
+  inventarioStream(): Observable<Producto[]> {
     return this.inventario$.asObservable();
   }
 }
