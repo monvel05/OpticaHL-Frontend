@@ -1,9 +1,8 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router'; 
-import { IonicModule, ToastController } from '@ionic/angular';
-import { AuthService } from '../../core/services/auth.service';
+import { IonContent, IonItem, IonIcon, IonInput, IonSelect, IonSelectOption, IonButton, ToastController } from '@ionic/angular/standalone';
+import { AuthService } from '../../core/services/auth.service'; // Asegúrate de que esta ruta sea correcta
 import { addIcons } from 'ionicons';
 import { personOutline, keyOutline, businessOutline, arrowForwardOutline } from 'ionicons/icons';
 
@@ -12,7 +11,16 @@ import { personOutline, keyOutline, businessOutline, arrowForwardOutline } from 
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, ReactiveFormsModule]
+  imports: [
+    ReactiveFormsModule,
+    IonContent,
+    IonItem,
+    IonIcon,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton
+  ]
 })
 export class LoginPage implements OnInit {
   loginForm: FormGroup;
@@ -23,11 +31,13 @@ export class LoginPage implements OnInit {
     private router: Router,
     private toastController: ToastController
   ) {
+    // Registramos los íconos para la versión Standalone de Ionic
     addIcons({ personOutline, keyOutline, businessOutline, arrowForwardOutline });
 
+    // Tarea 3.1: Ajustamos las claves para coincidir con el AuthService y el Backend
     this.loginForm = this.fb.group({
-      usuario: ['', [Validators.required]],        
-      password: ['', [Validators.required]],
+      usuario_login: ['', [Validators.required]],        
+      contrasena: ['', [Validators.required]],
       sucursal_actual: ['HL01', [Validators.required]]
     });
   }
@@ -39,39 +49,39 @@ export class LoginPage implements OnInit {
       const credentials = this.loginForm.value;
       
       this.authService.login(credentials).subscribe({
-        next: async (res: any) => {
-          // Guardar sesión
-          localStorage.setItem('id_operador', res.user.id_operador);
-          localStorage.setItem('sucursal', res.user.sucursal);
+        next: async (res) => {
+          // El servicio ya guardó el Token y el Usuario de forma segura en Capacitor Preferences (Tarea 3.3)
+          
+          // Saludo usando la propiedad correcta de tu interfaz Usuario
+          this.mostrarToast(`¡Bienvenido(a) ${res.usuario.nombre_completo}!`, 'success');
 
-          // Saludo
-          this.mostrarToast(`¡Bienvenida ${res.user.nombre}!`, 'success');
-
-          // REDIRECCIÓN DINÁMICA POR ROL
-          this.redirigirSegunRol(res.user.roles);
+          // Redirección por rol
+          this.redirigirSegunRol(res.usuario.roles);
         },
         error: async (err) => {
-          this.mostrarToast(err.error.message || 'Error de conexión', 'danger');
+          // Captura el mensaje de error del backend de tu compañera
+          const errMsg = err.error?.message || 'Error de credenciales o conexión';
+          this.mostrarToast(errMsg, 'danger');
         }
       });
     }
   }
 
-  // LA FUNCIÓN DEPENDIENDO DEL ROL
   redirigirSegunRol(roles: string[]) {
     console.log('Validando roles para navegación:', roles);
     
-    if (roles.includes('ADMINISTRADOR')) {
+    // Normalizamos a mayúsculas para evitar fallos por formato
+    const rolesUpper = roles.map(r => r.toUpperCase());
+
+    if (rolesUpper.includes('ADMINISTRADOR')) {
       this.router.navigate(['/inventario']);
-    } else if (roles.includes('VENDEDOR')) {
+    } else if (rolesUpper.includes('VENDEDOR') || rolesUpper.includes('MOSTRADOR')) {
       this.router.navigate(['/ventas']);
     } else {
-      // Por si acaso hay un usuario sin rol definido
       this.router.navigate(['/home']);
     }
   }
 
-  // Función auxiliar para no repetir código de los mensajes
   async mostrarToast(mensaje: string, color: 'success' | 'danger') {
     const toast = await this.toastController.create({
       message: mensaje,

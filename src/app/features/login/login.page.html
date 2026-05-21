@@ -16,11 +16,14 @@
           <ion-icon name="person-outline" slot="start" class="field-icon"></ion-icon>
           <ion-input 
             type="text" 
-            formControlName="usuario" 
+            formControlName="usuario_login" 
             placeholder="Nombre de usuario"
             class="custom-input">
           </ion-input>
         </ion-item>
+        @if (loginForm.get('usuario_login')?.touched && loginForm.get('usuario_login')?.invalid) {
+          <small class="error-text">El usuario es requerido</small>
+        }
       </div>
 
       <div class="form-field">
@@ -28,11 +31,14 @@
           <ion-icon name="key-outline" slot="start" class="field-icon"></ion-icon>
           <ion-input 
             type="password" 
-            formControlName="password" 
+            formControlName="contrasena" 
             placeholder="Contraseña"
             class="custom-input">
           </ion-input>
         </ion-item>
+        @if (loginForm.get('contrasena')?.touched && loginForm.get('contrasena')?.invalid) {
+          <small class="error-text">La contraseña es requerida</small>
+        }
       </div>
 
       <div class="form-field">
@@ -43,8 +49,13 @@
             placeholder="Selecciona Sucursal" 
             interface="popover"
             class="custom-input">
+            
             <ion-select-option value="HL01">Óptica HL01 - Matriz</ion-select-option>
-            </ion-select>
+            <ion-select-option value="HL02">Óptica HL02 - Pulgas</ion-select-option>
+            <ion-select-option value="HL03">Óptica HL03 - Pandas</ion-select-option>
+            <ion-select-option value="HL04">Óptica HL04 - Universidad</ion-select-option>
+            
+          </ion-select>
         </ion-item>
       </div>
 
