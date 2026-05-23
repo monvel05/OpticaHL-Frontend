@@ -1,36 +1,77 @@
 import { Component, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FilterPanelComponent } from '../../../shared/components/filter-panel/filter-panel.component';
 import { ReportFilterService } from '../../../core/services/report-filter.service';
-import { CommonModule } from '@angular/common';
-// Importa aquí tu componente de gráfica cuando lo tengas
+import { ReportesService } from '../../../core/services/reporte.service';
+import { IonicModule } from '@ionic/angular';
+import * as XLSX from 'xlsx';
 
 @Component({
   selector: 'app-reporting-dashboard',
   standalone: true,
-  imports: [FilterPanelComponent, CommonModule], 
-  template: `
-    <div class="container">
-      <h1>Reporte de Ventas</h1>
-      
-      <app-filter-panel></app-filter-panel>
-
-      <div class="charts-grid">
-        <p>Esperando datos de: {{ (filtros$ | async)?.fechaInicio }}</p>
-      </div>
-    </div>
-  `
+  imports: [CommonModule, IonicModule, FilterPanelComponent], 
+  templateUrl: './reporting-dashboard.component.html',
+  styleUrls: ['./reporting-dashboard.component.scss'] // Opcional, si tienes estilos
 })
 export class ReportingDashboardComponent implements OnInit {
   filtros$;
+  reporteVentas: any[] = [];
+  reporteDescuentos: any[] = [];
+  cargando = false;
 
-  constructor(private filterService: ReportFilterService) {
+  constructor(
+    private filterService: ReportFilterService,
+    private reportesService: ReportesService
+  ) {
     this.filtros$ = this.filterService.filtros$;
   }
 
   ngOnInit() {
-    // Aquí podrías suscribirte para llamar a tu API de ventas
     this.filtros$.subscribe(f => {
-      console.log('Llamando a la API con:', f);
+      if (f && f.fechaInicio && f.fechaFin) {
+        this.cargarDatos(f);
+      }
     });
+  }
+
+  cargarDatos(filtros: any) {
+    this.cargando = true;
+    
+    // 1. Cargar Ventas
+    this.reportesService.obtenerReporteVentasCompleto(filtros.fechaInicio, filtros.fechaFin)
+      .subscribe({
+        next: (res) => this.reporteVentas = res.datos || [],
+        error: (err) => console.error('Error al cargar ventas', err)
+      });
+
+    // 2. Cargar Descuentos (usando el mes de la fechaInicio como ejemplo)
+    const fecha = new Date(filtros.fechaInicio);
+    this.reportesService.obtenerReporteDescuentos(fecha.getMonth() + 1, fecha.getFullYear())
+      .subscribe({
+        next: (res) => {
+          this.reporteDescuentos = res.datos || [];
+          this.cargando = false;
+        },
+        error: (err) => {
+          console.error('Error al cargar descuentos', err);
+          this.cargando = false;
+        }
+      });
+  }
+
+  exportarAExcel() {
+    // Creamos un libro de trabajo
+    const wb: XLSX.WorkBook = XLSX.utils.book_new();
+
+    // Hoja 1: Ventas
+    const wsVentas: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.reporteVentas);
+    XLSX.utils.book_append_sheet(wb, wsVentas, 'Ventas Completas');
+
+    // Hoja 2: Descuentos
+    const wsDescuentos: XLSX.WorkSheet = XLSX.utils.json_to_sheet(this.reporteDescuentos);
+    XLSX.utils.book_append_sheet(wb, wsDescuentos, 'Descuentos del Mes');
+
+    // Descargar el archivo
+    XLSX.writeFile(wb, `Reporte_Contable_${new Date().getTime()}.xlsx`);
   }
 }

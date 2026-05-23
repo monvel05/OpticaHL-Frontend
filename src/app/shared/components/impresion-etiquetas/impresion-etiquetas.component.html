@@ -1,0 +1,33 @@
+<ion-card>
+  <ion-card-header>
+    <ion-card-title>Impresión de Código de Barras</ion-card-title>
+    <ion-card-subtitle>Zebra GK420t</ion-card-subtitle>
+  </ion-card-header>
+
+  <ion-card-content>
+    @if (productoSeleccionado) {
+      <div class="producto-info">
+        <p><strong>Artículo:</strong> {{ productoSeleccionado.nombre }}</p>
+        <p><strong>Código:</strong> {{ productoSeleccionado.codigo }}</p>
+        <p><strong>Precio:</strong> {{ productoSeleccionado.precio_venta | currency }}</p>
+      </div>
+
+      <ion-button 
+        expand="block" 
+        (click)="imprimir()" 
+        [disabled]="imprimiendo">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        @if (imprimiendo) {
+          Enviando...
+        } @else {
+          Imprimir Etiqueta
+        }
+      </ion-button>
+    } @else {
+      <div class="ion-text-center ion-padding">
+        <ion-icon name="barcode-outline" style="font-size: 48px; color: gray;"></ion-icon>
+        <p>Selecciona un artículo del inventario para imprimir su etiqueta.</p>
+      </div>
+    }
+  </ion-card-content>
+</ion-card>

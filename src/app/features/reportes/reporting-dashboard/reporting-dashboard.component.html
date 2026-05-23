@@ -1,3 +1,99 @@
-<p>
-  reporting-dashboard works!
-</p>
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Dashboard del Contador</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportarAExcel()" [disabled]="cargando || (reporteVentas.length === 0 && reporteDescuentos.length === 0)">
+        <ion-icon slot="start" name="download-outline"></ion-icon>
+        Exportar a Excel
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  
+  <app-filter-panel></app-filter-panel>
+
+  @if (cargando) {
+    <ion-spinner name="crescent" class="ion-margin-top"></ion-spinner>
+  } @else {
+    <div>
+      <ion-card class="ion-margin-top">
+        <ion-card-header>
+          <ion-card-title>Reporte Completo de Ventas</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div style="overflow-x: auto;">
+            <table class="table-report">
+              <thead>
+                <tr>
+                  <th>Folio</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Estatus</th>
+                  <th>Total Orden</th>
+                  <th>Total Pagado</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (venta of reporteVentas; track venta.folio) {
+                  <tr>
+                    <td>{{ venta.folio }}</td>
+                    <td>{{ venta.fecha_emision | date:'short' }}</td>
+                    <td>{{ venta.cliente }}</td>
+                    <td><ion-badge color="medium">{{ venta.estatus }}</ion-badge></td>
+                    <td>{{ venta.total_orden | currency }}</td>
+                    <td>{{ venta.total_pagado | currency }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="ion-text-center">No hay ventas en este periodo.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-card-content>
+      </ion-card>
+
+      <ion-card class="ion-margin-top">
+        <ion-card-header>
+          <ion-card-title>Descuentos Aplicados</ion-card-title>
+        </ion-card-header>
+        <ion-card-content>
+          <div style="overflow-x: auto;">
+            <table class="table-report">
+              <thead>
+                <tr>
+                  <th>Factura / Orden</th>
+                  <th>Fecha</th>
+                  <th>Cliente</th>
+                  <th>Subtotal</th>
+                  <th>Descuento</th>
+                  <th>Total Final</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (desc of reporteDescuentos; track desc.num_factura || desc.folio_orden) {
+                  <tr>
+                    <td>{{ desc.num_factura || desc.folio_orden }}</td>
+                    <td>{{ desc.fecha | date:'shortDate' }}</td>
+                    <td>{{ desc.cliente }}</td>
+                    <td>{{ desc.subtotal | currency }}</td>
+                    <td style="color: red;">-{{ desc.descuento | currency }}</td>
+                    <td>{{ desc.total | currency }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" class="ion-text-center">No hay descuentos en este periodo.</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    </div>
+  }
+
+</ion-content>
