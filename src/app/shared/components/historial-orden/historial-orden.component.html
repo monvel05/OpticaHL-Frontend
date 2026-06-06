@@ -10,9 +10,8 @@
 </ion-header>
 
 <ion-content>
-  
   @if (cargando()) {
-    <div class="ion-text-center ion-padding" style="margin-top: 50px;">
+    <div class="ion-text-center ion-padding" style="margin-top: 50px">
       <ion-spinner name="crescent"></ion-spinner>
       <p>Cargando órdenes...</p>
     </div>
@@ -23,20 +22,39 @@
           <ion-label>
             <h2>Orden #{{ order.id }}</h2>
             <p>Paciente: {{ order.paciente_nombre }}</p>
-            <p>Fecha: {{ order.fecha | date:'dd/MM/yyyy' }}</p>
+            <p>Fecha: {{ order.fecha | date: "dd/MM/yyyy" }}</p>
             <p>Total: {{ order.total | currency }}</p>
-            
-            <ion-badge [color]="order.estatus === 'Cancelada' ? 'danger' : 'success'">
+
+            <ion-badge
+              [color]="order.estatus === 'Cancelada' ? 'danger' : 'success'"
+            >
               {{ order.estatus }}
             </ion-badge>
           </ion-label>
 
-          @if (authService.tieneRol('ADMINISTRADOR') && order.estatus !== 'Cancelada') {
-            <ion-button 
+          @if ("
+              orden.estatus === 'COMPLETADA' &&
+              orden.estatus_factura !== 'FACTURADA'
+            ") {
+          <ion-button
+            fill="clear"
+            color="tertiary"
+            (click)="abrirModalFacturacion(orden)"
+          >
+            <ion-icon name="receipt-outline" slot="icon-only"></ion-icon>
+          </ion-button>
+        }
+
+          @if (
+            authService.tieneRol("ADMINISTRADOR") &&
+            order.estatus !== "Cancelada"
+          ) {
+            <ion-button
               slot="end"
-              fill="clear" 
+              fill="clear"
               color="danger"
-              (click)="confirmarCancelacion(order.id)">
+              (click)="confirmarCancelacion(order.id)"
+            >
               <ion-icon name="close-circle" slot="start"></ion-icon>
               Cancelar
             </ion-button>
