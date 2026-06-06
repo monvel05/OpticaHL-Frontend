@@ -47,4 +47,11 @@ export class ClienteService {
     
     return this.http.post<any>(this.apiUrl, payload);
   }
+
+  /** * NUEVO: Guardar una nueva receta/graduación (RX) vinculada a un cliente específico
+   * Conecta con: POST /clientes/:id/rx
+   */
+  guardarNuevaRX(idCliente: number, datosRX: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${idCliente}/rx`, datosRX);
+  }
 }

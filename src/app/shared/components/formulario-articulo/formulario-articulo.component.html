@@ -2,12 +2,13 @@
   <ion-toolbar color="primary">
     <ion-buttons slot="start">
       <ion-button (click)="cerrar()">
-        <ion-icon name="close-outline"></ion-icon>
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Nuevo {{ tipoArticulo | titlecase }}</ion-title>
+    <ion-title>Nuevo {{ tituloVista }}</ion-title>
     <ion-buttons slot="end">
-      <ion-button (click)="guardar()" [disabled]="!articulo.nombre || !articulo.precio" class="btn-guardar">
+      <ion-button (click)="guardar()" [disabled]="!articulo.nombre || !articulo.precio || articulo.precio <= 0"
+        class="btn-guardar" style="font-weight: bold;">
         GUARDAR
       </ion-button>
     </ion-buttons>
@@ -15,77 +16,119 @@
 </ion-header>
 
 <ion-content color="light">
-  <div class="form-wrapper">
-    
-    <ion-card class="form-card">
-      <ion-card-header>
-        <ion-card-subtitle color="primary">DATOS BÁSICOS</ion-card-subtitle>
+  <div class="form-wrapper" style="padding: 10px;">
+
+    <ion-card class="form-card"
+      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+      <ion-card-header style="padding-bottom: 5px;">
+        <ion-card-subtitle color="primary" style="font-weight: bold;">DATOS BÁSICOS</ion-card-subtitle>
       </ion-card-header>
-      
-      <ion-card-content>
+
+      <ion-card-content style="padding-top: 0;">
         <ion-item lines="full" class="custom-item">
           <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
-          <ion-label position="stacked">Código / SKU</ion-label>
-          <ion-input [(ngModel)]="articulo.codigo" placeholder="Ej. RB-3025"></ion-input>
+          <ion-input label="Código / SKU" labelPlacement="stacked" [(ngModel)]="articulo.codigo"
+            placeholder="Ej. SERV-01"></ion-input>
         </ion-item>
 
         <ion-item lines="full" class="custom-item">
           <ion-icon name="glasses-outline" slot="start" color="medium"></ion-icon>
-          <ion-label position="stacked">Nombre o Modelo</ion-label>
-          <ion-input [(ngModel)]="articulo.nombre" placeholder="Nombre del producto"></ion-input>
+          <ion-input label="Nombre del Servicio o Producto *" labelPlacement="stacked" [(ngModel)]="articulo.nombre"
+            placeholder="Ej. Examen de la Vista Completo"></ion-input>
         </ion-item>
 
-        <div class="brand-selector-container">
-          <ion-label class="fake-label">Marca</ion-label>
-          <div class="selector-wrapper">
-             <app-selector-entidad (seleccionado)="onMarcaSelected($event)"></app-selector-entidad>
+        @if (tipoArticulo !== 'SERVICIO') {
+          <div class="brand-selector-container" style="padding: 10px 15px 5px 15px;">
+            <app-selector-entidad label="Seleccionar Marca *" icon="pricetag-outline" [opciones]="marcasDisponibles"
+              (seleccionado)="onMarcaSelected($event)">
+            </app-selector-entidad>
           </div>
-        </div>
+        }
       </ion-card-content>
     </ion-card>
 
-    <ion-card class="form-card">
-      <ion-card-header>
-        <ion-card-subtitle color="primary">PRECIO Y EXISTENCIAS</ion-card-subtitle>
+    @if (tipoArticulo === 'Z' || tipoArticulo === 'S') {
+    <ion-card class="form-card"
+      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+      <ion-card-header style="padding-bottom: 5px;">
+        <ion-card-subtitle color="primary" style="font-weight: bold;">ESPECIFICACIONES FÍSICAS</ion-card-subtitle>
       </ion-card-header>
-      
-      <ion-card-content>
+
+      <ion-card-content style="padding-top: 0;">
         <ion-item lines="full" class="custom-item">
-          <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
-          <ion-label position="stacked">Precio de Venta</ion-label>
-          <ion-input type="number" [(ngModel)]="articulo.precio" placeholder="0.00"></ion-input>
-          <ion-note slot="end">$</ion-note>
+          <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
+          <ion-input label="Material" labelPlacement="stacked" [(ngModel)]="articulo.material"
+            placeholder="Ej. Acetato, Titanio, Metal"></ion-input>
         </ion-item>
 
+        <ion-item lines="full" class="custom-item">
+          <ion-icon name="color-palette-outline" slot="start" color="medium"></ion-icon>
+          <ion-input label="Color / Tono" labelPlacement="stacked" [(ngModel)]="articulo.color"
+            placeholder="Ej. Negro Mate, Carey"></ion-input>
+        </ion-item>
+
+        <ion-item lines="full" class="custom-item">
+          <ion-icon name="shapes-outline" slot="start" color="medium"></ion-icon>
+          <ion-input label="Forma / Estilo" labelPlacement="stacked" [(ngModel)]="articulo.forma"
+            placeholder="Ej. Rectangular, Redondo, Aviador"></ion-input>
+        </ion-item>
+      </ion-card-content>
+    </ion-card>
+    }
+
+    <ion-card class="form-card"
+      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+      <ion-card-header style="padding-bottom: 5px;">
+        <ion-card-subtitle color="primary" style="font-weight: bold;">
+          {{ tipoArticulo === 'SERVICIO' ? 'COSTO Y PRECIO DE VENTA' : 'PRECIO Y EXISTENCIAS INICIALES' }}
+        </ion-card-subtitle>
+      </ion-card-header>
+
+      <ion-card-content style="padding-top: 0;">
         <ion-grid class="ion-no-padding">
           <ion-row>
             <ion-col size="6">
               <ion-item lines="full" class="custom-item">
-                <ion-label position="stacked">Cantidad</ion-label>
-                <ion-input type="number" [(ngModel)]="articulo.cantidad"></ion-input>
+                <ion-icon name="cash-outline" slot="start" color="medium"></ion-icon>
+                <ion-input type="number" label="Costo U." labelPlacement="stacked" [(ngModel)]="articulo.costo"
+                  placeholder="0.00"></ion-input>
               </ion-item>
             </ion-col>
             <ion-col size="6">
               <ion-item lines="full" class="custom-item">
-                <ion-label position="stacked">Min. Stock</ion-label>
-                <ion-input type="number" [(ngModel)]="articulo.stockMinimo"></ion-input>
+                <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
+                <ion-input type="number" label="Precio Venta *" labelPlacement="stacked" [(ngModel)]="articulo.precio"
+                  placeholder="0.00"></ion-input>
               </ion-item>
             </ion-col>
           </ion-row>
+
+          @if (tipoArticulo !== 'SERVICIO') {
+            <ion-row style="margin-top: 8px;">
+              <ion-col size="6">
+                <ion-item lines="full" class="custom-item">
+                  <ion-input type="number" label="Stock Inicial" labelPlacement="stacked"
+                    [(ngModel)]="articulo.cantidad"></ion-input>
+                </ion-item>
+              </ion-col>
+              <ion-col size="6">
+                <ion-item lines="full" class="custom-item">
+                  <ion-input type="number" label="Stock Mínimo" labelPlacement="stacked"
+                    [(ngModel)]="articulo.stockMinimo"></ion-input>
+                </ion-item>
+              </ion-col>
+            </ion-row>
+          }
         </ion-grid>
       </ion-card-content>
     </ion-card>
 
-    <ion-card class="form-card">
-      <ion-card-content>
+    <ion-card class="form-card" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+      <ion-card-content style="padding: 5px 10px;">
         <ion-item lines="none">
           <ion-icon name="document-text-outline" slot="start" color="medium"></ion-icon>
-          <ion-textarea 
-            label="Notas Adicionales" 
-            labelPosition="stacked" 
-            [(ngModel)]="articulo.descripcion" 
-            placeholder="Color, material, etc." 
-            [autoGrow]="true">
+          <ion-textarea label="Notas de Observación" labelPlacement="stacked" [(ngModel)]="articulo.descripcion"
+            placeholder="Escribe detalles del servicio o especificaciones adicionales..." [autoGrow]="true">
           </ion-textarea>
         </ion-item>
       </ion-card-content>

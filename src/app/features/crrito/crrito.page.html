@@ -1,0 +1,123 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-button (click)="cerrar()">
+        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+    <ion-title style="font-weight: bold;">Cotización y Órdenes</ion-title>
+    @if (folioRx) {
+      <ion-note slot="end" style="color: white; margin-right: 15px; font-weight: bold;">Rx: {{ folioRx }}</ion-note>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+
+  <ion-item lines="none" style="border-radius: 12px; margin-bottom: 12px; --background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.03);">
+    <ion-icon name="person-outline" slot="start" color="primary"></ion-icon>
+    <ion-label>
+      <p style="font-size: 11px; text-transform: uppercase; color: gray; margin: 0;">Paciente Asignado</p>
+      <h2 style="font-weight: bold; color: #2c3e50; margin: 2px 0 0 0;">{{ cliente.nombre_completo || 'Venta General' }}</h2>
+    </ion-label>
+  </ion-item>
+
+  <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <ion-card-header style="padding-bottom: 5px;">
+      <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50;">Productos / Servicios</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content style="padding: 8px;">
+      <ion-grid class="ion-no-padding">
+        <ion-row>
+          @for (a of articulos; track a.id_articulo) {
+            <ion-col size="6" size-md="4" size-lg="3" style="padding: 4px;">
+              <ion-card class="producto-card" (click)="agregar(a)" button style="margin: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); background: #f8f9fa;">
+                <ion-card-header style="padding: 10px 10px 4px 10px;">
+                  <h3 style="font-weight: 700; color: #444; font-size: 13px; margin: 0; min-height: 32px; overflow: hidden; text-overflow: ellipsis;">
+                    {{ a.nombre }}
+                  </h3>
+                </ion-card-header>
+
+                <ion-card-content style="padding: 0 10px 10px 10px;">
+                  <p class="precio" style="font-weight: 800; color: var(--ion-color-success); margin: 2px 0 6px 0; font-size: 14px;">
+                    {{ a.precio_venta | currency }}
+                  </p>
+                  
+                  <ion-badge [color]="a.stock_actual <= 2 ? 'danger' : 'success'" style="font-size: 10px; padding: 4px 6px;">
+                    Stock: {{ a.stock_actual }}
+                  </ion-badge>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </ion-card-content>
+  </ion-card>
+
+  <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <ion-card-header style="padding-bottom: 5px;">
+      <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50;">Carrito de Compra</ion-card-title>
+    </ion-card-header>
+
+    <ion-card-content style="padding: 0 8px;">
+      @if (carrito.length > 0) {
+        <ion-list lines="inset">
+          @for (c of carrito; track c.id_articulo) {
+            <ion-item style="--background: transparent;">
+              <ion-label slot="start">
+                <h2 style="font-weight: 600; font-size: 14px;">{{ c.nombre }}</h2>
+                <p style="font-size: 12px;">
+                  {{ c.precio_venta | currency }} x {{ c.cantidad }}
+                </p>
+              </ion-label>
+
+              <div slot="end" style="display: flex; align-items: center;">
+                <span style="font-weight: 700; color: #2c3e50; margin-right: 8px;">
+                  {{ (c.precio_venta * c.cantidad) | currency }}
+                </span>
+                
+                <ion-buttons>
+                  <ion-button size="small" fill="clear" color="medium" (click)="disminuir(c)">
+                    <ion-icon slot="icon-only" name="remove-circle-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button size="small" fill="clear" color="primary" (click)="agregar(c)">
+                    <ion-icon slot="icon-only" name="add-circle-outline"></ion-icon>
+                  </ion-button>
+                  <ion-button size="small" fill="clear" color="danger" (click)="quitar(c)">
+                    <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                  </ion-button>
+                </ion-buttons>
+              </div>
+            </ion-item>
+          }
+        </ion-list>
+      } @else {
+        <div class="ion-text-center ion-padding" style="color: var(--ion-color-medium);">
+          <ion-icon name="cart-outline" style="font-size: 32px; opacity: 0.5;"></ion-icon>
+          <p style="margin: 4px 0 10px 0; font-size: 13px;">El carrito está vacío</p>
+        </div>
+      }
+    </ion-card-content>
+  </ion-card>
+
+  @if (carrito.length > 0) {
+    <ion-card style="border-radius: 12px; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); background: #fff;">
+      <ion-card-content style="padding: 16px;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <h2 style="margin: 0; font-weight: bold; color: #2c3e50; font-size: 16px;">Total de la Orden:</h2>
+          <h1 style="margin: 0; font-weight: 800; color: var(--ion-color-success); font-size: 24px;">{{ total | currency }}</h1>
+        </div>
+
+        <ion-button expand="block" color="success" shape="round" style="font-weight: bold; height: 48px;" (click)="guardarOrden()">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+          Generar Orden de Trabajo
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+  }
+
+</ion-content>

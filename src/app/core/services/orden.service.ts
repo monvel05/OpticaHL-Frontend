@@ -26,9 +26,16 @@ export class OrdenService {
     return this.http.get<any[]>(this.apiUrl, { params });
   }
 
-  /** Obtener el detalle de una orden específica por ID o Folio */
+  /** Obtener el detalle de una orden específica por ID o Folio (Método original de Juan) */
   getDetalle(idOrFolio: string | number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${idOrFolio}`);
+  }
+
+  /** * Obtener el detalle de una orden por su Folio de Óptica
+   * Agregado para conectar directamente con el flujo interactivo de la Caja sin errores de TypeScript
+   */
+  obtenerOrdenPorFolio(folio: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${folio}`);
   }
 
   // =====================
