@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { roleGuard } from './core/auth/guard/role.guard';
 
 export const routes: Routes = [
   {
@@ -9,44 +10,64 @@ export const routes: Routes = [
         path: 'login',
         loadComponent: () => import('./features/login/login.page').then(m => m.LoginPage)
       },
-      // Si alguien entra a /auth, lo mandamos directo a /auth/login
       { path: '', redirectTo: 'login', pathMatch: 'full' }
     ]
   },
+  
+  // ==========================================
+  // RUTAS PROTEGIDAS CON CONTROL DE ROLES
+  // ==========================================
   {
     path: 'inventario',
     loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage),
+    canActivate: [roleGuard],
+    data: { roles: ['ADMINISTRADOR'] } // 🔒 Solo administradores
   },
+  {
+    path: 'caja',
+    loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage),
+    canActivate: [roleGuard],
+    data: { roles: ['CAJA', 'ADMINISTRADOR'] } // 🔒 Cajeros y administradores
+  },
+  {
+    path: 'cortecaja',
+    loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CorteCajaPage),
+    canActivate: [roleGuard],
+    data: { roles: ['CAJA', 'ADMINISTRADOR'] } // 🔒 Cajeros y administradores
+  },
+  {
+    path: 'mostrador',
+    loadComponent: () => import('./features/mostrador/mostrador.page').then(m => m.MostradorPage),
+    canActivate: [roleGuard],
+    data: { roles: ['MOSTRADOR', 'ADMINISTRADOR'] } // 🔒 ¡Aquí entra tu usuario de mostrador!
+  },
+  {
+    path: 'crrito',
+    loadComponent: () => import('./features/crrito/crrito.page').then(m => m.CrritoPage),
+    canActivate: [roleGuard],
+    data: { roles: ['MOSTRADOR', 'ADMINISTRADOR'] } // 🔒 Ventas y carrito
+  },
+  {
+    path: 'orden',
+    loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage),
+    canActivate: [roleGuard],
+    data: { roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] } // 🔒 Todos ocupan gestionar órdenes
+  },
+  
+  // ==========================================
+  // RUTA DE PRUEBAS O LIBRES
+  // ==========================================
   {
     path: 'calizdeformulario',
     loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then(m => m.CalizdeformularioPage)
   },
   {
-    path: 'orden',
-    loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage)
-  },
-  {
-    path: 'caja',
-    loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage)
-  },
-  {
-    path: 'cortecaja',
-    loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CorteCajaPage)
-  },
-  {
-    path: 'ordenes',
-    loadComponent: () => import('./features/ordenes/ordenes.page').then(m => m.OrdenesPage)
-  },
-  {
     path: '',
-    redirectTo: 'auth/login', // Ruta completa para evitar confusiones
+    redirectTo: 'auth/login', 
     pathMatch: 'full',
   },
   {
     path: '**',
-    redirectTo: 'inventario' // Si se pierden, mejor mandarlos al inventario (o al login)
+    redirectTo: 'auth/login' 
   }
-
-
-
 ];

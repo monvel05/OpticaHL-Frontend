@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService, OrderItem } from '../../core/services/cart.service';
 import { ClienteService } from '../../core/services/cliente.service';
-import { InventarioService } from '../../core/services/inventario.service'; 
+import { InventarioService, Articulo } from '../../core/services/inventario.service'; 
 import { OrdenService } from '../../core/services/orden.service';
 import { addIcons } from 'ionicons';
 import {
@@ -28,116 +28,129 @@ import {
   ]
 })
 export class OrdenPage implements OnInit {
-  // Inyección de servicios
+  // Inyección de servicios usando inject()
   public cartService = inject(CartService);
   private clientesService = inject(ClienteService);
   private inventarioService = inject(InventarioService);
   private ordenService = inject(OrdenService);
-  // Signals para la UI
+
+  // Signals para el manejo del estado de la UI
   public filteredProducts = signal<any[]>([]);
   public searchTerm = signal('');
   public isLoading = signal(false);
 
+  // Copia local para búsqueda reactiva instantánea
+  private productosDisponibles: Articulo[] = [];
+
   constructor() {
     addIcons({
-      personOutline, trashOutline, cartOutline,
-      addCircleOutline, checkmarkCircleOutline, searchOutline
+      personOutline,
+      trashOutline,
+      cartOutline,
+      addCircleOutline,
+      checkmarkCircleOutline,
+      searchOutline
     });
   }
 
   ngOnInit() {
     console.log('POS Conectado a Servicios Reales');
+    
+    // Suscripción al stream reactivo de artículos de la base de datos
+    this.inventarioService.getArticulosStream().subscribe((productos: Articulo[]) => {
+      this.productosDisponibles = productos;
+    });
+
+    // Petición inicial del inventario físico para la sucursal activa
+    this.inventarioService.cargarArticulos('HL01');
   }
+
   openPatientModal() {
-    // Por ahora llamamos al selector que ya tienes
     this.openPatientSelector();
   }
 
   goToPayments() {
-    // Por ahora llamamos al checkout que ya tienes
     this.proceedToCheckout();
   }
 
   /**
-   * T1.1: Búsqueda Real de Productos (Semana 8)
+   * Búsqueda en tiempo real alineada a la Base de Datos
    */
   onSearchProduct(event: any) {
-    const query = event.detail.value?.toLowerCase();
+    const query = event.detail.value?.toLowerCase() || '';
     this.searchTerm.set(query);
 
     if (query && query.length > 2) {
       this.isLoading.set(true);
 
-      // Llamada REAL a tu servicio de inventario
-      // Nota: Ajusta 'buscarProductos' al nombre real de tu método en InventarioService
-      this.inventarioService.getInventario().subscribe({
-        next: (productos: any[]) => {
-          // Filtramos en el cliente o puedes pedirle al backend que filtre
-          const filtrados = productos.filter(p =>
-            p.nombre.toLowerCase().includes(query) ||
-            p.categoria?.toLowerCase().includes(query)
-          );
-          this.filteredProducts.set(filtrados);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          console.error('Error buscando productos:', err);
-          this.isLoading.set(false);
-        }
-      });
+      // Filtro local directo sobre los datos sincronizados
+      const filtrados = this.productosDisponibles.filter(p =>
+        p.nombre.toLowerCase().includes(query) ||
+        (p.marca && p.marca.toLowerCase().includes(query)) ||
+        p.categoria?.toLowerCase().includes(query)
+      );
+
+      this.filteredProducts.set(filtrados);
+      this.isLoading.set(false);
     } else {
       this.filteredProducts.set([]);
     }
   }
 
   /**
-   * T1.1: Selección Real de Paciente (Semana 9)
+   * Selección Real de Paciente
    */
   async openPatientSelector() {
-    // Aquí podrías implementar un modal, por ahora traemos el primer cliente 
-    // como prueba de conexión real.
     this.clientesService.getClientes().subscribe({
       next: (pacientes: any[]) => {
         if (pacientes.length > 0) {
-          // Aquí idealmente abrirías un modal para que el usuario elija,
-          // por ahora seleccionamos el primero para probar la conexión:
           const seleccionado = pacientes[0];
           this.cartService.selectedPatient.set({
             id: seleccionado.id,
-            nombre: seleccionado.nombre // Asegúrate que la propiedad sea 'nombre' o 'name'
+            nombre: seleccionado.nombre
           });
           console.log('Paciente conectado:', seleccionado);
         }
       },
-      error: (err) => console.error('Error al traer pacientes:', err)
+      error: (err: any) => console.error('Error al traer pacientes:', err)
     });
   }
 
   /**
-   * T1.2: Gestión del Carrito
+   * Gestión del Carrito con tipado estricto (Mapeo BD -> OrderItem)
    */
-  addProductToCart(product: any) {
-    // Adaptamos el objeto del inventario al formato de la orden
+  addProductToCart(product: Articulo) {
+    // 1. Convertimos el ID numérico a String para cumplir con la interfaz del carrito
+    const idString = product.id_articulo ? product.id_articulo.toString() : '0';
+
+    // 2. Clasificamos de forma segura la categoría según los literales válidos
+    let tipoMapeado: 'armazon' | 'lente' | 'servicio' = 'armazon';
+    const categoriaBD = product.categoria?.toLowerCase();
+
+    if (categoriaBD === 'lente_contacto' || categoriaBD === 'lente') {
+      tipoMapeado = 'lente';
+    } else if (categoriaBD === 'servicio') {
+      tipoMapeado = 'servicio';
+    }
+
+    // 3. Estructuración del objeto según las necesidades de CartService
     const newItem: OrderItem = {
-      id: product.id,
-      name: product.nombre || product.name, // Soporte para ambos nombres de propiedad
-      price: product.precio_venta || product.price || 0,
+      id: idString, 
+      name: product.nombre,
+      price: product.precio_venta || 0,
       quantity: 1,
-      type: product.tipo || 'armazon'
+      type: tipoMapeado
     };
 
     this.cartService.addItem(newItem);
-    this.filteredProducts.set([]); // Limpiar resultados
-    this.searchTerm.set(''); // Limpiar buscador
+    this.filteredProducts.set([]); 
+    this.searchTerm.set(''); 
   }
 
   removeProduct(index: number) {
     this.cartService.removeItem(index);
   }
 
-  /**
-   * T1.3: Pase a Caja
-   */
   proceedToCheckout() {
     if (this.cartService.isOrderValid()) {
       const orderData = {
@@ -146,7 +159,6 @@ export class OrdenPage implements OnInit {
         total: this.cartService.total()
       };
       console.log('Enviando a Caja:', orderData);
-      // Aquí harías el router.navigate(['/pagos']);
     }
   }
 }

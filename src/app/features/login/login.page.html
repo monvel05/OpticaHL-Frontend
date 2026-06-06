@@ -16,12 +16,12 @@
           <ion-icon name="person-outline" slot="start" class="field-icon"></ion-icon>
           <ion-input 
             type="text" 
-            formControlName="usuario_login" 
+            formControlName="usuario" 
             placeholder="Nombre de usuario"
             class="custom-input">
           </ion-input>
         </ion-item>
-        @if (loginForm.get('usuario_login')?.touched && loginForm.get('usuario_login')?.invalid) {
+        @if (loginForm.get('usuario')?.touched && loginForm.get('usuario')?.invalid) {
           <small class="error-text">El usuario es requerido</small>
         }
       </div>
@@ -31,12 +31,12 @@
           <ion-icon name="key-outline" slot="start" class="field-icon"></ion-icon>
           <ion-input 
             type="password" 
-            formControlName="contrasena" 
+            formControlName="password" 
             placeholder="Contraseña"
             class="custom-input">
           </ion-input>
         </ion-item>
-        @if (loginForm.get('contrasena')?.touched && loginForm.get('contrasena')?.invalid) {
+        @if (loginForm.get('password')?.touched && loginForm.get('password')?.invalid) {
           <small class="error-text">La contraseña es requerida</small>
         }
       </div>

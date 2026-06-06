@@ -1,57 +1,77 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title>Punto de Cobro - Óptica</ion-title>
+    <ion-title style="font-weight: bold;">Punto de Cobro - Caja Óptica</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/corte-caja">
+        <ion-icon slot="start" name="analytics-outline"></ion-icon>
+        Ver Corte
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <div class="search-container">
-    <ion-item lines="outline">
-      <ion-label position="floating">Ingrese Folio de Orden</ion-label>
-      <ion-input [formControl]="folioBusqueda" placeholder="Ej: OPT-001"></ion-input>
-      <ion-button slot="end" (click)="buscarOrden()">
-        <ion-icon name="search-outline"></ion-icon>
+<ion-content color="light" class="ion-padding">
+  
+  <div class="search-container" style="margin-bottom: 16px;">
+    <ion-item lines="outline" style="--background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+      <ion-input 
+        [formControl]="folioBusqueda" 
+        label="Ingrese Folio de Orden" 
+        labelPlacement="floating" 
+        placeholder="Ej: OPT-001" 
+        (keyup.enter)="buscarOrden()">
+      </ion-input>
+      <ion-button slot="end" fill="clear" (click)="buscarOrden()">
+        <ion-icon name="search-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-item>
   </div>
 
   @if (ordenSeleccionada) {
-    <ion-card>
-      <ion-card-header>
-        <ion-card-title>Orden de: {{ ordenSeleccionada.cliente }}</ion-card-title>
+    <ion-card style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin: 0;">
+      <ion-card-header color="medium" style="padding: 12px 16px;">
+        <ion-card-title style="font-size: 16px; font-weight: bold; color: white;">
+          Orden de: {{ ordenSeleccionada.cliente }}
+        </ion-card-title>
       </ion-card-header>
 
-      <ion-card-content>
-        <ion-list lines="none">
+      <ion-card-content style="padding: 16px;">
+        <ion-list lines="none" style="background: transparent;">
           @for (item of ordenSeleccionada.items; track item.desc) {
-            <ion-item>
-              <ion-label>{{ item.desc }}</ion-label>
-              <ion-note slot="end">${{ item.precio }}</ion-note>
+            <ion-item style="--background: transparent; --min-height: 35px;">
+              <ion-label style="color: #555;">{{ item.desc }}</ion-label>
+              <ion-note slot="end" style="font-weight: 600; color: #2c3e50;">${{ item.precio }}</ion-note>
             </ion-item>
           }
-          <hr>
-          <ion-item>
-            <ion-label><strong>TOTAL:</strong></ion-label>
-            <ion-note slot="end" color="success"><strong>${{ ordenSeleccionada.total }}</strong></ion-note>
+          
+          <div style="border-top: 1px dashed #ccc; margin: 12px 0;"></div>
+          
+          <ion-item style="--background: transparent;">
+            <ion-label><strong style="font-size: 16px; color: #2c3e50;">TOTAL A COBRAR:</strong></ion-label>
+            <ion-note slot="end" color="success"><strong style="font-size: 20px;">${{ ordenSeleccionada.total }}</strong></ion-note>
           </ion-item>
         </ion-list>
 
         <div class="metodos-pago ion-margin-top">
-          <p>Seleccione Método de Pago:</p>
-          <ion-segment value="efectivo" color="tertiary">
+          <p style="font-weight: 600; color: #777; margin-bottom: 8px; font-size: 13px;">Seleccione Método de Pago:</p>
+          <ion-segment [(ngModel)]="metodoPago" color="primary" style="background: #f4f5f8; border-radius: 8px;">
             <ion-segment-button value="efectivo">
+              <ion-icon name="cash-outline"></ion-icon>
               <ion-label>Efectivo</ion-label>
             </ion-segment-button>
             <ion-segment-button value="tarjeta">
+              <ion-icon name="card-outline"></ion-icon>
               <ion-label>Tarjeta</ion-label>
             </ion-segment-button>
             <ion-segment-button value="transferencia">
+              <ion-icon name="receipt-outline"></ion-icon>
               <ion-label>Transf.</ion-label>
             </ion-segment-button>
           </ion-segment>
         </div>
 
-        <ion-button expand="block" color="success" class="ion-margin-top">
+        <ion-button expand="block" color="success" shape="round" style="font-weight: bold; height: 48px; margin-top: 24px;" (click)="registrarPago()">
+          <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
           Registrar Pago y Finalizar
         </ion-button> 
       </ion-card-content>

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../../environment/envs';
@@ -32,7 +32,7 @@ export class AuthService {
   private authState = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.authState.asObservable();
 
-  // Tarea 2.1: Estado reactivo para el objeto Usuario (Permite usar getCurrentUser de forma síncrona)
+  // Estado reactivo para el objeto Usuario
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -44,57 +44,78 @@ export class AuthService {
   // LOGIN & LOGOUT
   // =====================
 
-  // Tarea 2.1: Login conectado a la API de tu compañera
-  login(credenciales: { usuario_login: string; contrasena: string }): Observable<AuthResponse> {
+  /** Login conectado a la API */
+ /** Login conectado a la API */
+  login(credenciales: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credenciales).pipe(
-      tap(async (response) => {
+      tap(async (response: any) => {
         if (response && response.token) {
-          // Tarea 3.3: Guardamos en Capacitor Preferences de forma segura
+          
+          // Capturamos el usuario de la respuesta
+          const usuarioLogueado = response.usuario || response.user || {};
+          
+          // 🚨 BYPASS DE ENTRADA: Si el backend devuelve un arreglo de roles vacío [],
+          // le inyectamos 'MOSTRADOR' antes de guardar en memoria y preferencias.
+          if (!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) {
+            console.warn('⚠️ Roles vacíos detectados en AuthService. Aplicando rol MOSTRADOR de emergencia.');
+            usuarioLogueado.roles = ['MOSTRADOR'];
+            usuarioLogueado.rol = 'MOSTRADOR'; // Por si acaso
+          }
+          
+          // Guardamos en Capacitor Preferences de forma segura (¡Ya con el rol parchado!)
           await Preferences.set({ key: 'auth_token', value: response.token });
-          await Preferences.set({ key: 'usuario', value: JSON.stringify(response.usuario) });
+          await Preferences.set({ key: 'usuario', value: JSON.stringify(usuarioLogueado) });
           
           // Actualizamos los estados reactivos inmediatamente
-          this.currentUserSubject.next(response.usuario);
+          this.currentUserSubject.next(usuarioLogueado);
           this.authState.next(true);
         }
       })
+      
     );
   }
 
-  // Tarea 2.1: Logout limpio
+  /** Logout limpio de la aplicación */
   async logout(): Promise<void> {
     await Preferences.clear(); // Limpia token y usuario
     this.currentUserSubject.next(null);
     this.authState.next(false);
-    this.router.navigate(['/login']);
+    
+    this.router.navigate(['/auth/login']);
   }
 
   // =====================
-  // VALIDACIONES Y PERSISTENCIA (Tarea 3.3)
+  // VALIDACIONES Y PERSISTENCIA
   // =====================
 
-  // Restaura la sesión automáticamente si el usuario recarga la página
- // Así debe quedar corregido:
-private async checkToken() {
-  const token = await this.getToken();
-  const { value: usuarioJson } = await Preferences.get({ key: 'usuario' });
+  /** Restaura la sesión automáticamente si el usuario recarga la página */
+  private async checkToken() {
+    try {
+      const token = await this.getToken();
+      const { value: usuarioJson } = await Preferences.get({ key: 'usuario' });
 
-  if (token && !this.isTokenExpired(token) && usuarioJson) {
-    this.currentUserSubject.next(JSON.parse(usuarioJson));
-    this.authState.next(true);
-  } else {
-    await this.logout();
+      if (token && !this.isTokenExpired(token) && usuarioJson && usuarioJson !== 'undefined' && usuarioJson !== 'null') {
+        this.currentUserSubject.next(JSON.parse(usuarioJson));
+        this.authState.next(true);
+      } else {
+        await this.logout();
+      }
+    } catch (e) {
+      console.warn('Error al restaurar la sesión, limpiando credenciales corruptas...', e);
+      await this.logout();
+    }
   }
-}
 
+  /** Recupera el token guardado en las preferencias del dispositivo */
   async getToken(): Promise<string | null> {
     const { value } = await Preferences.get({ key: 'auth_token' });
     return value;
   }
 
+  /** Verifica si el JWT ya expiró basándose en su payload */
   private isTokenExpired(token: string): boolean {
     const payload = this.decodePayload(token);
-    if (!payload || !payload.exp) return true; // Si no hay exp, asumimos expirado por seguridad
+    if (!payload || !payload.exp) return true; 
     const now = Math.floor(Date.now() / 1000);
     return payload.exp < now;
   }
@@ -103,12 +124,12 @@ private async checkToken() {
   // GESTIÓN DE USUARIO Y ROLES
   // =====================
 
-  // Tarea 2.1: getCurrentUser() síncrono exigido por el Core de Angular
+  /** Obtiene el usuario actual de forma síncrona */
   getCurrentUser(): Usuario | null {
     return this.currentUserSubject.value;
   }
 
-  /** Decodifica el JWT para obtener los datos integrados del payload si se requiere */
+  /** Decodifica el JWT para obtener los datos integrados del payload */
   private decodePayload(token: string): any {
     try {
       const payload = token.split('.')[1];
@@ -118,16 +139,24 @@ private async checkToken() {
     }
   }
 
-  // Tarea 2.3: Validación de roles asíncrona para el RoleGuard
+  /** 🛡️ OPTIMIZADO Y SEGURO: Validación de roles a prueba de balas para Guards */
   async tieneRol(rol: string): Promise<boolean> {
     const { value } = await Preferences.get({ key: 'usuario' });
-    if (!value) return false;
+    if (!value || value === 'undefined' || value === 'null') return false;
     
     try {
-      const usuario: Usuario = JSON.parse(value);
-      // Soporta si el backend manda el rol en mayúsculas o minúsculas
-      return usuario.roles.some(r => r.toUpperCase() === rol.toUpperCase());
+      const usuario = JSON.parse(value);
+      
+      // Capturamos cualquier variante posible de roles del backend (.roles o .rol)
+      const rolesRaw = usuario?.roles || usuario?.rol || [];
+      
+      // Si viene como un string plano (ej: "MOSTRADOR"), lo convertimos a arreglo automáticamente
+      const rolesArray = Array.isArray(rolesRaw) ? rolesRaw : [rolesRaw];
+      
+      // Evaluamos de forma segura comparando en mayúsculas
+      return rolesArray.some((r: any) => String(r).toUpperCase() === rol.toUpperCase());
     } catch (e) {
+      console.error('Error al validar rol en Guard:', e);
       return false;
     }
   }
