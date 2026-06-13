@@ -3,7 +3,6 @@
     <ion-title style="font-weight: bold;">Inventario General</ion-title>
     <ion-buttons slot="end">
       
-      <!-- JUAN (UX): Botón Dinámico de la Campana para Alertas de Stock Crítico -->
       <ion-button (click)="toggleFiltroAlertas()">
         <ion-icon 
           slot="icon-only" 
@@ -52,7 +51,6 @@
 
   @if (segmentoActual !== 'sucursales') {
 
-    <!-- CORREGIDO (UX): Mensaje condicional inteligente si la campana está activa o vacía -->
     @if (productosFiltrados.length === 0) {
       <div class="ion-text-center ion-padding" style="margin-top: 60px;">
         <ion-icon 
@@ -145,6 +143,15 @@
         <ion-icon name="add" style="font-size: 28px;"></ion-icon>
       </ion-fab-button>
     </ion-fab>
+  }
+
+  @if (segmentoActual !== 'sucursales') {
+    <ion-infinite-scroll (ionInfinite)="cargarMas($event)" [disabled]="!hayMasDatos">
+      <ion-infinite-scroll-content 
+        loadingSpinner="bubbles" 
+        loadingText="Cargando más artículos...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   }
 
 </ion-content>

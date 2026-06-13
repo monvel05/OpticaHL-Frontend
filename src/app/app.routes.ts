@@ -69,5 +69,9 @@ export const routes: Routes = [
   {
     path: '**',
     redirectTo: 'auth/login' 
+  },  {
+    path: 'operadores',
+    loadComponent: () => import('./features/operadores/operadores.page').then( m => m.OperadoresPage)
   }
+
 ];

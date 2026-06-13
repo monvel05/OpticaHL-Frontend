@@ -5,7 +5,8 @@ import { ModalController } from '@ionic/angular/standalone';
 import { 
   IonHeader, IonToolbar, IonTitle, IonText, IonButtons, IonButton, IonIcon, 
   IonSearchbar, IonContent, IonSegment, IonSegmentButton, IonLabel, IonGrid, 
-  IonRow, IonCol, IonThumbnail, IonItem, IonBadge, IonFab, IonFabButton
+  IonRow, IonCol, IonThumbnail, IonItem, IonBadge, IonFab, IonFabButton,
+  IonInfiniteScroll, IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
@@ -45,18 +46,24 @@ import {
     IonItem, 
     IonBadge, 
     IonFab, 
-    IonFabButton
+    IonFabButton,
+    IonInfiniteScroll, // IMPORTADO
+    IonInfiniteScrollContent // IMPORTADO
   ]
 })
 export class InventarioPage implements OnInit {
   private inventarioService = inject(InventarioService);
   private modalCtrl = inject(ModalController);
 
-  segmentoActual: string = 'Z'; // Cambiado a 'Z' para coincidir por defecto con el value="Z" de tu ion-segment (Armazones)
+  segmentoActual: string = 'Z';
   searchTerm: string = '';
-  
-  // JUAN (UX): Estado del filtro de existencias críticas
   soloAlertas: boolean = false;
+
+  // Variables de Paginación y Sucursal
+  page: number = 1;
+  limit: number = 50;
+  hayMasDatos: boolean = true;
+  idSucursalActual: string = 'HL01';
 
   marcas = [
     { id: 1, nombre: 'Ray-Ban' },
@@ -76,41 +83,46 @@ export class InventarioPage implements OnInit {
   ];
 
   constructor() {
-    // Registramos todos los iconos necesarios, incluyendo los de alertas y servicios agregados en el HTML
     addIcons({
-      add,
-      addOutline,
-      searchOutline,
-      alertCircleOutline,
-      pricetagOutline,
-      businessOutline,
-      glassesOutline,
-      eyeOutline,
-      watchOutline,
-      refreshOutline,
-      checkmarkCircleOutline,
-      cubeOutline,
-      notifications,
-      notificationsOutline,
-      shieldCheckmarkOutline,
-      buildOutline,
-      constructOutline
+      add, addOutline, searchOutline, alertCircleOutline, pricetagOutline,
+      businessOutline, glassesOutline, eyeOutline, watchOutline, refreshOutline,
+      checkmarkCircleOutline, cubeOutline, notifications, notificationsOutline, shieldCheckmarkOutline, buildOutline, constructOutline
     });
   }
 
   ngOnInit() {
-    // Suscripción al flujo en tiempo real
     this.inventarioService.getArticulosStream().subscribe((data: Articulo[]) => {
-      console.log('📦 Datos crudos que están llegando al inventario:', data);
       this.productos = data;
-      this.filtrar();
+      this.filtrar(); // Se re-filtra automáticamente al llegar nuevos datos
     });
 
     this.cargarDatos();
   }
 
+  // Resetea la paginación y carga desde el inicio
   cargarDatos() {
-    this.inventarioService.cargarArticulos('HL01');
+    this.page = 1;
+    this.hayMasDatos = true;
+    this.inventarioService.cargarArticulos(this.idSucursalActual, this.page, this.limit, true);
+  }
+
+  // Evento que dispara el Scroll
+  async cargarMas(event: any) {
+    if (!this.hayMasDatos) {
+      event.target.complete();
+      event.target.disabled = true;
+      return;
+    }
+
+    this.page++;
+    // El false indica que queremos "concatenar", no resetear
+    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.page, this.limit, false);
+    
+    if (!trajoMas) {
+      this.hayMasDatos = false; // Ya no hay más páginas en la base de datos
+      event.target.disabled = true;
+    }
+    event.target.complete();
   }
 
   cambiarSegmento(event: any) {
@@ -123,47 +135,34 @@ export class InventarioPage implements OnInit {
     this.filtrar();
   }
 
-  /**
-   * JUAN (UX): Alterna el estado de la campana de alertas y refresca la lista.
-   */
   toggleFiltroAlertas() {
     this.soloAlertas = !this.soloAlertas;
     this.filtrar();
   }
 
-  /**
-   * Sistema de filtrado robusto e inteligente.
-   * Maneja segmentos, términos de búsqueda de Mariana y el filtro de stock crítico de Juan.
-   */
   filtrar() {
     if (this.segmentoActual === 'sucursales') return;
 
     this.productosFiltrados = this.productos.filter(p => {
       if (!p.categoria) return false;
 
-      // 1. Normalizamos la categoría del producto (Ej: 'Armazón' -> 'ARMAZON')
       const categoriaArticuloNormalizada = p.categoria
         .toUpperCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 
-      // 2. Normalizamos el valor de la pestaña seleccionada (Ej: 'Z', 'S', 'A', 'SERVICIO')
       const segmentoNormalizado = this.segmentoActual
         .toUpperCase()
         .normalize("NFD")
         .replace(/[\u0300-\u036f]/g, "");
 
-      // 3. Comprobación flexible para emparejar categorías
       const coincideTipo = categoriaArticuloNormalizada.includes(segmentoNormalizado) || 
                            segmentoNormalizado.includes(categoriaArticuloNormalizada);
 
-      // 4. Filtro de búsqueda por nombre o marca (Mariana)
       const coincideBusqueda = 
         p.nombre.toLowerCase().includes(this.searchTerm) ||
         (p.marca && p.marca.toLowerCase().includes(this.searchTerm));
 
-      // 5. Filtro de Alertas de Stock Crítico (Juan)
-      // Si la campana está activa, descartamos conceptos de SERVICIO y verificamos que el stock actual sea menor o igual al mínimo.
       let pasaAlertaStock = true;
       if (this.soloAlertas) {
         const esServicio = categoriaArticuloNormalizada === 'SERVICIO';
@@ -172,21 +171,6 @@ export class InventarioPage implements OnInit {
       
       return coincideTipo && coincideBusqueda && pasaAlertaStock;
     });
-
-    console.log(`🔍 Filtrado terminado para [${this.segmentoActual}]. Alertas: ${this.soloAlertas}. Resultados visibles:`, this.productosFiltrados.length);
-  }
-
-  tuFunctionDePrueba(idSeleccionado: any) {
-    if (idSeleccionado) {
-      const marcaObj = this.marcas.find(m => m.id === idSeleccionado);
-      if (marcaObj) {
-        this.productosFiltrados = this.productos.filter(p =>
-          p.marca === marcaObj.nombre && p.categoria === this.segmentoActual
-        );
-      }
-    } else {
-      this.filtrar();
-    }
   }
 
   async agregarProducto() {
@@ -212,6 +196,7 @@ export class InventarioPage implements OnInit {
 
   verDetalleSucursal(sucursal: any) {
     console.log('Filtrando inventario por sucursal:', sucursal.nombre);
-    this.inventarioService.cargarArticulos(sucursal.id);
+    this.idSucursalActual = sucursal.id;
+    this.cargarDatos(); 
   }
 }
