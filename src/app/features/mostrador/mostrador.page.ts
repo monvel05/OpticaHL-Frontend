@@ -12,7 +12,7 @@ import { addIcons } from 'ionicons';
 import { ClienteService } from '../../core/services/cliente.service'; 
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 
-// IMPORTACIONES DE TUS COMPONENTES (RUTAS CORREGIDAS RELATIVAS)
+// IMPORTACIONES DE COMPONENTES DE MODALES
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { FormularioRecetaComponent } from '../../shared/components/formulario-receta/formulario-receta.component';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component';
@@ -82,7 +82,7 @@ export class MostradorPage implements OnInit {
       next: (data: Cliente[]) => {
         this.clientesFiltrados = data;
       },
-      error: (err) => console.error('Error al realizar búsqueda en el mostrador:', err)
+      error: (err: any) => console.error('Error al realizar búsqueda en el mostrador:', err)
     });
   }
 
@@ -109,12 +109,13 @@ export class MostradorPage implements OnInit {
   verHistorial(cliente: Cliente) {
     if (!cliente.id_cliente) return;
 
+    // Se agrega el tipado ": any" a las respuestas para evitar que TypeScript marque error de compilación
     this.clienteService.obtenerHistorial(cliente.id_cliente).subscribe({
-      next: (historial) => {
-        // Levantamos el modal pasándole el arreglo crudo de la BD
+      next: (historial: any[]) => {
+        // Levantamos el modal pasándole el arreglo de la BD
         this.abrirModalHistorial(cliente.nombre_completo, historial);
       },
-      error: (err) => console.error('Error al obtener el historial clínico:', err)
+      error: (err: any) => console.error('Error al obtener el historial clínico:', err)
     });
   }
 
@@ -133,7 +134,7 @@ export class MostradorPage implements OnInit {
   }
 
   /**
-   * ACCIÓN: NUEVA ORDEN (Flujo Clínico -> Flujo Comercial en Cascada con el Carrito de Juan)
+   * ACCIÓN: NUEVA ORDEN (Flujo Clínico -> Flujo Comercial en Cascada con el Carrito)
    */
   async crearOrden(cliente: Cliente) {
     console.log('Abriendo panel de refracción clínica para:', cliente);
@@ -150,11 +151,11 @@ export class MostradorPage implements OnInit {
     // Si la consulta médica se grabó con éxito
     if (resultReceta.role === 'confirm' && resultReceta.data) {
       const folioClinico = resultReceta.data.folio || 'RX-' + Math.floor(1000 + Math.random() * 9000);
-      console.log('¡Receta lista! Abriendo de inmediato el carrito de Juan con folio:', folioClinico);
+      console.log('¡Receta lista! Abriendo de inmediato el carrito con folio:', folioClinico);
 
       // FASE 2: Levantar el carrito de compras pasando los datos en cascada
       const modalCarrito = await this.modalCtrl.create({
-        component: CrritoPage, // Invocamos la página del carrito
+        component: CrritoPage, 
         componentProps: {
           cliente: cliente,
           folioRx: folioClinico

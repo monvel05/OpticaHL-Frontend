@@ -1,57 +1,47 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from '../../../environment/envs'; // Ruta corregida según errores previos
-import { Cliente } from '../../shared/interfaces/cliente.interface';
+import { Cliente } from '../../shared/interfaces/cliente.interface'; // Ajusta la ruta a tu interfaz si es necesario
 
 @Injectable({
-  providedIn: 'root',
+  providedIn: 'root'
 })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/clientes`;
+  private apiUrl = 'http://localhost:3000/api/clientes';
 
-  // =====================
-  // CONSULTAS (GET)
-  // =====================
+  /**
+   * 1. Buscar clientes por término (Mostrador)
+   */
+  buscarClientes(termino: string): Observable<Cliente[]> {
+    return this.http.get<Cliente[]>(`${this.apiUrl}/buscar?q=${termino}`);
+  }
 
-  /** Obtener todos los clientes */
+  /**
+   * 2. Registrar un nuevo cliente en SQL (Formulario de alta)
+   */
+  crearCliente(cliente: any): Observable<any> {
+    return this.http.post<any>(this.apiUrl, cliente);
+  }
+
+  /**
+   * 3. Obtener la lista completa de clientes (Faltaba para orden.page.ts)
+   */
   getClientes(): Observable<Cliente[]> {
     return this.http.get<Cliente[]>(this.apiUrl);
   }
 
-  /** Buscar clientes por término (nombre, teléfono, etc.) */
-  buscarClientes(termino: string): Observable<Cliente[]> {
-    const params = new HttpParams().set('q', termino);
-    return this.http.get<Cliente[]>(`${this.apiUrl}/buscar`, { params });
-  }
-
-  /** Obtener el historial de compras/consultas de un cliente */
-  obtenerHistorial(idCliente: number): Observable<any[]> {
+  /**
+   * 4. Obtener historial clínico del paciente (Faltaba para mostrador.page.ts)
+   */
+  obtenerHistorial(idCliente: number | string): Observable<any[]> {
     return this.http.get<any[]>(`${this.apiUrl}/${idCliente}/historial`);
   }
 
-  // =====================
-  // ACCIONES (POST)
-  // =====================
-
-  /** Crear un nuevo cliente vinculando quién lo registró */
-  crearCliente(cliente: Cliente): Observable<any> {
-    // Intentamos obtener el usuario desde localStorage (respaldo del AuthService)
-    const user = JSON.parse(localStorage.getItem('usuario') || '{}');
-    
-    const payload = {
-      ...cliente,
-      creado_por: user.id_operador || null,
-    };
-    
-    return this.http.post<any>(this.apiUrl, payload);
-  }
-
-  /** * NUEVO: Guardar una nueva receta/graduación (RX) vinculada a un cliente específico
-   * Conecta con: POST /clientes/:id/rx
+  /**
+   * 5. Guardar una nueva refracción / receta (Faltaba para formulario-receta.component.ts)
    */
-  guardarNuevaRX(idCliente: number, datosRX: any): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/${idCliente}/rx`, datosRX);
+  guardarNuevaRX(idCliente: number | string, datosRx: any): Observable<any> {
+    return this.http.post<any>(`${this.apiUrl}/${idCliente}/rx`, datosRx);
   }
 }

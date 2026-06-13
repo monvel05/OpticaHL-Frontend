@@ -6,7 +6,8 @@ import { ClienteService } from '../../../core/services/cliente.service';
 import { Cliente } from '../../../shared/interfaces/cliente.interface';
 import { addIcons } from 'ionicons';
 import { closeOutline, checkmarkCircleOutline } from 'ionicons/icons';
-
+// Verifica minuciosamente que esta ruta suba las carpetas correctas hasta tu 'auth.service.ts'
+import { AuthService } from '../../../core/services/auth.service';
 @Component({
   selector: 'app-formulario-receta',
   templateUrl: './formulario-receta.component.html',
@@ -20,7 +21,7 @@ export class FormularioRecetaComponent implements OnInit {
   private fb = inject(FormBuilder);
   private modalCtrl = inject(ModalController);
   private clienteService = inject(ClienteService);
-
+  private authService = inject(AuthService);
   recetaForm!: FormGroup;
 
   constructor() {
@@ -61,14 +62,11 @@ export class FormularioRecetaComponent implements OnInit {
     const formValues = this.recetaForm.value;
 
     // Tu backend espera una estructura unificada para la tabla 'graduacion_orden'.
-    // Como se capturan dos ojos, preparamos el payload combinando las lecturas de forma limpia.
-    // Si tu Express procesa un ojo a la vez o un JSON completo, este formato es perfectamente adaptable:
     const payloadRX = {
-      // Mandamos los bloques ordenados para que tu endpoint 'guardarNuevaRX' los inserte de golpe
       ojo: 'AMBOS', 
       esfera: `OD: ${formValues.od_esfera} | OI: ${formValues.oi_esfera}`,
       cilindro: `OD: ${formValues.od_cilindro} | OI: ${formValues.oi_cilindro}`,
-      eje: formValues.od_eje, // El backend mapeará los enteros correspondientes
+      eje: formValues.od_eje, 
       adicion: formValues.adicion || '0.00',
       distancia_pupilar: formValues.distancia_pupilar,
       observaciones: formValues.observaciones || 'Sin observaciones adicionales.'
@@ -76,12 +74,13 @@ export class FormularioRecetaComponent implements OnInit {
 
     console.log('Guardando receta clínica en la base de datos:', payloadRX);
 
+    // 🛠️ SE AGREGA EL TIPADO EN EL NEXT Y ERROR PARA REMOVER EL PROBLEMA DE TYPESCRIPT
     this.clienteService.guardarNuevaRX(this.cliente.id_cliente, payloadRX).subscribe({
-      next: (response) => {
+      next: (response: any) => { // 👈 Tipado agregado
         console.log('¡Transacción de receta completada en MySQL!', response);
         this.modalCtrl.dismiss(response, 'confirm');
       },
-      error: (err) => console.error('Error al persistir la receta clínica:', err)
+      error: (err: any) => console.error('Error al persistir la receta clínica:', err) // 👈 Tipado agregado
     });
   }
 }
