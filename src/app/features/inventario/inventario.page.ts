@@ -6,7 +6,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonText, IonButtons, IonButton, IonIcon, 
   IonSearchbar, IonContent, IonSegment, IonSegmentButton, IonLabel, IonGrid, 
   IonRow, IonCol, IonThumbnail, IonItem, IonBadge, IonFab, IonFabButton,
-  IonInfiniteScroll, IonInfiniteScrollContent
+  IonInfiniteScroll, IonInfiniteScrollContent, IonSpinner
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
@@ -47,8 +47,9 @@ import {
     IonBadge, 
     IonFab, 
     IonFabButton,
-    IonInfiniteScroll, // IMPORTADO
-    IonInfiniteScrollContent // IMPORTADO
+    IonInfiniteScroll, 
+    IonInfiniteScrollContent,
+    IonSpinner,
   ]
 })
 export class InventarioPage implements OnInit {
@@ -58,6 +59,7 @@ export class InventarioPage implements OnInit {
   segmentoActual: string = 'Z';
   searchTerm: string = '';
   soloAlertas: boolean = false;
+  isLoading: boolean = true; 
 
   // Variables de Paginación y Sucursal
   page: number = 1;
@@ -94,41 +96,80 @@ export class InventarioPage implements OnInit {
     this.inventarioService.getArticulosStream().subscribe((data: Articulo[]) => {
       this.productos = data;
       this.filtrar(); // Se re-filtra automáticamente al llegar nuevos datos
+      this.isLoading = false; // Deja de mostrar el spinner al cargar los datos por primera vez
     });
 
     this.cargarDatos();
   }
 
-  // Resetea la paginación y carga desde el inicio
-  cargarDatos() {
+  // Resetea la paginación y carga desde el inicio pidiendo datos frescos al Backend
+  // AHORA ES ASÍNCRONO PARA EVALUAR SI HAY MÁS DATOS DESDE EL INICIO
+  async cargarDatos() {
     this.page = 1;
     this.hayMasDatos = true;
-    this.inventarioService.cargarArticulos(this.idSucursalActual, this.page, this.limit, true);
+    this.isLoading = true; 
+    
+    // Le mandamos la pestaña actual (this.segmentoActual) al servicio y esperamos la respuesta
+    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.segmentoActual, this.page, this.limit, true);
+    
+    // Si la BD devolvió menos de 50 registros en la primera consulta, apagamos el scroll para que no intente pedir la página 2.
+    if (!trajoMas) {
+      this.hayMasDatos = false;
+    }
   }
 
-  // Evento que dispara el Scroll
+  // Evento que dispara el Scroll hacia abajo
   async cargarMas(event: any) {
     if (!this.hayMasDatos) {
       event.target.complete();
-      event.target.disabled = true;
       return;
     }
 
     this.page++;
-    // El false indica que queremos "concatenar", no resetear
-    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.page, this.limit, false);
     
+    // Pasamos el segmento actual también al cargar más páginas
+    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.segmentoActual, this.page, this.limit, false);
+    
+    // Si el backend responde que ya no llenó el límite (trajo menos de 50), apagamos la bandera
     if (!trajoMas) {
-      this.hayMasDatos = false; // Ya no hay más páginas en la base de datos
-      event.target.disabled = true;
+      this.hayMasDatos = false; 
     }
+    
+    // SIEMPRE debemos completar el evento para que Ionic quite la bolita girando del fondo
     event.target.complete();
   }
 
   cambiarSegmento(event: any) {
     this.segmentoActual = event.detail.value;
-    this.filtrar();
+    
+    if (this.segmentoActual !== 'sucursales') {
+      // Al cambiar de pestaña, obligamos al sistema a traer los datos nuevos de ESA categoría desde la BD
+      this.cargarDatos(); 
+    }
   }
+
+  // Filtro puramente visual (para buscador de texto y botón de stock bajo)
+  filtrar() {
+    if (this.segmentoActual === 'sucursales') return;
+
+    this.productosFiltrados = this.productos.filter(p => {
+      // 1. Filtro de Búsqueda de texto
+      const coincideBusqueda = 
+        p.nombre.toLowerCase().includes(this.searchTerm) ||
+        (p.marca && p.marca.toLowerCase().includes(this.searchTerm));
+
+      // 2. Filtro de Campana de Stock Crítico
+      let pasaAlertaStock = true;
+      if (this.soloAlertas) {
+        const cat = p.categoria ? p.categoria.toUpperCase() : '';
+        const esServicio = cat.includes('SERVICIO');
+        pasaAlertaStock = !esServicio && (Number(p.stock_actual) <= Number(p.stock_minimo));
+      }
+      
+      return coincideBusqueda && pasaAlertaStock;
+    });
+  }
+
 
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value?.toLowerCase() || '';
@@ -138,39 +179,6 @@ export class InventarioPage implements OnInit {
   toggleFiltroAlertas() {
     this.soloAlertas = !this.soloAlertas;
     this.filtrar();
-  }
-
-  filtrar() {
-    if (this.segmentoActual === 'sucursales') return;
-
-    this.productosFiltrados = this.productos.filter(p => {
-      if (!p.categoria) return false;
-
-      const categoriaArticuloNormalizada = p.categoria
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-      const segmentoNormalizado = this.segmentoActual
-        .toUpperCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-      const coincideTipo = categoriaArticuloNormalizada.includes(segmentoNormalizado) || 
-                           segmentoNormalizado.includes(categoriaArticuloNormalizada);
-
-      const coincideBusqueda = 
-        p.nombre.toLowerCase().includes(this.searchTerm) ||
-        (p.marca && p.marca.toLowerCase().includes(this.searchTerm));
-
-      let pasaAlertaStock = true;
-      if (this.soloAlertas) {
-        const esServicio = categoriaArticuloNormalizada === 'SERVICIO';
-        pasaAlertaStock = !esServicio && (Number(p.stock_actual) <= Number(p.stock_minimo));
-      }
-      
-      return coincideTipo && coincideBusqueda && pasaAlertaStock;
-    });
   }
 
   async agregarProducto() {
@@ -188,6 +196,7 @@ export class InventarioPage implements OnInit {
       this.inventarioService.crearArticulo(data).subscribe({
         next: (res: any) => {
           console.log('¡Producto guardado mediante la API!', res);
+          this.cargarDatos(); // Refresca la lista para mostrar el nuevo artículo
         },
         error: (err: any) => console.error('Error al guardar artículo:', err)
       });
