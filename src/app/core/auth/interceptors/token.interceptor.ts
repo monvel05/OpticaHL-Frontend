@@ -1,6 +1,6 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
-import { AuthService } from '../../services/auth.service'; // 👈 CORREGIDO: Subimos un solo nivel para entrar a 'services'
+import { AuthService } from '../../services/auth.service'; 
 import { from, switchMap } from 'rxjs';
 
 export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
@@ -16,7 +16,7 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
         token = token.trim();
       }
 
-      // 🔍 Chismoso temporal en consola para comprobar si el interceptor está leyendo el JWT
+      //  Chismoso temporal en consola para comprobar si el interceptor está leyendo el JWT
       console.log('--- INTERCEPTOR DE SEGURIDAD ---');
       console.log('¿Se detectó token activo?:', token ? 'SÍ (Enviando en la petición)' : 'NO (Petición limpia)');
       console.log('Valor del Token recuperado:', token);

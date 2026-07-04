@@ -11,7 +11,7 @@ import { closeOutline, folderOpenOutline, documentTextOutline } from 'ionicons/i
   imports: [CommonModule, IonicModule]
 })
 export class HistorialOrdenComponent implements OnInit {
-  // Recibe los datos crudos desde el mostrador
+  // Recibe los datos limpios directamente desde el backend a través del panel principal
   @Input() historialRaw: any[] = [];
   @Input() nombreCliente: string = '';
 
@@ -27,39 +27,36 @@ export class HistorialOrdenComponent implements OnInit {
   }
 
   /**
-   * Procesa las filas sueltas de la base de datos (OD e OI por separado)
-   * y las unifica por Folio para armar la tabla comparativa.
+   * 🎯 ACTUALIZADO: Transforma la estructura plana de la nueva consulta de MySQL
+   * al formato de objetos que utiliza tu tabla del HTML.
    */
   estructurarHistorial() {
-    const grupos: { [key: string]: any } = {};
+    console.log('📜 Datos crudos recibidos del backend:', this.historialRaw);
 
-    this.historialRaw.forEach(fila => {
-      if (!grupos[fila.folio]) {
-        grupos[fila.folio] = {
-          folio: fila.folio,
-          fecha_emision: fila.fecha_emision,
-          observaciones: fila.observaciones,
-          od: null,
-          oi: null
-        };
-      }
-
-      // Detectamos qué ojo es y le asignamos sus micas correspondientes
-      const ojoKey = fila.ojo ? fila.ojo.toUpperCase() : '';
-      if (ojoKey.includes('DERECHO') || ojoKey === 'OD') {
-        grupos[fila.folio].od = fila;
-      } else if (ojoKey.includes('IZQUIERDO') || ojoKey === 'OI') {
-        grupos[fila.folio].oi = fila;
-      } else {
-        // Por si guardaron ambos ojos formateados en una sola fila string
-        grupos[fila.folio].od = fila;
-        grupos[fila.folio].oi = fila;
-      }
+    // Mapeamos directamente cada consulta de la base de datos
+    this.historialAgrupado = this.historialRaw.map(consulta => {
+      return {
+        folio: consulta.folio,
+        fecha_emision: consulta.fecha_emision,
+        observaciones: consulta.observaciones,
+        // Construimos el objeto del Ojo Derecho usando tus nuevas columnas
+        od: {
+          esfera: consulta.od_esfera,
+          cilindro: consulta.od_cilindro,
+          eje: consulta.od_eje,
+          adicion: consulta.od_adicion
+        },
+        // Construimos el objeto del Ojo Izquierdo usando tus nuevas columnas
+        oi: {
+          esfera: consulta.oi_esfera,
+          cilindro: consulta.oi_cilindro,
+          eje: consulta.oi_eje,
+          adicion: consulta.oi_adicion
+        }
+      };
     });
 
-    // Convertimos el objeto mapeado en un arreglo ordenado por fecha
-    this.historialAgrupado = Object.values(grupos);
-    console.log('📜 Historial estructurado para la vista:', this.historialAgrupado);
+    console.log('📜 Historial mapeado listo para la tabla:', this.historialAgrupado);
   }
 
   cerrar() {
