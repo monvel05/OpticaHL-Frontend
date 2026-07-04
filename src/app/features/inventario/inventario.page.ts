@@ -6,7 +6,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonText, IonButtons, IonButton, IonIcon, 
   IonSearchbar, IonContent, IonSegment, IonSegmentButton, IonLabel, IonGrid, 
   IonRow, IonCol, IonThumbnail, IonItem, IonBadge, IonFab, IonFabButton,
-  IonInfiniteScroll, IonInfiniteScrollContent, IonSpinner
+  IonInfiniteScroll, IonInfiniteScrollContent, IonSpinner, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
@@ -50,6 +50,7 @@ import {
     IonInfiniteScroll, 
     IonInfiniteScrollContent,
     IonSpinner,
+    IonMenuButton
   ]
 })
 export class InventarioPage implements OnInit {
