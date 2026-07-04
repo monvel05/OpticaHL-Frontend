@@ -14,7 +14,6 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
 
 // IMPORTACIONES DE COMPONENTES DE MODALES
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
-import { FormularioRecetaComponent } from '../../shared/components/formulario-receta/formulario-receta.component';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component';
 import { CrritoPage } from '../crrito/crrito.page';
 
@@ -50,7 +49,6 @@ export class MostradorPage implements OnInit {
   clientesFiltrados: Cliente[] = [];
 
   constructor() {
-    // Registramos todos los iconos necesarios globales y de modales hijos
     addIcons({
       refreshOutline,
       searchOutline,
@@ -68,7 +66,8 @@ export class MostradorPage implements OnInit {
   }
 
   /**
-   * Escucha el buscador del mostrador y solicita coincidencias al Backend en tiempo real
+   * Escucha el buscador del mostrador y solicita coincidencias al Backend en tiempo real.
+   * Cuenta con blindaje para evitar errores de iteración si el backend cambia su estructura.
    */
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value || '';
@@ -79,8 +78,19 @@ export class MostradorPage implements OnInit {
     }
 
     this.clienteService.buscarClientes(this.searchTerm).subscribe({
-      next: (data: Cliente[]) => {
-        this.clientesFiltrados = data;
+      next: (data: any) => {
+        console.log('🔍 Datos recibidos en buscador de mostrador:', data);
+
+        // 🛡️ VALIDACIÓN EN CASCADA (Evita el crash de "Symbol.iterator")
+        if (Array.isArray(data)) {
+          this.clientesFiltrados = data;
+        } else if (data && Array.isArray(data.clientes)) {
+          this.clientesFiltrados = data.clientes;
+        } else if (data && Array.isArray(data.data)) {
+          this.clientesFiltrados = data.data;
+        } else {
+          this.clientesFiltrados = [];
+        }
       },
       error: (err: any) => console.error('Error al realizar búsqueda en el mostrador:', err)
     });
@@ -109,10 +119,8 @@ export class MostradorPage implements OnInit {
   verHistorial(cliente: Cliente) {
     if (!cliente.id_cliente) return;
 
-    // Se agrega el tipado ": any" a las respuestas para evitar que TypeScript marque error de compilación
     this.clienteService.obtenerHistorial(cliente.id_cliente).subscribe({
       next: (historial: any[]) => {
-        // Levantamos el modal pasándole el arreglo de la BD
         this.abrirModalHistorial(cliente.nombre_completo, historial);
       },
       error: (err: any) => console.error('Error al obtener el historial clínico:', err)
@@ -134,42 +142,63 @@ export class MostradorPage implements OnInit {
   }
 
   /**
-   * ACCIÓN: NUEVA ORDEN (Flujo Clínico -> Flujo Comercial en Cascada con el Carrito)
+   * 🔥 ACCIÓN ACTUALIZADA: NUEVA ORDEN COMMERCIAL
+   * Obtiene la receta más reciente en modo lectura y la transfiere directamente al carrito.
    */
   async crearOrden(cliente: Cliente) {
-    console.log('Abriendo panel de refracción clínica para:', cliente);
+    if (!cliente.id_cliente) return;
 
-    // FASE 1: Guardar receta médica
-    const modalReceta = await this.modalCtrl.create({
-      component: FormularioRecetaComponent,
-      componentProps: { cliente: cliente }
-    });
-    await modalReceta.present();
+    console.log('Mostrador: Solicitando última receta para:', cliente.nombre_completo);
 
-    const resultReceta = await modalReceta.onDidDismiss();
-
-    // Si la consulta médica se grabó con éxito
-    if (resultReceta.role === 'confirm' && resultReceta.data) {
-      const folioClinico = resultReceta.data.folio || 'RX-' + Math.floor(1000 + Math.random() * 9000);
-      console.log('¡Receta lista! Abriendo de inmediato el carrito con folio:', folioClinico);
-
-      // FASE 2: Levantar el carrito de compras pasando los datos en cascada
-      const modalCarrito = await this.modalCtrl.create({
-        component: CrritoPage, 
-        componentProps: {
-          cliente: cliente,
-          folioRx: folioClinico
+    // 🌐 Consultamos el historial del cliente para extraer su graduación vigente
+    this.clienteService.obtenerHistorial(cliente.id_cliente).subscribe({
+      next: async (historial: any[]) => {
+        
+        // ⚠️ Si el cliente no tiene refracciones hechas por el optometrista, lo bloqueamos
+        if (!historial || historial.length === 0) {
+          alert(`El cliente ${cliente.nombre_completo} no tiene ninguna graduación registrada por el Optometrista. Por favor, solicite primero su consulta clínica en Gabinete.`);
+          return;
         }
-      });
-      await modalCarrito.present();
 
-      const resultCarrito = await modalCarrito.onDidDismiss();
-      if (resultCarrito.role === 'confirm') {
-        // Ciclo completo cerrado con éxito: limpiamos el mostrador para el siguiente paciente
-        this.clientesFiltrados = [];
-        this.searchTerm = '';
+        // 🥇 Tomamos la primera posición (la receta más reciente de la base de datos)
+        const ultimaReceta = historial[0];
+        console.log('✅ Receta recuperada con éxito para enlazar:', ultimaReceta);
+
+        // FASE COMERCIAL: Saltamos de inmediato al Carrito enviándole los datos del cliente y de su receta
+        const modalCarrito = await this.modalCtrl.create({
+          component: CrritoPage, 
+          componentProps: {
+            cliente: cliente,
+            folioRx: ultimaReceta.folio || 'RX-' + ultimaReceta.id_graduacion,
+            // Pasamos el paquete completo de la graduación para que el Carrito lo muestre congelado (Solo lectura)
+            graduacionLectura: {
+              od_esfera: ultimaReceta.od_esfera,
+              od_cilindro: ultimaReceta.od_cilindro,
+              od_eje: ultimaReceta.od_eje,
+              od_adicion: ultimaReceta.od_adicion,
+              oi_esfera: ultimaReceta.oi_esfera,
+              oi_cilindro: ultimaReceta.oi_cilindro,
+              oi_eje: ultimaReceta.oi_eje,
+              oi_adicion: ultimaReceta.oi_adicion,
+              observaciones: ultimaReceta.observaciones || 'Sin notas adicionales.'
+            }
+          }
+        });
+
+        await modalCarrito.present();
+
+        const resultCarrito = await modalCarrito.onDidDismiss();
+        if (resultCarrito.role === 'confirm') {
+          // Si la venta concluyó con éxito, limpiamos el mostrador
+          this.clientesFiltrados = [];
+          this.searchTerm = '';
+        }
+      },
+      error: (err: any) => {
+        console.error('Error crítico al enlazar la orden comercial:', err);
+        alert('Hubo un inconveniente al conectar con el servidor para obtener la receta.');
       }
-    }
+    });
   }
 
   /**
@@ -188,7 +217,6 @@ export class MostradorPage implements OnInit {
     const { data, role } = await modal.onDidDismiss();
 
     if (role === 'confirm' && data) {
-      // Enfocamos al mostrador en el nuevo cliente creado
       this.clientesFiltrados = [data];
       this.searchTerm = data.nombre_completo;
       console.log('Mostrador enfocado en el nuevo paciente registrado:', data);

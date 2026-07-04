@@ -6,8 +6,8 @@ import { ClienteService } from '../../../core/services/cliente.service';
 import { Cliente } from '../../../shared/interfaces/cliente.interface';
 import { addIcons } from 'ionicons';
 import { closeOutline, checkmarkCircleOutline } from 'ionicons/icons';
-// Verifica minuciosamente que esta ruta suba las carpetas correctas hasta tu 'auth.service.ts'
 import { AuthService } from '../../../core/services/auth.service';
+
 @Component({
   selector: 'app-formulario-receta',
   templateUrl: './formulario-receta.component.html',
@@ -15,7 +15,6 @@ import { AuthService } from '../../../core/services/auth.service';
   imports: [CommonModule, FormsModule, IonicModule, ReactiveFormsModule]
 })
 export class FormularioRecetaComponent implements OnInit {
-  // Recibe los datos completos del cliente seleccionado desde el mostrador
   @Input() cliente!: Cliente;
 
   private fb = inject(FormBuilder);
@@ -39,14 +38,15 @@ export class FormularioRecetaComponent implements OnInit {
       od_esfera: ['+0.00', [Validators.required]],
       od_cilindro: ['-0.00', [Validators.required]],
       od_eje: [0, [Validators.required, Validators.min(0), Validators.max(180)]],
+      od_adicion: ['0.00'], // Adición separada para OD
       
       // Ojo Izquierdo (OI)
       oi_esfera: ['+0.00', [Validators.required]],
       oi_cilindro: ['-0.00', [Validators.required]],
       oi_eje: [0, [Validators.required, Validators.min(0), Validators.max(180)]],
+      oi_adicion: ['0.00'], // Adición separada para OI
       
-      // Detalles Generales de la Rx
-      adicion: ['0.00'],
+      // Detalles Generales
       distancia_pupilar: ['', [Validators.required]],
       observaciones: ['']
     });
@@ -61,26 +61,30 @@ export class FormularioRecetaComponent implements OnInit {
 
     const formValues = this.recetaForm.value;
 
-    // Tu backend espera una estructura unificada para la tabla 'graduacion_orden'.
+    // 🎯 PAYLOAD ACTUALIZADO: Envía los campos de forma individual tal como los espera la nueva tabla de MySQL
     const payloadRX = {
-      ojo: 'AMBOS', 
-      esfera: `OD: ${formValues.od_esfera} | OI: ${formValues.oi_esfera}`,
-      cilindro: `OD: ${formValues.od_cilindro} | OI: ${formValues.oi_cilindro}`,
-      eje: formValues.od_eje, 
-      adicion: formValues.adicion || '0.00',
+      od_esfera: formValues.od_esfera,
+      od_cilindro: formValues.od_cilindro,
+      od_eje: String(formValues.od_eje),
+      od_adicion: formValues.od_adicion || '0.00',
+      
+      oi_esfera: formValues.oi_esfera,
+      oi_cilindro: formValues.oi_cilindro,
+      oi_eje: String(formValues.oi_eje),
+      oi_adicion: formValues.oi_adicion || '0.00',
+      
       distancia_pupilar: formValues.distancia_pupilar,
       observaciones: formValues.observaciones || 'Sin observaciones adicionales.'
     };
 
-    console.log('Guardando receta clínica en la base de datos:', payloadRX);
+    console.log('Enviando datos estructurados al backend:', payloadRX);
 
-    // 🛠️ SE AGREGA EL TIPADO EN EL NEXT Y ERROR PARA REMOVER EL PROBLEMA DE TYPESCRIPT
     this.clienteService.guardarNuevaRX(this.cliente.id_cliente, payloadRX).subscribe({
-      next: (response: any) => { // 👈 Tipado agregado
-        console.log('¡Transacción de receta completada en MySQL!', response);
+      next: (response: any) => {
+        console.log('¡Transacción de receta completada en MySQL con estructura limpia!', response);
         this.modalCtrl.dismiss(response, 'confirm');
       },
-      error: (err: any) => console.error('Error al persistir la receta clínica:', err) // 👈 Tipado agregado
+      error: (err: any) => console.error('Error al persistir la receta clínica estructurada:', err)
     });
   }
 }

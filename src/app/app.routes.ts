@@ -53,6 +53,18 @@ export const routes: Routes = [
     canActivate: [roleGuard],
     data: { roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] } // 🔒 Todos ocupan gestionar órdenes
   },
+  {
+    path: 'optometrista', // 🎯 ¡MOVIDA AQUÍ ARRIBA Y PROTEGIDA!
+    loadComponent: () => import('./features/optometrista/optometrista.page').then(m => m.OptometristaPage),
+    canActivate: [roleGuard],
+    data: { roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] } // 🔒 Optometristas y Administradores
+  },
+  {
+    path: 'operadores', // 🎯 Movida aquí arriba también
+    loadComponent: () => import('./features/operadores/operadores.page').then(m => m.OperadoresPage),
+    canActivate: [roleGuard],
+    data: { roles: ['ADMINISTRADOR'] }
+  },
   
   // ==========================================
   // RUTA DE PRUEBAS O LIBRES
@@ -67,11 +79,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: '**',
+    path: '**', // 🚨 EL COMODÍN SIEMPRE DEBE IR AL FINAL DE TODO
     redirectTo: 'auth/login' 
-  },  {
-    path: 'operadores',
-    loadComponent: () => import('./features/operadores/operadores.page').then( m => m.OperadoresPage)
   }
-
 ];

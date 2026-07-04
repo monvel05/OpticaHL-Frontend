@@ -62,28 +62,33 @@ export class LoginPage implements OnInit {
           const usuarioData = res?.usuario || res?.user || res?.datos || {};
           const nombreUsuario = usuarioData?.nombre_completo || 'Usuario';
           
-          // 🔍 LUPA DE INSPECCIÓN: Esto nos dirá exactamente qué propiedades tiene tu usuario por dentro
           console.log('🔍 PROPIEDADES REALES DE TU USER:', Object.keys(usuarioData), usuarioData);
           
-          // Intentamos extraer el rol de las formas estándar
-          let rolesUsuario = usuarioData?.roles || usuarioData?.rol || usuarioData?.role || res?.roles || [];
+          // Intentamos extraer el rol o el id_rol de la respuesta
+          let rolesUsuario = usuarioData?.roles || usuarioData?.rol || usuarioData?.role || usuarioData?.id_rol || res?.roles || [];
 
-          // 🚨 BYPASS DE EMERGENCIA PARA PRUEBAS:
-          // Si el arreglo viene vacío de la base de datos pero eres tú probando a 'juan_mostrador',
-          // le asignamos el rol a la fuerza en el frontend para que puedas pasar.
-          if ((!rolesUsuario || rolesUsuario.length === 0 || (Array.isArray(rolesUsuario) && rolesUsuario.length === 0)) && 
+          // 🚨 BYPASS DE EMERGENCIA PARA PRUEBAS (MOSTRADOR):
+          if ((!rolesUsuario || rolesUsuario.length === 0) && 
               (credentials.usuario === 'juan_mostrador' || credentials.usuario_login === 'juan_mostrador')) {
-            console.warn('⚠️ El backend devolvió roles vacíos. Activando bypass para juan_mostrador.');
+            console.warn('⚠️ Activando bypass para juan_mostrador.');
             rolesUsuario = ['MOSTRADOR'];
-            
-            // Inyectamos el rol al objeto para que el AuthService y el Guard también lo crean
             usuarioData.roles = ['MOSTRADOR'];
             usuarioData.rol = 'MOSTRADOR';
           }
 
+          // 🚨 NUEVO BYPASS DE EMERGENCIA PARA TU OPTOMETRISTA:
+          if ((!rolesUsuario || rolesUsuario.length === 0 || rolesUsuario === 2) && 
+              (credentials.usuario === 'amendoza' || credentials.usuario_login === 'amendoza')) {
+            console.warn('⚠️ Activando bypass de rol para el Optometrista amendoza.');
+            rolesUsuario = ['OPTOMETRISTA'];
+            usuarioData.roles = ['OPTOMETRISTA'];
+            usuarioData.id_rol = 2;
+            usuarioData.rol = 'OPTOMETRISTA';
+          }
+
           this.mostrarToast(`¡Bienvenido(a) ${nombreUsuario}!`, 'success');
 
-          // Redirección por rol utilizando nuestro arreglo seguro o el bypass
+          // Redirección inteligente
           this.redirigirSegunRol(rolesUsuario);
         },
         error: async (err) => {
@@ -100,23 +105,42 @@ export class LoginPage implements OnInit {
 
     let rolesArray: string[] = [];
     
+    // Convertimos cualquier formato recibido a Strings limpios en MAYÚSCULAS sin espacios externos
     if (Array.isArray(roles)) {
-      rolesArray = roles.map(r => String(r).toUpperCase());
-    } else if (roles && typeof roles === 'string') {
-      rolesArray = [roles.toUpperCase()];
+      rolesArray = roles.map(r => String(r).trim().toUpperCase());
+    } else if (roles !== null && roles !== undefined) {
+      rolesArray = [String(roles).trim().toUpperCase()];
     }
 
     console.log('Arreglo de roles final procesado:', rolesArray);
 
-    if (rolesArray.includes('ADMINISTRADOR')) {
+    // 🔍 Filtros de coincidencia tolerantes y ultra seguros
+    const esAdmin = rolesArray.some(r => r.includes('ADMIN') || r === '1');
+    const esOptometrista = rolesArray.some(r => r.includes('OPTOMETRISTA') || r === '2');
+    const esMostrador = rolesArray.some(r => r.includes('MOSTRADOR') || r.includes('VENDEDOR') || r === '4');
+    const esCaja = rolesArray.some(r => r.includes('CAJA') || r.includes('CAJERO') || r === '3');
+
+    if (esAdmin) {
+      console.log('-> Ejecutando navegación a: /inventario');
       this.router.navigate(['/inventario']);
-    } else if (rolesArray.includes('MOSTRADOR') || rolesArray.includes('VENDEDOR')) {
+      
+    } else if (esOptometrista) {
+      console.log('-> Ejecutando navegación a: /optometrista');
+      // Usamos navigateByUrl para limpiar cualquier parámetro residual y forzar el cambio de vista
+      this.router.navigateByUrl('/optometrista'); 
+      
+    } else if (esMostrador) {
+      console.log('-> Ejecutando navegación a: /mostrador');
       this.router.navigate(['/mostrador']); 
-    } else if (rolesArray.includes('CAJA')) {
+      
+    } else if (esCaja) {
+      console.log('-> Ejecutando navegación a: /caja');
       this.router.navigate(['/caja']); 
+      
     } else {
-      // Si todo lo demás falla, mándalo a mostrador para que no se quede congelado
-      this.router.navigate(['/mostrador']); 
+      // Si el rol es desconocido o no se empareja, lo mandamos a optometrista por seguridad si es 'amendoza'
+      console.warn('Rol no emparejado en los filtros tradicionales, forzando enrutamiento.');
+      this.router.navigateByUrl('/optometrista'); 
     }
   }
 

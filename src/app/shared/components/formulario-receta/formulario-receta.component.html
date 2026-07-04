@@ -33,14 +33,17 @@
       <ion-card-content style="padding: 12px 8px;">
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="4" style="padding: 4px;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="od_esfera" type="text" label="Esfera" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
-            <ion-col size="4" style="padding: 4px;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="od_cilindro" type="text" label="Cilindro" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
-            <ion-col size="4" style="padding: 4px变量;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="od_eje" type="number" label="Eje (°)" labelPlacement="floating" fill="outline" placeholder="0"></ion-input>
+            </ion-col>
+            <ion-col size="3" style="padding: 4px;">
+              <ion-input formControlName="od_adicion" type="text" label="Adición" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -58,14 +61,17 @@
       <ion-card-content style="padding: 12px 8px;">
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="4" style="padding: 4px;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="oi_esfera" type="text" label="Esfera" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
-            <ion-col size="4" style="padding: 4px;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="oi_cilindro" type="text" label="Cilindro" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
-            <ion-col size="4" style="padding: 4px;">
+            <ion-col size="3" style="padding: 4px;">
               <ion-input formControlName="oi_eje" type="number" label="Eje (°)" labelPlacement="floating" fill="outline" placeholder="0"></ion-input>
+            </ion-col>
+            <ion-col size="3" style="padding: 4px;">
+              <ion-input formControlName="oi_adicion" type="text" label="Adición" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
             </ion-col>
           </ion-row>
         </ion-grid>
@@ -76,11 +82,8 @@
       <ion-card-content style="padding: 12px 8px;">
         <ion-grid class="ion-no-padding">
           <ion-row>
-            <ion-col size="6" style="padding: 4px;">
-              <ion-input formControlName="adicion" type="text" label="Adición (Add)" labelPlacement="floating" fill="outline" placeholder="0.00"></ion-input>
-            </ion-col>
-            <ion-col size="6" style="padding: 4px;">
-              <ion-input formControlName="distancia_pupilar" type="text" label="Dist. Pupilar (DP)" labelPlacement="floating" fill="outline" placeholder="Ej. 62/60"></ion-input>
+            <ion-col size="12" style="padding: 4px;">
+              <ion-input formControlName="distancia_pupilar" type="text" label="Distancia Pupilar (DP)" labelPlacement="floating" fill="outline" placeholder="Ej. 62/60"></ion-input>
             </ion-col>
           </ion-row>
           <ion-row>

@@ -1,0 +1,98 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Gabinete - Optometrista</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+
+  <ion-list-header style="margin-top: 10px;">
+    <ion-label color="primary" style="font-weight: bold;">Atención a Pacientes</ion-label>
+  </ion-list-header>
+
+  <ion-card style="border-radius: 12px; margin: 10px;">
+    <ion-card-content class="ion-no-padding ion-padding-bottom">
+      
+      @if (!pacienteSeleccionado) {
+        <div>
+          <ion-searchbar placeholder="Buscar paciente existente..." (ionInput)="buscarPacienteExistente($event)"></ion-searchbar>
+          
+          @if (resultadosBusqueda && resultadosBusqueda.length > 0) {
+            <ion-list lines="inset" style="max-height: 250px; overflow-y: auto; margin-bottom: 15px;">
+              @for (paciente of resultadosBusqueda; track paciente.id_cliente) {
+                <ion-item button (click)="seleccionarPaciente(paciente)">
+                  <ion-avatar slot="start" style="background: #3880ff; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; width: 36px; height: 36px;">
+                    {{ (paciente.nombre_completo || 'P').charAt(0).toUpperCase() }}
+                  </ion-avatar>
+                  <ion-label>
+                    <h2 style="font-weight: bold;">{{ paciente.nombre_completo }}</h2>
+                    <p style="font-size: 0.85em;">Tel: {{ paciente.telefono || 'Sin teléfono registrado' }}</p>
+                  </ion-label>
+                  <ion-icon name="eye-outline" slot="end" color="primary"></ion-icon>
+                </ion-item>
+              }
+            </ion-list>
+          }
+
+          @if (cargando) {
+            <div class="ion-text-center ion-padding">
+              <ion-spinner name="crescent" color="primary"></ion-spinner>
+              <p style="font-size: 0.85em; color: gray; margin-top: 5px;">Buscando en la base de datos...</p>
+            </div>
+          }
+          
+          <div class="ion-text-center ion-padding-horizontal" style="margin-top: 10px;">
+            <p style="font-size: 0.9em; color: gray;">¿Es un paciente nuevo?</p>
+            <ion-button expand="block" fill="outline" shape="round" color="primary" (click)="abrirModalNuevoPaciente()">
+              <ion-icon name="person-add-outline" slot="start"></ion-icon>
+              Registrar Nuevo Paciente
+            </ion-button>
+          </div>
+        </div>
+      }
+
+      @if (pacienteSeleccionado) {
+        <div>
+          <ion-item lines="none">
+            <ion-icon name="checkmark-circle-outline" slot="start" color="success" size="large"></ion-icon>
+            <ion-label>
+              <h2 style="font-weight: bold; color: #2c3e50;">{{ pacienteSeleccionado.nombre_completo }}</h2>
+              <p>ID Paciente: {{ pacienteSeleccionado.id_cliente }}</p>
+              <p>Tel: {{ pacienteSeleccionado.telefono || 'No disponible' }}</p>
+            </ion-label>
+            <ion-button slot="end" fill="clear" color="danger" (click)="pacienteSeleccionado = null; resultadosBusqueda = []">Cambiar</ion-button>
+          </ion-item>
+
+          <ion-grid class="ion-no-padding" style="padding: 12px 16px 4px 16px;">
+            <ion-row>
+              <ion-col size="12" style="padding: 4px;">
+                <ion-button expand="block" color="success" shape="round" style="font-weight: bold; height: 46px; margin: 0;" (click)="abrirModalReceta()">
+                  <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                  Nueva Consulta (Rx)
+                </ion-button>
+              </ion-col>
+            </ion-row>
+
+            <ion-row style="margin-top: 4px;">
+              <ion-col size="6" style="padding: 4px;">
+                <ion-button expand="block" color="dark" fill="outline" shape="round" style="font-weight: bold; height: 42px; margin: 0;" (click)="verHistorialClinico()">
+                  <ion-icon name="time-outline" slot="start"></ion-icon>
+                  Ver Historial
+                </ion-button>
+              </ion-col>
+
+              <ion-col size="6" style="padding: 4px;">
+                <ion-button expand="block" color="warning" fill="outline" shape="round" style="font-weight: bold; height: 42px; margin: 0;" (click)="editarUltimaReceta()">
+                  <ion-icon name="create-outline" slot="start"></ion-icon>
+                  Editar Última
+                </ion-button>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </div>
+      }
+
+    </ion-card-content>
+  </ion-card>
+
+</ion-content>
