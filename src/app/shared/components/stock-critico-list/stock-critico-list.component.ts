@@ -1,11 +1,11 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common'; // Ya podrías quitarlo si no usas [ngClass] o pipes
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+ // Ya podrías quitarlo si no usas [ngClass] o pipes
 import { InventarioService, Producto } from '../../../core/services/inventario.service';
 
 @Component({
   selector: 'app-stock-critico-list',
   standalone: true,
-  imports: [CommonModule], 
+  imports: [], 
   template: `
     <div class="inventory-container">
       <h2>⚠️ Alerta de Stock Crítico</h2>
@@ -43,6 +43,7 @@ import { InventarioService, Producto } from '../../../core/services/inventario.s
       </table>
     </div>
   `,
+  changeDetection: ChangeDetectionStrategy.Eager,
   styles: [`
     .row-critical { background-color: #ffebee; color: #c62828; font-weight: bold; }
     .badge-danger { background: #ef5350; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; }

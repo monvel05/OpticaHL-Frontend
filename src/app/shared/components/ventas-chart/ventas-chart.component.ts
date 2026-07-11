@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+
 import { BaseChartDirective } from 'ng2-charts'; // Solo necesitamos la directiva aquí
 import { ChartConfiguration, ChartType, Chart, registerables, ChartData } from 'chart.js';
 import { ReportFilterService } from '../../../core/services/report-filter.service';
@@ -9,8 +9,9 @@ Chart.register(...registerables);
 @Component({
   selector: 'app-ventas-chart',
   standalone: true,
-  imports: [CommonModule, BaseChartDirective], // Importante: BaseChartDirective debe estar aquí
+  imports: [BaseChartDirective], // Importante: BaseChartDirective debe estar aquí
   templateUrl: './ventas-chart.component.html', // Usaremos el archivo HTML externo
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./ventas-chart.component.css'] // O el array de styles que tenías
 })
 export class VentasChartComponent implements OnInit {

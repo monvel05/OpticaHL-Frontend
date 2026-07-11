@@ -1,5 +1,5 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { IonicModule, ModalController } from '@ionic/angular'; // Inyectamos ModalController para cerrar
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ClienteService } from '../../../core/services/cliente.service'; 
@@ -13,7 +13,8 @@ import {
   selector: 'app-cliente-form',
   templateUrl: './cliente-form.component.html',
   standalone: true,
-  imports: [CommonModule, IonicModule, ReactiveFormsModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IonicModule, ReactiveFormsModule]
 })
 export class ClienteFormComponent implements OnInit {
   // Quitamos los EventEmitters tradicionales ya que usaremos el ModalController nativo de Ionic, que es más limpio para Mostrador

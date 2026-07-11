@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { 
   IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
@@ -13,12 +13,24 @@ import { add } from 'ionicons/icons';
   templateUrl: './operadores.page.html',
   styleUrls: ['./operadores.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule, 
     FormsModule,
-    IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
-    IonList, IonItem, IonAvatar, IonLabel, IonButton, IonFab, IonFabButton, IonIcon
-  ]
+    IonContent,
+    IonHeader,
+    IonTitle,
+    IonToolbar,
+    IonButtons,
+    IonMenuButton,
+    IonList,
+    IonItem,
+    IonAvatar,
+    IonLabel,
+    IonButton,
+    IonFab,
+    IonFabButton,
+    IonIcon
+]
 })
 export class OperadoresPage implements OnInit {
 

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { ToastController, IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -9,6 +9,7 @@ import { CommonModule } from '@angular/common';
   templateUrl: './refraccion.page.html',
   styleUrls: ['./refraccion.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class RefraccionPage implements OnInit {

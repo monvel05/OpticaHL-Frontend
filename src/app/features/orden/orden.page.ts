@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CartService, OrderItem } from '../../core/services/cart.service';
@@ -21,6 +21,7 @@ import {
   templateUrl: './orden.page.html',
   styleUrls: ['./orden.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule, FormsModule, IonContent,
     IonList, IonItem, IonLabel, IonSearchbar, IonButton, IonIcon,

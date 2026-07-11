@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal, computed } from '@angular/core';
+import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, AlertController, ToastController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -10,6 +10,7 @@ import { CajaService } from '../../core/services/caja.service';
   templateUrl: './cortecaja.page.html',
   styleUrls: ['./cortecaja.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule]
 })
 export class CorteCajaPage implements OnInit {

@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
+
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -31,11 +31,23 @@ interface AppPage {
   selector: 'app-root',
   templateUrl: 'app.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule, RouterModule, // Necesarios para *ngIf, *ngFor y routerLink
-    IonApp, IonRouterOutlet, IonMenu, IonHeader, IonToolbar, IonTitle, 
-    IonContent, IonList, IonItem, IonIcon, IonLabel, IonMenuToggle, IonFooter
-  ]
+    RouterModule,
+    IonApp,
+    IonRouterOutlet,
+    IonMenu,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonList,
+    IonItem,
+    IonIcon,
+    IonLabel,
+    IonMenuToggle,
+    IonFooter
+]
 })
 export class AppComponent implements OnInit, OnDestroy {
   public appPages: AppPage[] = [];

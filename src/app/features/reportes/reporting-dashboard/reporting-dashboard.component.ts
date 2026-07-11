@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FilterPanelComponent } from '../../../shared/components/filter-panel/filter-panel.component';
 import { ReportFilterService } from '../../../core/services/report-filter.service';
@@ -11,6 +11,7 @@ import * as XLSX from 'xlsx';
   standalone: true,
   imports: [CommonModule, IonicModule, FilterPanelComponent], 
   templateUrl: './reporting-dashboard.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./reporting-dashboard.component.scss'] // Opcional, si tienes estilos
 })
 export class ReportingDashboardComponent implements OnInit {

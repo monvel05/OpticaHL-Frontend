@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController, AlertController } from '@ionic/angular';
 import { SelectorEntidadComponent } from '../selector-entidad/selector-entidad.component';
@@ -22,8 +22,9 @@ import {
 @Component({
   selector: 'app-formulario-articulo',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, SelectorEntidadComponent],
+  imports: [FormsModule, IonicModule, SelectorEntidadComponent],
   templateUrl: './formulario-articulo.component.html',
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./formulario-articulo.component.scss'],
 })
 export class FormularioArticuloComponent implements OnInit {

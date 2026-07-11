@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
+
 import { IonicModule } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
 
@@ -8,7 +8,8 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './selector-entidad.component.html',
   styleUrls: ['./selector-entidad.component.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule, FormsModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IonicModule, FormsModule]
 })
 export class SelectorEntidadComponent {
   // Recibe el texto que dirá el selector (Ej: "Marca")

@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { ModalController, IonicModule, AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
 // 🎯 ACTUALIZADO: Agregamos todos los iconos que usan tus 3 nuevos botones
@@ -18,7 +18,8 @@ import { FormularioRecetaComponent } from '../../shared/components/formulario-re
   templateUrl: './optometrista.page.html',
   styleUrls: ['./optometrista.page.scss'],
   standalone: true,
-  imports: [CommonModule, IonicModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IonicModule]
 })
 export class OptometristaPage {
   // Inyección de dependencias limpia usando inject()

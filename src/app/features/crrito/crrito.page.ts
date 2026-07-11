@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
@@ -24,6 +24,7 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
   templateUrl: './crrito.page.html',
   styleUrls: ['./crrito.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class CrritoPage implements OnInit {

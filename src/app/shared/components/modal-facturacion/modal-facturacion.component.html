@@ -10,7 +10,7 @@
 <ion-content class="ion-padding">
   <div class="ion-text-center ion-margin-bottom">
     <h3>Orden: {{ orden?.folio }}</h3>
-    <p>Total a facturar: <strong>{{ orden?.total | currency }}</strong></p>
+    <p>Total a facturar: <strong>{{ $safeNavigationMigration(orden?.total) | currency }}</strong></p>
   </div>
 
   <ion-list>

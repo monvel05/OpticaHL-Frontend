@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { ClienteService } from '../../../core/services/cliente.service';
@@ -12,7 +12,8 @@ import { AuthService } from '../../../core/services/auth.service';
   selector: 'app-formulario-receta',
   templateUrl: './formulario-receta.component.html',
   standalone: true,
-  imports: [CommonModule, FormsModule, IonicModule, ReactiveFormsModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [FormsModule, IonicModule, ReactiveFormsModule]
 })
 export class FormularioRecetaComponent implements OnInit {
   @Input() cliente!: Cliente;

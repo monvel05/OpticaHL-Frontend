@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular/standalone';
@@ -34,6 +34,7 @@ import {
   templateUrl: './mostrador.page.html',
   styleUrls: ['./mostrador.page.scss'],
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     IonFabButton, IonLabel, IonAvatar, IonItem, IonCard, IonCol, 
     IonRow, IonGrid, IonButton, IonSearchbar, IonButtons, IonIcon, 

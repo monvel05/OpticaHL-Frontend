@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ToastController } from '@ionic/angular';
 import { ImpresoraZebraService } from '../../../core/services/impresora-zebra.service';
@@ -7,6 +7,7 @@ import { ImpresoraZebraService } from '../../../core/services/impresora-zebra.se
   selector: 'app-impresion-etiquetas',
   standalone: true,
   imports: [CommonModule, IonicModule],
+  changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './impresion-etiquetas.component.html',
 })
 export class ImpresionEtiquetasComponent {

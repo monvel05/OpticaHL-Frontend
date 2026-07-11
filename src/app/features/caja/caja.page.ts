@@ -1,5 +1,5 @@
-import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -17,7 +17,8 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   templateUrl: './caja.page.html',
   styleUrls: ['./caja.page.scss'],
   standalone: true,
-  imports: [IonicModule, CommonModule, FormsModule, ReactiveFormsModule]
+  changeDetection: ChangeDetectionStrategy.Eager,
+  imports: [IonicModule, FormsModule, ReactiveFormsModule]
 })
 export class CajaPage {
   // Inyecciones modernas con inject()

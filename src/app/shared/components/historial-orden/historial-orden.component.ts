@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
@@ -8,6 +8,7 @@ import { closeOutline, folderOpenOutline, documentTextOutline } from 'ionicons/i
   selector: 'app-historial-orden',
   templateUrl: './historial-orden.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [CommonModule, IonicModule]
 })
 export class HistorialOrdenComponent implements OnInit {

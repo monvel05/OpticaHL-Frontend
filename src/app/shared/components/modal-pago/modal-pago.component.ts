@@ -1,4 +1,4 @@
-import { Component, Input, computed, signal, inject } from '@angular/core';
+import { Component, Input, computed, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { IonicModule, ModalController } from '@ionic/angular';
 import { FormsModule } from '@angular/forms';
@@ -8,6 +8,7 @@ import { FormsModule } from '@angular/forms';
   templateUrl: './modal-pago.component.html',
   styleUrls: ['./modal-pago.component.scss'],
   standalone: true, // Asegúrate de incluir standalone si usas Angular moderno
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule, FormsModule],
 })
 export class ModalPagoComponent {

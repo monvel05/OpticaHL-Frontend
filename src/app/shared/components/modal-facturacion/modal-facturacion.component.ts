@@ -1,4 +1,4 @@
-import { Component, Input, inject } from '@angular/core';
+import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonicModule, ModalController, LoadingController, ToastController } from '@ionic/angular';
@@ -8,6 +8,7 @@ import { FacturacionService } from '../../../core/services/facturacion.service';
   selector: 'app-modal-facturacion',
   templateUrl: './modal-facturacion.component.html',
   standalone: true,
+  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [IonicModule, CommonModule, FormsModule]
 })
 export class ModalFacturacionComponent {
