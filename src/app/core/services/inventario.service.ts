@@ -12,8 +12,8 @@ export interface Articulo {
   categoria: 'ARMAZON' | 'LENTE_CONTACTO' | 'ACCESORIO' | 'SERVICIO'; // Formato unificado
   id_proveedor?: number;
   nombre_proveedor?: string;
-  costo: number;          
-  precio_venta: number;   
+  costo: number;
+  precio_venta: number;
   activo?: number;
   // Propiedades detalladas
   marca?: string;
@@ -30,7 +30,7 @@ export interface Articulo {
 }
 
 @Injectable({
-  providedIn: 'root'
+  providedIn: 'root',
 })
 export class InventarioService {
   private http = inject(HttpClient);
@@ -45,22 +45,28 @@ export class InventarioService {
     this.cargarArticulos('HL01', 'Z', 1, 50, true);
   }
 
-// ==========================================
+  // ==========================================
   // SINCRO EN TIEMPO REAL CON PAGINACIÓN Y CATEGORÍA
   // ==========================================
 
   /** * Carga los artículos paginados desde el Backend. */
-  cargarArticulos(idSucursal: string = 'HL01', categoria: string = 'Z', page: number = 1, limit: number = 50, reset: boolean = true): Promise<boolean> {
+  cargarArticulos(
+    idSucursal: string = 'HL01',
+    categoria: string = 'Z',
+    page: number = 1,
+    limit: number = 50,
+    reset: boolean = true,
+  ): Promise<boolean> {
     return new Promise((resolve) => {
       // Agregamos &categoria=${categoria} a la URL
       const url = `${this.URL_INVENTARIO}/general?id_sucursal=${idSucursal}&categoria=${categoria}&page=${page}&limit=${limit}`;
-      
+
       this.http.get<{ success: boolean; data: Articulo[] }>(url).subscribe({
         next: (res) => {
           if (res.success) {
             const datosActuales = reset ? [] : this.articulos$.getValue();
             this.articulos$.next([...datosActuales, ...res.data]);
-            resolve(res.data.length === limit); 
+            resolve(res.data.length === limit);
           } else {
             resolve(false);
           }
@@ -68,7 +74,7 @@ export class InventarioService {
         error: (err) => {
           console.error('Error cargando artículos de la API:', err);
           resolve(false);
-        }
+        },
       });
     });
   }
@@ -85,22 +91,25 @@ export class InventarioService {
   /** MARIANA: Consulta rápida de inventario (Excluye servicios) */
   getProductosFisicos(): Observable<Articulo[]> {
     return this.getArticulosStream().pipe(
-      map(lista => lista.filter(a => a.categoria !== 'SERVICIO'))
+      map((lista) => lista.filter((a) => a.categoria !== 'SERVICIO')),
     );
   }
 
   /** JUAN: Flujo de Servicios (Exámenes de la vista, reparaciones) */
   getServicios(): Observable<Articulo[]> {
     return this.getArticulosStream().pipe(
-      map(lista => lista.filter(a => a.categoria === 'SERVICIO'))
+      map((lista) => lista.filter((a) => a.categoria === 'SERVICIO')),
     );
   }
 
   /** MARIANA: Alertas de stock crítico (Usa el endpoint de tu compañera) */
   obtenerAlertasStock(): Observable<Articulo[]> {
-    return this.http.get<{ success: boolean; data: Articulo[] }>(`${this.URL_INVENTARIO}/alertas`).pipe(
-      map(res => res.data)
-    );
+    return this.http
+      .get<{
+        success: boolean;
+        data: Articulo[];
+      }>(`${this.URL_INVENTARIO}/alertas`)
+      .pipe(map((res) => res.data));
   }
 
   // ==========================================
@@ -108,18 +117,39 @@ export class InventarioService {
   // ==========================================
 
   crearArticulo(articulo: any): Observable<any> {
-  return this.http.post<any>(this.URL_ARTICULOS, articulo);
-}
+    return this.http.post<any>(this.URL_ARTICULOS, articulo);
+  }
 
-actualizarArticulo(id: number, articulo: any): Observable<any> {
-  return this.http.put<any>(`${this.URL_ARTICULOS}/${id}`, articulo);
-}
+  actualizarArticulo(id: number, articulo: any): Observable<any> {
+    return this.http.put<any>(`${this.URL_ARTICULOS}/${id}`, articulo);
+  }
 
-desactivarArticulo(id: number): Observable<any> {
-  return this.http.put<any>(`${this.URL_ARTICULOS}/${id}/desactivar`, {});
-}
+  desactivarArticulo(id: number): Observable<any> {
+    return this.http.put<any>(`${this.URL_ARTICULOS}/${id}/desactivar`, {});
+  }
 
-actualizarStock(idArticulo: number, idSucursal: string, nuevoStock: number): Observable<any> {
-  return this.http.put<any>(`${this.URL_INVENTARIO}/stock/${idArticulo}/${idSucursal}`, { nuevo_stock: nuevoStock });
-}
+  // Este llama a la funcion de que esta en el controlador de inventario y actualiza el stock 
+  // del articulo en la sucursal correspondiente
+  actualizarStock(
+    idArticulo: number,
+    idSucursal: string,
+    nuevoStock: number,
+  ): Observable<any> {
+    return this.http.put<any>(
+      `${this.URL_INVENTARIO}/stock/${idArticulo}/${idSucursal}`,
+      { nuevo_stock: nuevoStock },
+    );
+  }
+
+  // Esta es la funcion que esta en el controlador de articulo y es para el spinner
+  ajustarStockRapido(
+    idArticulo: number,
+    idSucursal: string,
+    cantidadAjuste: number,
+  ): Observable<any> {
+    return this.http.put<any>(`${this.URL_ARTICULOS}/${idArticulo}/stock`, {
+      id_sucursal: idSucursal,
+      cantidad_ajuste: cantidadAjuste,
+    });
+  }
 }

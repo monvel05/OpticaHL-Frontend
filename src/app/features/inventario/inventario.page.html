@@ -3,15 +3,15 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title style="font-weight: bold;">Inventario General</ion-title>
+    <ion-title style="font-weight: bold">Inventario General</ion-title>
     <ion-buttons slot="end">
-      
       <ion-button (click)="toggleFiltroAlertas()">
-        <ion-icon 
-          slot="icon-only" 
+        <ion-icon
+          slot="icon-only"
           [name]="soloAlertas ? 'notifications' : 'notifications-outline'"
           [style.color]="soloAlertas ? '#ffdd00' : '#fff'"
-          style="font-size: 24px;">
+          style="font-size: 24px"
+        >
         </ion-icon>
       </ion-button>
 
@@ -22,148 +22,310 @@
   </ion-toolbar>
 
   <ion-toolbar color="primary">
-    <ion-searchbar placeholder="Buscar por nombre o marca..." [debounce]="200" (ionInput)="onSearchChange($event)">
+    <ion-searchbar
+      placeholder="Buscar por nombre o marca..."
+      [debounce]="200"
+      (ionInput)="onSearchChange($event)"
+    >
     </ion-searchbar>
   </ion-toolbar>
 
   <ion-toolbar color="primary">
-    <ion-segment [value]="segmentoActual" (ionChange)="cambiarSegmento($event)"
-      style="--background: rgba(255,255,255,0.12); border-radius: 0;">
-      <ion-segment-button value="Z">
-        <ion-label style="font-weight: 500;">Armazones</ion-label>
+    <ion-segment
+      [value]="segmentoActual"
+      (ionChange)="cambiarSegmento($event)"
+      style="--background: rgba(255, 255, 255, 0.12); border-radius: 0"
+    >
+      <ion-segment-button value="ARMAZON">
+        <ion-label style="font-weight: 500">Armazones</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="S">
-        <ion-label style="font-weight: 500;">Micas/Cristales</ion-label>
+      <ion-segment-button value="MICA">
+        <ion-label style="font-weight: 500">Micas/Cristales</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="A">
-        <ion-label style="font-weight: 500;">Accesorios</ion-label>
+      <ion-segment-button value="ACCESORIO">
+        <ion-label style="font-weight: 500">Accesorios</ion-label>
       </ion-segment-button>
 
       <ion-segment-button value="SERVICIO">
-        <ion-label style="font-weight: 500;">Servicios</ion-label>
+        <ion-label style="font-weight: 500">Servicios</ion-label>
       </ion-segment-button>
 
       <ion-segment-button value="sucursales">
-        <ion-label style="font-weight: 500;">Sucursales</ion-label>
+        <ion-label style="font-weight: 500">Sucursales</ion-label>
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
 
 <ion-content [fullscreen]="true" class="ion-padding" color="light">
+  @if (segmentoActual !== 'sucursales') { @if (isLoading && page === 1) {
+  <div class="ion-text-center ion-padding" style="margin-top: 80px">
+    <ion-spinner
+      name="crescent"
+      color="primary"
+      style="width: 50px; height: 50px"
+    ></ion-spinner>
+    <p
+      style="color: var(--ion-color-medium); font-weight: 500; margin-top: 15px"
+    >
+      Sincronizando inventario...
+    </p>
+  </div>
+  } @else { @if (productosFiltrados.length === 0) {
+  <div class="ion-text-center ion-padding" style="margin-top: 60px">
+    <ion-icon
+      [name]="soloAlertas ? 'shield-checkmark-outline' : (segmentoActual === 'SERVICIO' ? 'construct-outline' : 'cube-outline')"
+      [style.color]="soloAlertas ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'"
+      style="font-size: 64px"
+    >
+    </ion-icon>
+    <p
+      style="
+        color: var(--ion-color-medium);
+        font-size: 16px;
+        margin-top: 12px;
+        font-weight: 500;
+      "
+    >
+      @if (soloAlertas) { ¡Excelente! No hay artículos con <b>Stock Bajo</b> en
+      esta categoría. } @else { No hay elementos registrados en
+      <b>
+        {{ segmentoActual === 'Z' ? 'Armazones' : (segmentoActual === 'S' ?
+        'Micas / Cristales' : (segmentoActual === 'A' ? 'Accesorios' :
+        'Servicios')) }} </b
+      >. }
+    </p>
+  </div>
+  } @else {
+  <ion-grid class="ion-no-padding">
+    <ion-row>
+      @for (producto of productosFiltrados; track producto.id_articulo ||
+      producto.codigo) {
+      <ion-col size="12" size-md="6" size-lg="4" style="padding: 6px">
+        <ion-item
+          lines="none"
+          class="articulo-card"
+          style="
+            --background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            padding: 4px 0;
+          "
+        >
+          <ion-thumbnail
+            slot="start"
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              background: var(--ion-color-light);
+              border-radius: 10px;
+              padding: 6px;
+              width: 48px;
+              height: 48px;
+              margin-left: 8px;
+            "
+          >
+            <ion-icon
+              [name]="$any(producto).categoria === 'Z' ? 'glasses-outline' : ($any(producto).categoria === 'S' ? 'eye-outline' : ($any(producto).categoria === 'SERVICIO' ? 'build-outline' : 'pricetag-outline'))"
+              style="font-size: 26px; color: var(--ion-color-primary)"
+            >
+            </ion-icon>
+          </ion-thumbnail>
 
-  @if (segmentoActual !== 'sucursales') {
+          <ion-label style="margin-left: 12px">
+            <h2
+              style="
+                font-weight: 700;
+                font-size: 15px;
+                color: #2c3e50;
+                margin-bottom: 2px;
+              "
+            >
+              {{ producto.nombre }}
+            </h2>
 
-    @if (isLoading && page === 1) {
-      <div class="ion-text-center ion-padding" style="margin-top: 80px;">
-        <ion-spinner name="crescent" color="primary" style="width: 50px; height: 50px;"></ion-spinner>
-        <p style="color: var(--ion-color-medium); font-weight: 500; margin-top: 15px;">
-          Sincronizando inventario...
-        </p>
-      </div>
-    } @else {
-      @if (productosFiltrados.length === 0) {
-        <div class="ion-text-center ion-padding" style="margin-top: 60px;">
-          <ion-icon 
-            [name]="soloAlertas ? 'shield-checkmark-outline' : (segmentoActual === 'SERVICIO' ? 'construct-outline' : 'cube-outline')" 
-            [style.color]="soloAlertas ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'"
-            style="font-size: 64px;">
-          </ion-icon>
-          <p style="color: var(--ion-color-medium); font-size: 16px; margin-top: 12px; font-weight: 500;">
-            @if (soloAlertas) {
-              ¡Excelente! No hay artículos con <b>Stock Bajo</b> en esta categoría.
+            @if ($any(producto).categoria !== 'SERVICIO') {
+            <p style="margin: 2px 0; font-size: 13px">
+              Marca:
+              <ion-text color="dark"
+                ><b>{{ producto.marca || 'Genérica' }}</b></ion-text
+              >
+            </p>
             } @else {
-              No hay elementos registrados en
-              <b>
-                {{ 
-                  segmentoActual === 'Z' ? 'Armazones' : 
-                  (segmentoActual === 'S' ? 'Micas / Cristales' : 
-                  (segmentoActual === 'A' ? 'Accesorios' : 'Servicios')) 
-                }}
-              </b>.
+            <p
+              style="
+                margin: 2px 0;
+                font-size: 13px;
+                color: var(--ion-color-medium);
+              "
+            >
+              Mano de obra / Laboratorio
+            </p>
             }
-          </p>
-        </div>
-      } @else {
-        <ion-grid class="ion-no-padding">
-          <ion-row>
-            @for (producto of productosFiltrados; track producto.id_articulo || producto.codigo) {
-              <ion-col size="12" size-md="6" size-lg="4" style="padding: 6px;">
-                <ion-item lines="none" class="articulo-card"
-                  style="--background: #fff; border-radius: 14px; box-shadow: 0 4px 12px rgba(0,0,0,0.04); padding: 4px 0;">
 
-                  <ion-thumbnail slot="start"
-                    style="display: flex; align-items: center; justify-content: center; background: var(--ion-color-light); border-radius: 10px; padding: 6px; width: 48px; height: 48px; margin-left: 8px;">
-                    <ion-icon
-                      [name]="$any(producto).categoria === 'Z' ? 'glasses-outline' : ($any(producto).categoria === 'S' ? 'eye-outline' : ($any(producto).categoria === 'SERVICIO' ? 'build-outline' : 'pricetag-outline'))"
-                      style="font-size: 26px; color: var(--ion-color-primary);">
-                    </ion-icon>
-                  </ion-thumbnail>
+            <p style="font-size: 12px; color: var(--ion-color-medium)">
+              Código:
+              <code
+                style="
+                  background: #f4f5f8;
+                  padding: 2px 5px;
+                  border-radius: 4px;
+                  font-family: monospace;
+                  color: #e74c3c;
+                "
+                >{{ producto.codigo }}</code
+              >
+            </p>
 
-                  <ion-label style="margin-left: 12px;">
-                    <h2 style="font-weight: 700; font-size: 15px; color: #2c3e50; margin-bottom: 2px;">{{ producto.nombre }}</h2>
-                    
-                    @if ($any(producto).categoria !== 'SERVICIO') {
-                      <p style="margin: 2px 0; font-size: 13px;">Marca: <ion-text color="dark"><b>{{ producto.marca || 'Genérica' }}</b></ion-text></p>
-                    } @else {
-                      <p style="margin: 2px 0; font-size: 13px; color: var(--ion-color-medium);">Mano de obra / Laboratorio</p>
-                    }
-                    
-                    <p style="font-size: 12px; color: var(--ion-color-medium);">Código: <code
-                        style="background: #f4f5f8; padding: 2px 5px; border-radius: 4px; font-family: monospace; color: #e74c3c;">{{ producto.codigo }}</code>
-                    </p>
-
-                    <h3 style="color: var(--ion-color-success); font-weight: bold; margin-top: 6px; font-size: 15px;">
-                      {{ producto.precio_venta | currency:'USD':'symbol':'1.2-2' }}
-                    </h3>
-                  </ion-label>
-
-                  <ion-badge slot="end" 
-                    [color]="$any(producto).categoria === 'SERVICIO' ? 'medium' : (producto.stock_actual <= producto.stock_minimo ? 'danger' : 'success')"
-                    style="font-size: 12px; padding: 6px 10px; border-radius: 8px; font-weight: bold; margin-right: 8px;">
-                    {{ $any(producto).categoria === 'SERVICIO' ? 'Servicio' : (producto.stock_actual + ' pz') }}
-                  </ion-badge>
-                </ion-item>
-              </ion-col>
-            }
-          </ion-row>
-        </ion-grid>
-      }
-    }
-
-  }
-
-  @if (segmentoActual === 'sucursales') {
-    <div style="border-radius: 14px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #fff; margin-top: 5px;">
-      @for (suc of sucursales; track suc.id) {
-        <ion-item button (click)="verDetalleSucursal(suc)" detail="true" lines="inset">
-          <ion-icon name="business-outline" slot="start" color="primary" style="font-size: 22px;"></ion-icon>
-          <ion-label>
-            <h2 style="font-weight: 700; color: #2c3e50;">{{ suc.nombre }}</h2>
-            <p style="font-size: 13px;">Monitorear existencias físicas de esta tienda</p>
+            <h3
+              style="
+                color: var(--ion-color-success);
+                font-weight: bold;
+                margin-top: 6px;
+                font-size: 15px;
+              "
+            >
+              {{ producto.precio_venta | currency:'USD':'symbol':'1.2-2' }}
+            </h3>
           </ion-label>
-          <ion-badge slot="end" color="secondary" style="padding: 5px 8px; font-weight: bold; border-radius: 6px;">{{ suc.id }}</ion-badge>
+
+          <div
+            slot="end"
+            style="
+              display: flex;
+              flex-direction: column;
+              align-items: flex-end;
+              gap: 8px;
+              margin-right: 8px;
+            "
+          >
+            <ion-button
+              fill="clear"
+              size="small"
+              (click)="editarProducto(producto)"
+            >
+              <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+
+            @if ($any(producto).categoria !== 'SERVICIO') {
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                background: #f4f5f8;
+                border-radius: 8px;
+                padding: 2px;
+              "
+            >
+              <ion-button
+                fill="clear"
+                size="small"
+                color="danger"
+                (click)="ajustarStock(producto, -1)"
+                style="margin: 0; --padding-start: 5px; --padding-end: 5px"
+              >
+                <ion-icon name="remove-outline"></ion-icon>
+              </ion-button>
+
+              <span
+                style="
+                  font-weight: bold;
+                  min-width: 26px;
+                  text-align: center;
+                  color: #2c3e50;
+                  font-size: 14px;
+                "
+              >
+                {{ producto.stock_actual }}
+              </span>
+
+              <ion-button
+                fill="clear"
+                size="small"
+                color="success"
+                (click)="ajustarStock(producto, 1)"
+                style="margin: 0; --padding-start: 5px; --padding-end: 5px"
+              >
+                <ion-icon name="add-outline"></ion-icon>
+              </ion-button>
+            </div>
+            } @else {
+            <ion-badge
+              color="medium"
+              style="font-size: 12px; padding: 6px 10px; border-radius: 8px"
+              >Servicio</ion-badge
+            >
+            }
+          </div>
         </ion-item>
+      </ion-col>
       }
-    </div>
+    </ion-row>
+  </ion-grid>
+  } } } @if (segmentoActual === 'sucursales') {
+  <div
+    style="
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+      background: #fff;
+      margin-top: 5px;
+    "
+  >
+    @for (suc of sucursales; track suc.id) {
+    <ion-item
+      button
+      (click)="verDetalleSucursal(suc)"
+      detail="true"
+      lines="inset"
+    >
+      <ion-icon
+        name="business-outline"
+        slot="start"
+        color="primary"
+        style="font-size: 22px"
+      ></ion-icon>
+      <ion-label>
+        <h2 style="font-weight: 700; color: #2c3e50">{{ suc.nombre }}</h2>
+        <p style="font-size: 13px">
+          Monitorear existencias físicas de esta tienda
+        </p>
+      </ion-label>
+      <ion-badge
+        slot="end"
+        color="secondary"
+        style="padding: 5px 8px; font-weight: bold; border-radius: 6px"
+        >{{ suc.id }}</ion-badge
+      >
+    </ion-item>
+    }
+  </div>
+  } @if (segmentoActual !== 'sucursales') {
+  <ion-fab
+    vertical="bottom"
+    horizontal="end"
+    slot="fixed"
+    style="margin-bottom: 10px; margin-right: 5px"
+  >
+    <ion-fab-button
+      (click)="agregarProducto()"
+      color="primary"
+      style="box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4)"
+    >
+      <ion-icon name="add" style="font-size: 28px"></ion-icon>
+    </ion-fab-button>
+  </ion-fab>
+  } @if (segmentoActual !== 'sucursales') {
+  <ion-infinite-scroll
+    (ionInfinite)="cargarMas($event)"
+    [disabled]="!hayMasDatos"
+  >
+    <ion-infinite-scroll-content
+      loadingSpinner="bubbles"
+      loadingText="Cargando más artículos..."
+    >
+    </ion-infinite-scroll-content>
+  </ion-infinite-scroll>
   }
-
-  @if (segmentoActual !== 'sucursales') {
-    <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 10px; margin-right: 5px;">
-      <ion-fab-button (click)="agregarProducto()" color="primary"
-        style="box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4);">
-        <ion-icon name="add" style="font-size: 28px;"></ion-icon>
-      </ion-fab-button>
-    </ion-fab>
-  }
-
-  @if (segmentoActual !== 'sucursales') {
-    <ion-infinite-scroll (ionInfinite)="cargarMas($event)" [disabled]="!hayMasDatos">
-      <ion-infinite-scroll-content 
-        loadingSpinner="bubbles" 
-        loadingText="Cargando más artículos...">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  }
-
 </ion-content>

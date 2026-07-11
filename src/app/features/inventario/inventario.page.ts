@@ -2,21 +2,60 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular/standalone';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonText, IonButtons, IonButton, IonIcon, 
-  IonSearchbar, IonContent, IonSegment, IonSegmentButton, IonLabel, IonGrid, 
-  IonRow, IonCol, IonThumbnail, IonItem, IonBadge, IonFab, IonFabButton,
-  IonInfiniteScroll, IonInfiniteScrollContent, IonSpinner, IonMenuButton
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonText,
+  IonButtons,
+  IonButton,
+  IonIcon,
+  IonSearchbar,
+  IonContent,
+  IonSegment,
+  IonSegmentButton,
+  IonLabel,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonThumbnail,
+  IonItem,
+  IonBadge,
+  IonFab,
+  IonFabButton,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonSpinner,
+  IonMenuButton,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
-import { InventarioService, Articulo } from '../../core/services/inventario.service';
+import {
+  InventarioService,
+  Articulo,
+} from '../../core/services/inventario.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
 
 import {
-  add, addOutline, searchOutline, alertCircleOutline, pricetagOutline,
-  businessOutline, glassesOutline, eyeOutline, watchOutline, refreshOutline,
-  checkmarkCircleOutline, cubeOutline, notifications, notificationsOutline, shieldCheckmarkOutline, buildOutline, constructOutline
+  add,
+  addOutline,
+  searchOutline,
+  alertCircleOutline,
+  pricetagOutline,
+  businessOutline,
+  glassesOutline,
+  eyeOutline,
+  watchOutline,
+  refreshOutline,
+  checkmarkCircleOutline,
+  cubeOutline,
+  notifications,
+  notificationsOutline,
+  shieldCheckmarkOutline,
+  buildOutline,
+  constructOutline,
+  createOutline,
+  removeOutline,
 } from 'ionicons/icons';
 
 @Component({
@@ -25,42 +64,42 @@ import {
   styleUrls: ['./inventario.page.scss'],
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     FormsModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonText, 
-    IonButtons, 
-    IonButton, 
-    IonIcon, 
-    IonSearchbar, 
-    IonContent, 
-    IonSegment, 
-    IonSegmentButton, 
-    IonLabel, 
-    IonGrid, 
-    IonRow, 
-    IonCol, 
-    IonThumbnail, 
-    IonItem, 
-    IonBadge, 
-    IonFab, 
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonText,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonSearchbar,
+    IonContent,
+    IonSegment,
+    IonSegmentButton,
+    IonLabel,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonThumbnail,
+    IonItem,
+    IonBadge,
+    IonFab,
     IonFabButton,
-    IonInfiniteScroll, 
+    IonInfiniteScroll,
     IonInfiniteScrollContent,
     IonSpinner,
-    IonMenuButton
-  ]
+    IonMenuButton,
+  ],
 })
 export class InventarioPage implements OnInit {
   private inventarioService = inject(InventarioService);
   private modalCtrl = inject(ModalController);
 
-  segmentoActual: string = 'Z';
+  segmentoActual: string = 'ARMAZON'; // Valor inicial de la pestaña activa
   searchTerm: string = '';
   soloAlertas: boolean = false;
-  isLoading: boolean = true; 
+  isLoading: boolean = true;
 
   // Variables de Paginación y Sucursal
   page: number = 1;
@@ -72,7 +111,7 @@ export class InventarioPage implements OnInit {
     { id: 1, nombre: 'Ray-Ban' },
     { id: 2, nombre: 'Oakley' },
     { id: 3, nombre: 'Vogue' },
-    { id: 4, nombre: 'Arnette' }
+    { id: 4, nombre: 'Arnette' },
   ];
 
   productos: Articulo[] = [];
@@ -82,23 +121,41 @@ export class InventarioPage implements OnInit {
     { id: 'HL01', nombre: 'SUC. MATRIZ', totalArticulos: 120 },
     { id: 'HL02', nombre: 'SUC. PULGAS PANDAS', totalArticulos: 85 },
     { id: 'HL03', nombre: 'SUC. UNIVERSIDAD', totalArticulos: 95 },
-    { id: 'HL04', nombre: 'SUC. DEL PARQUE', totalArticulos: 210 }
+    { id: 'HL04', nombre: 'SUC. DEL PARQUE', totalArticulos: 210 },
   ];
 
   constructor() {
     addIcons({
-      add, addOutline, searchOutline, alertCircleOutline, pricetagOutline,
-      businessOutline, glassesOutline, eyeOutline, watchOutline, refreshOutline,
-      checkmarkCircleOutline, cubeOutline, notifications, notificationsOutline, shieldCheckmarkOutline, buildOutline, constructOutline
+      add,
+      addOutline,
+      searchOutline,
+      alertCircleOutline,
+      pricetagOutline,
+      businessOutline,
+      glassesOutline,
+      eyeOutline,
+      watchOutline,
+      refreshOutline,
+      checkmarkCircleOutline,
+      cubeOutline,
+      notifications,
+      notificationsOutline,
+      shieldCheckmarkOutline,
+      buildOutline,
+      constructOutline,
+      createOutline,
+      removeOutline,
     });
   }
 
   ngOnInit() {
-    this.inventarioService.getArticulosStream().subscribe((data: Articulo[]) => {
-      this.productos = data;
-      this.filtrar(); // Se re-filtra automáticamente al llegar nuevos datos
-      this.isLoading = false; // Deja de mostrar el spinner al cargar los datos por primera vez
-    });
+    this.inventarioService
+      .getArticulosStream()
+      .subscribe((data: Articulo[]) => {
+        this.productos = data;
+        this.filtrar(); // Se re-filtra automáticamente al llegar nuevos datos
+        this.isLoading = false; // Deja de mostrar el spinner al cargar los datos por primera vez
+      });
 
     this.cargarDatos();
   }
@@ -108,11 +165,17 @@ export class InventarioPage implements OnInit {
   async cargarDatos() {
     this.page = 1;
     this.hayMasDatos = true;
-    this.isLoading = true; 
-    
+    this.isLoading = true;
+
     // Le mandamos la pestaña actual (this.segmentoActual) al servicio y esperamos la respuesta
-    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.segmentoActual, this.page, this.limit, true);
-    
+    const trajoMas = await this.inventarioService.cargarArticulos(
+      this.idSucursalActual,
+      this.segmentoActual,
+      this.page,
+      this.limit,
+      true,
+    );
+
     // Si la BD devolvió menos de 50 registros en la primera consulta, apagamos el scroll para que no intente pedir la página 2.
     if (!trajoMas) {
       this.hayMasDatos = false;
@@ -127,25 +190,31 @@ export class InventarioPage implements OnInit {
     }
 
     this.page++;
-    
+
     // Pasamos el segmento actual también al cargar más páginas
-    const trajoMas = await this.inventarioService.cargarArticulos(this.idSucursalActual, this.segmentoActual, this.page, this.limit, false);
-    
+    const trajoMas = await this.inventarioService.cargarArticulos(
+      this.idSucursalActual,
+      this.segmentoActual,
+      this.page,
+      this.limit,
+      false,
+    );
+
     // Si el backend responde que ya no llenó el límite (trajo menos de 50), apagamos la bandera
     if (!trajoMas) {
-      this.hayMasDatos = false; 
+      this.hayMasDatos = false;
     }
-    
+
     // SIEMPRE debemos completar el evento para que Ionic quite la bolita girando del fondo
     event.target.complete();
   }
 
   cambiarSegmento(event: any) {
     this.segmentoActual = event.detail.value;
-    
+
     if (this.segmentoActual !== 'sucursales') {
       // Al cambiar de pestaña, obligamos al sistema a traer los datos nuevos de ESA categoría desde la BD
-      this.cargarDatos(); 
+      this.cargarDatos();
     }
   }
 
@@ -154,23 +223,25 @@ export class InventarioPage implements OnInit {
     if (this.segmentoActual === 'sucursales') return;
 
     this.productosFiltrados = this.productos.filter(p => {
-      // 1. Filtro de Búsqueda de texto
+      // 1. Búsqueda Segura (Evita crasheos si el nombre o marca vienen nulos de la BD vieja)
+      const nombreSafe = (p.nombre || '').toLowerCase();
+      const marcaSafe = (p.marca || '').toLowerCase();
+
       const coincideBusqueda = 
-        p.nombre.toLowerCase().includes(this.searchTerm) ||
-        (p.marca && p.marca.toLowerCase().includes(this.searchTerm));
+        nombreSafe.includes(this.searchTerm) ||
+        marcaSafe.includes(this.searchTerm);
 
       // 2. Filtro de Campana de Stock Crítico
       let pasaAlertaStock = true;
       if (this.soloAlertas) {
-        const cat = p.categoria ? p.categoria.toUpperCase() : '';
-        const esServicio = cat.includes('SERVICIO');
+        const catSafe = (p.categoria || '').toUpperCase();
+        const esServicio = catSafe.includes('SERVICIO');
         pasaAlertaStock = !esServicio && (Number(p.stock_actual) <= Number(p.stock_minimo));
       }
       
       return coincideBusqueda && pasaAlertaStock;
     });
   }
-
 
   onSearchChange(event: any) {
     this.searchTerm = event.detail.value?.toLowerCase() || '';
@@ -186,8 +257,8 @@ export class InventarioPage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: FormularioArticuloComponent,
       componentProps: {
-        tipoArticulo: this.segmentoActual
-      }
+        tipoArticulo: this.segmentoActual,
+      },
     });
 
     await modal.present();
@@ -199,7 +270,7 @@ export class InventarioPage implements OnInit {
           console.log('¡Producto guardado mediante la API!', res);
           this.cargarDatos(); // Refresca la lista para mostrar el nuevo artículo
         },
-        error: (err: any) => console.error('Error al guardar artículo:', err)
+        error: (err: any) => console.error('Error al guardar artículo:', err),
       });
     }
   }
@@ -207,6 +278,46 @@ export class InventarioPage implements OnInit {
   verDetalleSucursal(sucursal: any) {
     console.log('Filtrando inventario por sucursal:', sucursal.nombre);
     this.idSucursalActual = sucursal.id;
-    this.cargarDatos(); 
+    this.cargarDatos();
+  }
+
+  async editarProducto(producto: Articulo) {
+    const modal = await this.modalCtrl.create({
+      component: FormularioArticuloComponent,
+      componentProps: {
+        tipoArticulo: producto.categoria,
+        articuloExistente: producto, // Pasamos la data
+      },
+    });
+
+    await modal.present();
+    const { data } = await modal.onWillDismiss();
+
+    if (data) {
+      this.cargarDatos(); // Recargamos si se guardó o eliminó
+    }
+  }
+
+  async ajustarStock(producto: Articulo, cantidadAjuste: number) {
+    // Evitar que el stock baje de 0
+    if (producto.stock_actual + cantidadAjuste < 0) return;
+
+    // Actualización optimista (UI rápida)
+    producto.stock_actual += cantidadAjuste;
+
+    this.inventarioService
+      .ajustarStockRapido(
+        producto.id_articulo!,
+        this.idSucursalActual,
+        cantidadAjuste,
+      )
+      .subscribe({
+        next: () => console.log('Stock ajustado'),
+        error: (err) => {
+          console.error('Error al ajustar stock', err);
+          // Revertir el cambio visual si falló el backend
+          producto.stock_actual -= cantidadAjuste;
+        },
+      });
   }
 }
