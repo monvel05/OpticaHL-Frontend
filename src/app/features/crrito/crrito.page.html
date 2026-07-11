@@ -22,21 +22,72 @@
     </ion-label>
   </ion-item>
 
+  @if (graduacionLectura) {
+    <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05); background: #f4f6f7; border-left: 5px solid var(--ion-color-primary);">
+      <ion-card-header style="padding: 10px 14px 4px 14px;">
+        <ion-card-title style="font-size: 13px; font-weight: bold; color: #555; display: flex; align-items: center; gap: 6px;">
+          <ion-icon name="eye-outline" color="primary"></ion-icon>
+          Graduación Establecida (Modo Lectura)
+        </ion-card-title>
+      </ion-card-header>
+      <ion-card-content style="padding: 6px 14px 10px 14px;">
+        <table style="width: 100%; text-align: center; font-size: 12px; border-collapse: collapse; background: white; border-radius: 6px; overflow: hidden;">
+          <thead>
+            <tr style="background: #e2e6ea; font-weight: bold; color: #333;">
+              <th style="padding: 4px;">Ojo</th>
+              <th>Esf.</th>
+              <th>Cil.</th>
+              <th>Eje</th>
+              <th>Add</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="border-bottom: 1px solid #f1f1f1;">
+              <td style="font-weight: bold; color: #e74c3c; padding: 4px;">OD</td>
+              <td>{{ graduacionLectura.od_esfera || '0.00' }}</td>
+              <td>{{ graduacionLectura.od_cilindro || '0.00' }}</td>
+              <td>{{ graduacionLectura.od_eje ? graduacionLectura.od_eje + '°' : '-' }}</td>
+              <td>{{ graduacionLectura.od_adicion || '-' }}</td>
+            </tr>
+            <tr>
+              <td style="font-weight: bold; color: #3498db; padding: 4px;">OI</td>
+              <td>{{ graduacionLectura.oi_esfera || '0.00' }}</td>
+              <td>{{ graduacionLectura.oi_cilindro || '0.00' }}</td>
+              <td>{{ graduacionLectura.oi_eje ? graduacionLectura.oi_eje + '°' : '-' }}</td>
+              <td>{{ graduacionLectura.oi_adicion || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p style="font-size: 11px; color: #666; margin: 6px 0 0 2px; font-style: italic;">
+          <strong>Notas:</strong> {{ graduacionLectura.observaciones }}
+        </p>
+      </ion-card-content>
+    </ion-card>
+  }
+
   <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-    <ion-card-header style="padding-bottom: 5px;">
-      <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50;">Productos / Servicios</ion-card-title>
+    <ion-card-header style="padding-bottom: 0px;">
+      <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Productos / Servicios</ion-card-title>
+      
+      <ion-searchbar 
+        placeholder="Buscar material por nombre o código..." 
+        [(ngModel)]="filtroBusqueda"
+        style="--padding-start: 8px; --padding-end: 8px; padding: 0;"
+        [debounce]="150">
+      </ion-searchbar>
     </ion-card-header>
 
-    <ion-card-content style="padding: 8px;">
+    <ion-card-content style="padding: 8px; max-height: 290px; overflow-y: auto;">
       <ion-grid class="ion-no-padding">
         <ion-row>
-          @for (a of articulos; track a.id_articulo) {
+          @for (a of articulosFiltrados; track a.id_articulo) {
             <ion-col size="6" size-md="4" size-lg="3" style="padding: 4px;">
               <ion-card class="producto-card" (click)="agregar(a)" button style="margin: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); background: #f8f9fa;">
                 <ion-card-header style="padding: 10px 10px 4px 10px;">
-                  <h3 style="font-weight: 700; color: #444; font-size: 13px; margin: 0; min-height: 32px; overflow: hidden; text-overflow: ellipsis;">
+                  <h3 style="font-weight: 700; color: #444; font-size: 13px; margin: 0; min-height: 32px; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;">
                     {{ a.nombre }}
                   </h3>
+                  <p style="font-size: 10px; color: gray; margin: 2px 0 0 0;">Cód: {{ a.id_articulo }}</p>
                 </ion-card-header>
 
                 <ion-card-content style="padding: 0 10px 10px 10px;">
@@ -49,6 +100,10 @@
                   </ion-badge>
                 </ion-card-content>
               </ion-card>
+            </ion-col>
+          } @empty {
+            <ion-col size="12" class="ion-text-center ion-padding" style="color: var(--ion-color-medium);">
+              <p style="font-size: 13px;">No se encontraron micas, armazones o servicios con ese criterio.</p>
             </ion-col>
           }
         </ion-row>

@@ -86,6 +86,21 @@ export class LoginPage implements OnInit {
             usuarioData.rol = 'OPTOMETRISTA';
           }
 
+          // 🧠 HOMOLOGACIÓN PARA CAJA:
+          // Si el rol devuelto por el backend es 'CAJERO' o contiene 'CAJE', lo forzamos a 'CAJA' 
+          // para que el Guardián de la ruta no lo bloquee.
+          if (usuarioData.roles && Array.isArray(usuarioData.roles)) {
+            usuarioData.roles = usuarioData.roles.map((r: any) => String(r).toUpperCase().includes('CAJE') ? 'CAJA' : r);
+          }
+          if (usuarioData.rol && String(usuarioData.rol).toUpperCase().includes('CAJE')) {
+            usuarioData.rol = 'CAJA';
+          }
+          if (Array.isArray(rolesUsuario)) {
+            rolesUsuario = rolesUsuario.map(r => String(r).toUpperCase().includes('CAJE') ? 'CAJA' : r);
+          } else if (rolesUsuario && String(rolesUsuario).toUpperCase().includes('CAJE')) {
+            rolesUsuario = 'CAJA';
+          }
+
           this.mostrarToast(`¡Bienvenido(a) ${nombreUsuario}!`, 'success');
 
           // Redirección inteligente
@@ -126,7 +141,6 @@ export class LoginPage implements OnInit {
       
     } else if (esOptometrista) {
       console.log('-> Ejecutando navegación a: /optometrista');
-      // Usamos navigateByUrl para limpiar cualquier parámetro residual y forzar el cambio de vista
       this.router.navigateByUrl('/optometrista'); 
       
     } else if (esMostrador) {
@@ -138,7 +152,6 @@ export class LoginPage implements OnInit {
       this.router.navigate(['/caja']); 
       
     } else {
-      // Si el rol es desconocido o no se empareja, lo mandamos a optometrista por seguridad si es 'amendoza'
       console.warn('Rol no emparejado en los filtros tradicionales, forzando enrutamiento.');
       this.router.navigateByUrl('/optometrista'); 
     }
