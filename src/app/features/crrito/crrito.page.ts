@@ -12,7 +12,7 @@ import {
   personOutline, 
   checkmarkCircleOutline,
   eyeOutline,
-  searchOutline // 🔍 Agregamos icono de búsqueda
+  searchOutline 
 } from 'ionicons/icons';
 
 import { ArticulosService } from '../../core/services/articulos.service';
@@ -40,8 +40,11 @@ export class CrritoPage implements OnInit {
   carrito: any[] = [];
   total: number = 0;
   
-  // 🔍 Variable para la barra de búsqueda de materiales
+  // Parámetros para la paginación y búsqueda real en BD
+  paginaActual: number = 1;
+  limitePorPagina: number = 20;
   filtroBusqueda: string = '';
+  hayMasDatos: boolean = true;
 
   constructor() {
     addIcons({
@@ -58,44 +61,66 @@ export class CrritoPage implements OnInit {
   }
 
   ngOnInit() {
+    // Escuchamos el stream reactivo del servicio
     this.articulosService.getArticulosStream().subscribe({
-      next: (res: any) => {
-        console.log('📦 Productos recibidos en carrito:', res);
-        if (Array.isArray(res)) {
-          this.articulos = res;
-        } else if (res && Array.isArray(res.data)) {
-          this.articulos = res.data;
-        } else if (res && Array.isArray(res.articulos)) {
-          this.articulos = res.articulos;
-        } else {
-          this.articulos = [];
+      next: (res: any[]) => {
+        console.log('📦 Productos actualizados en el componente:', res);
+        this.articulos = res;
+
+        // Si los registros actuales son menores que lo que se espera acumular por página, 
+        // significa que ya alcanzamos el total en la base de datos.
+        if (res.length > 0 && res.length < (this.paginaActual * this.limitePorPagina)) {
+          this.hayMasDatos = false;
         }
       },
       error: (err) => console.error('Error al mapear artículos en carrito:', err)
     });
 
-    this.articulosService.cargarArticulos();
+    // Realizamos la primera carga limpia (Página 1, vacía)
+    this.cargarDatosServidor();
   }
 
   /**
-   * 🔎 GETTER REACTIVO: Filtra los artículos en tiempo real por Nombre o por Código.
-   * Si la barra está vacía, devuelve todos los artículos.
+   * Centraliza la petición al servicio pasándole los parámetros actuales
    */
-  get articulosFiltrados(): any[] {
-    if (!this.filtroBusqueda || this.filtroBusqueda.trim() === '') {
-      return this.articulos;
+  cargarDatosServidor() {
+    this.articulosService.cargarArticulos(
+      this.paginaActual, 
+      this.limitePorPagina, 
+      this.filtroBusqueda
+    );
+  }
+
+  /**
+   * Ejecutado por el (ionInput) o el botón de búsqueda.
+   * Reinicia la paginación y le pide al backend que busque sobre los 34,000 registros.
+   */
+buscarMaterial(event?: any) {
+    // Si el evento trae directamente el valor del ion-searchbar lo capturamos, si no, usamos la propiedad vinculada
+    const valor = event?.target?.value !== undefined ? event.target.value : this.filtroBusqueda;
+    this.filtroBusqueda = valor || '';
+
+    this.paginaActual = 1;
+    this.hayMasDatos = true;
+    this.cargarDatosServidor();
+  }
+
+  /**
+   * Evento disparado cuando el usuario llega al final de la lista en el HTML
+   */
+  cargarMasArticulos(event: any) {
+    if (!this.hayMasDatos) {
+      event.target.complete();
+      return;
     }
-    
-    const termino = this.filtroBusqueda.toLowerCase().trim();
-    
-    return this.articulos.filter(articulo => {
-      // Validamos contra 'nombre' y contra su propiedad de código (ajusta 'codigo' o 'id_articulo' según tu BD)
-      const coincideNombre = articulo.nombre ? articulo.nombre.toLowerCase().includes(termino) : false;
-      const coincideCodigo = articulo.id_articulo ? String(articulo.id_articulo).toLowerCase().includes(termino) : false;
-      const coincideCodigoAlterno = articulo.codigo ? String(articulo.codigo).toLowerCase().includes(termino) : false;
-      
-      return coincideNombre || coincideCodigo || coincideCodigoAlterno;
-    });
+
+    this.paginaActual++;
+    this.cargarDatosServidor();
+
+    // Le damos un pequeño respiro a la UI para completar la animación del scroll
+    setTimeout(() => {
+      event.target.complete();
+    }, 600);
   }
 
   agregar(item: any) {

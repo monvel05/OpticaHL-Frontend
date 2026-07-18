@@ -69,18 +69,21 @@
     <ion-card-header style="padding-bottom: 0px;">
       <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Productos / Servicios</ion-card-title>
       
+      <!-- Se vinculó el evento ionInput a la búsqueda dinámica del servidor -->
       <ion-searchbar 
         placeholder="Buscar material por nombre o código..." 
         [(ngModel)]="filtroBusqueda"
+        (ionInput)="buscarMaterial()"
         style="--padding-start: 8px; --padding-end: 8px; padding: 0;"
-        [debounce]="150">
+        [debounce]="250">
       </ion-searchbar>
     </ion-card-header>
 
     <ion-card-content style="padding: 8px; max-height: 290px; overflow-y: auto;">
       <ion-grid class="ion-no-padding">
         <ion-row>
-          @for (a of articulosFiltrados; track a.id_articulo) {
+          <!-- Ahora lee directamente del flujo acumulado 'articulos' -->
+          @for (a of articulos; track a.id_articulo) {
             <ion-col size="6" size-md="4" size-lg="3" style="padding: 4px;">
               <ion-card class="producto-card" (click)="agregar(a)" button style="margin: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); background: #f8f9fa;">
                 <ion-card-header style="padding: 10px 10px 4px 10px;">
@@ -108,6 +111,12 @@
           }
         </ion-row>
       </ion-grid>
+
+      <!-- Infinite Scroll para cargar más elementos de la base de datos al bajar -->
+      <ion-infinite-scroll (ionInfinite)="cargarMasArticulos($event)" [disabled]="!hayMasDatos">
+        <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Cargando más productos...">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
     </ion-card-content>
   </ion-card>
 
