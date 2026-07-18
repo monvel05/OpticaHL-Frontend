@@ -2,14 +2,10 @@ import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ModalController, IonicModule, AlertController } from '@ionic/angular';
 import { addIcons } from 'ionicons';
-// 🎯 ACTUALIZADO: Agregamos todos los iconos que usan tus 3 nuevos botones
 import { personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, addCircleOutline, timeOutline, createOutline } from 'ionicons/icons';
-import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component'; // Verifica tu ruta exacta
-// 📂 Importamos tu servicio e interfaz correspondientes
+import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component'; 
 import { ClienteService } from '../../core/services/cliente.service'; 
 import { Cliente } from '../../shared/interfaces/cliente.interface';
-
-// 📂 Importamos tus componentes de modales existentes
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { FormularioRecetaComponent } from '../../shared/components/formulario-receta/formulario-receta.component';
 
@@ -21,7 +17,6 @@ import { FormularioRecetaComponent } from '../../shared/components/formulario-re
   imports: [CommonModule, IonicModule]
 })
 export class OptometristaPage {
-  // Inyección de dependencias limpia usando inject()
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private clienteService = inject(ClienteService); 
@@ -31,7 +26,6 @@ export class OptometristaPage {
   public cargando: boolean = false;
 
   constructor() {
-    // 🎯 ACTUALIZADO: Registramos todos los iconos nuevos en el constructor
     addIcons({ 
       personAddOutline, 
       checkmarkCircleOutline, 
@@ -52,11 +46,8 @@ export class OptometristaPage {
     });
 
     await modal.present();
-
     const { data, role } = await modal.onWillDismiss();
 
-    // 🎯 CORREGIDO: Al crear un paciente nuevo, solo lo seleccionamos. 
-    // Quitamos el 'this.abrirModalReceta()' para que cargue la tarjeta con los 3 botones.
     if (role === 'confirm' && data) {
       this.pacienteSeleccionado = data;
     }
@@ -64,7 +55,6 @@ export class OptometristaPage {
 
   /**
    * 2. Abre el modal de la Receta pasándole el paciente mediante props
-   * (Este se ejecuta cuando haces clic en el botón verde de "Nueva Consulta (Rx)")
    */
   async abrirModalReceta() {
     if (!this.pacienteSeleccionado) return;
@@ -77,18 +67,17 @@ export class OptometristaPage {
     });
 
     await modal.present();
-
     const { data, role } = await modal.onWillDismiss();
 
     if (role === 'confirm') {
       this.mostrarAlertaExito();
       this.pacienteSeleccionado = null;
-      this.resultadosBusqueda = []; // Limpiamos la lista de búsqueda para la siguiente consulta
+      this.resultadosBusqueda = []; 
     }
   }
 
   /**
-   * 🔍 BUSCADOR EN TIEMPO REAL: Conexión nativa con tu ClienteService
+   * 🔍 BUSCADOR EN TIEMPO REAL: Conexión con tu ClienteService
    */
   buscarPacienteExistente(event: any) {
     const query = event.detail?.value || event.target?.value || '';
@@ -101,13 +90,14 @@ export class OptometristaPage {
     this.cargando = true;
 
     this.clienteService.buscarClientes(query).subscribe({
-      next: (data: Cliente[]) => {
-        console.log('Pacientes encontrados en gabinete:', data);
-        this.resultadosBusqueda = data;
+      next: (response: any) => {
+        console.log('Pacientes encontrados en gabinete:', response);
+        this.resultadosBusqueda = response && response.data ? response.data : [];
         this.cargando = false;
       },
       error: (err: any) => {
         console.error('Error al realizar búsqueda en gabinete:', err);
+        this.resultadosBusqueda = [];
         this.cargando = false;
       }
     });
@@ -119,10 +109,7 @@ export class OptometristaPage {
   seleccionarPaciente(paciente: Cliente) {
     console.log('Paciente seleccionado para consulta:', paciente);
     this.pacienteSeleccionado = paciente;
-    this.resultadosBusqueda = []; // Ocultamos la lista limpiando el arreglo
-    
-    // 🎯 CORREGIDO: ¡Eliminado 'this.abrirModalReceta()'! 
-    // Ahora al tocar el paciente se quedará congelado en la pantalla de opciones tal como quieres.
+    this.resultadosBusqueda = []; 
   }
 
   async mostrarAlertaExito() {
@@ -133,21 +120,64 @@ export class OptometristaPage {
     });
     await alert.present();
   }
-  editarUltimaReceta() {
-    console.log('Cargando última Rx para editar del cliente:', this.pacienteSeleccionado.id_cliente);
-    // Aquí irá tu lógica para traer la última consulta de la BD y mandarla a editar
+
+  /**
+   * 🔄 EDITAR ÚLTIMA RECETA (Evolución Clínica sin sobreescribir)
+   */
+  async editarUltimaReceta() {
+    if (!this.pacienteSeleccionado || !this.pacienteSeleccionado.id_cliente) return;
+
+    this.cargando = true;
+
+    this.clienteService.obtenerUltimaRX(this.pacienteSeleccionado.id_cliente).subscribe({
+      next: async (response: any) => {
+        this.cargando = false;
+
+        if (response.success && response.data) {
+          const modal = await this.modalCtrl.create({
+            component: FormularioRecetaComponent,
+            componentProps: {
+              cliente: this.pacienteSeleccionado,
+              datosPreexistentes: response.data 
+            }
+          });
+
+          await modal.present();
+          const { data, role } = await modal.onWillDismiss();
+
+          if (role === 'confirm') {
+            this.mostrarAlertaExito();
+            this.pacienteSeleccionado = null;
+            this.resultadosBusqueda = [];
+          }
+        }
+      },
+      error: async (err: any) => {
+        this.cargando = false;
+        console.error('Error al recuperar última Rx:', err);
+        
+        const alert = await this.alertCtrl.create({
+          header: 'Sin registros',
+          message: 'Este paciente no cuenta con un historial de recetas previo para usar como plantilla.',
+          buttons: ['Entendido']
+        });
+        await alert.present();
+      }
+    });
   }
+
+  /**
+   * 🕒 VER HISTORIAL CLÍNICO
+   */
   verHistorialClinico() {
     if (!this.pacienteSeleccionado || !this.pacienteSeleccionado.id_cliente) return;
 
     this.cargando = true;
 
-    // 🌐 Consultamos el backend usando tu servicio existente
     this.clienteService.obtenerHistorial(this.pacienteSeleccionado.id_cliente).subscribe({
       next: async (historial: any[]) => {
         this.cargando = false;
 
-        // Lanzamos la modal pasándole los parámetros requeridos
         const modal = await this.modalCtrl.create({
           component: HistorialOrdenComponent,
           componentProps: {
