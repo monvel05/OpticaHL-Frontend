@@ -60,7 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   // Esto debe hacer match con lo que tienes en app.routes.ts
   private allPages: AppPage[] = [
     { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
-    { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
+    { title: 'Órdenes', url: '/optometrista', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
     { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
