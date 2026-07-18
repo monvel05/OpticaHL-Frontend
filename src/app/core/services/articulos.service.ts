@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
@@ -7,6 +7,7 @@ import { BehaviorSubject } from 'rxjs';
 })
 export class ArticulosService {
 
+  // Ajustado a singular /articulo para coincidir exactamente con tu backend
   private api = 'http://localhost:3000/api/articulos';
 
   private articulos$ = new BehaviorSubject<any[]>([]);
@@ -14,11 +15,20 @@ export class ArticulosService {
   constructor(private http: HttpClient) {}
 
   // =====================
-  // CRUD
+  // CRUD & Consultas HTTP
   // =====================
 
-  getArticulos() {
-    return this.http.get<any[]>(this.api);
+  // Ahora recibe los parámetros opcionales y los añade dinámicamente a la URL (?page=1&limit=20&q=...)
+  getArticulos(page: number = 1, limit: number = 20, termino: string = '') {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+
+    if (termino.trim() !== '') {
+      params = params.set('q', termino.trim());
+    }
+
+    return this.http.get<any>(this.api, { params });
   }
 
   getServicios() {
@@ -33,8 +43,9 @@ export class ArticulosService {
     return this.http.put(`${this.api}/${id}`, data);
   }
 
+  // Modificado a PUT /id/desactivar para que use el Soft Delete que Mónica programó en tu backend
   eliminarArticulo(id: number) {
-    return this.http.delete(`${this.api}/${id}`);
+    return this.http.put(`${this.api}/${id}/desactivar`, {});
   }
 
   // =====================
@@ -46,12 +57,25 @@ export class ArticulosService {
   }
 
   // =====================
-  // Estado reactivo
+  // Estado reactivo (Stream)
   // =====================
 
-  cargarArticulos() {
-    this.getArticulos().subscribe(data => {
-      this.articulos$.next(data);
+  cargarArticulos(page: number = 1, limit: number = 20, termino: string = '') {
+    this.getArticulos(page, limit, termino).subscribe({
+      next: (res: any) => {
+        // Extraemos el array desde res.data
+        const nuevosArticulos = res?.data || [];
+        
+        if (page === 1) {
+          // Carga inicial o búsqueda limpia -> sobrescribe el estado
+          this.articulos$.next(nuevosArticulos);
+        } else {
+          // Scroll infinito -> concatena los nuevos artículos a la lista actual
+          const actuales = this.articulos$.value;
+          this.articulos$.next([...actuales, ...nuevosArticulos]);
+        }
+      },
+      error: (err) => console.error('Error al cargar artículos en el servicio:', err)
     });
   }
 
