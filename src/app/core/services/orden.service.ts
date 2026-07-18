@@ -1,3 +1,4 @@
+// src/app/core/services/orden.service.ts
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -8,7 +9,8 @@ import { environment } from '../../../environment/envs';
 })
 export class OrdenService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/orders`;
+  // 🎯 Asegura la ruta exacta al backend en español: /api/ordenes
+  private apiUrl = `${environment.apiUrl}/ordenes`;
 
   // =====================
   // CONSULTAS (GET)
@@ -26,14 +28,12 @@ export class OrdenService {
     return this.http.get<any[]>(this.apiUrl, { params });
   }
 
-  /** Obtener el detalle de una orden específica por ID o Folio (Método original de Juan) */
+  /** Obtener el detalle de una orden específica por ID o Folio */
   getDetalle(idOrFolio: string | number): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${idOrFolio}`);
   }
 
-  /** * Obtener el detalle de una orden por su Folio de Óptica
-   * Agregado para conectar directamente con el flujo interactivo de la Caja sin errores de TypeScript
-   */
+  /** Obtener el detalle de una orden por su Folio de Óptica */
   obtenerOrdenPorFolio(folio: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${folio}`);
   }
@@ -42,24 +42,25 @@ export class OrdenService {
   // ACCIONES (POST / PUT)
   // =====================
 
-  /** Crear una nueva orden de óptica */
+  /** 
+   * Crear una nueva orden de óptica desde el Mostrador
+   * 🎯 ¡Usa este método en crrito.page.ts línea 210!
+   */
   crearOrden(ordenData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, ordenData);
   }
 
   /** Modificar datos de una orden existente */
-  modificarOrden(orderId: number, updateData: any): Observable<any> {
+  modificarOrden(orderId: number | string, updateData: any): Observable<any> {
     return this.http.put<any>(`${this.apiUrl}/${orderId}`, updateData);
   }
 
   /** Registrar un abono o pago a la orden */
-  registrarPago(orderId: number, pagoData: any): Observable<any> {
+  registrarPago(orderId: number | string, pagoData: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${orderId}/pay`, pagoData);
   }
 
-  /** * Cancelar una orden 
-   * Nota: Unificado para usar el endpoint /cancel del backend profesional 
-   */
+  /** Cancelar una orden */
   cancelarOrden(orderId: number | string): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${orderId}/cancel`, {});
   }
