@@ -1,19 +1,21 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
-
-import { IonicModule } from '@ionic/angular';
-// 1. Aquí lo importas para el archivo
+import { 
+  IonHeader, IonToolbar, IonTitle, IonContent 
+} from '@ionic/angular/standalone';
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 
 @Component({
   selector: 'app-calizdeformulario',
   templateUrl: './calizdeformulario.page.html',
   standalone: true,
-  // 2. ¡AQUÍ ES DONDE TE FALTA! Agrégalo a esta lista
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    IonicModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
     ClienteFormComponent
-]
+  ]
 })
 export class CalizdeformularioPage {
   constructor() {}

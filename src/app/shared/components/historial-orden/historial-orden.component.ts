@@ -1,6 +1,9 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonContent, IonCard, IonItem, IonLabel, IonCardContent, ModalController 
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { closeOutline, folderOpenOutline, documentTextOutline } from 'ionicons/icons';
 
@@ -9,7 +12,20 @@ import { closeOutline, folderOpenOutline, documentTextOutline } from 'ionicons/i
   templateUrl: './historial-orden.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [CommonModule, IonicModule]
+  imports: [
+    CommonModule, 
+    IonHeader, 
+    IonToolbar, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonTitle, 
+    IonContent, 
+    IonCard, 
+    IonItem, 
+    IonLabel, 
+    IonCardContent
+  ]
 })
 export class HistorialOrdenComponent implements OnInit {
   // Recibe los datos limpios directamente desde el backend a través del panel principal

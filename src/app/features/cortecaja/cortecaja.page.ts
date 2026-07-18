@@ -1,6 +1,10 @@
 import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, AlertController, ToastController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
+  IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonText, 
+  IonList, IonItem, IonLabel, IonNote, AlertController, ToastController 
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { printOutline, cashOutline, cardOutline, receiptOutline } from 'ionicons/icons';
 import { CajaService } from '../../core/services/caja.service';
@@ -11,7 +15,26 @@ import { CajaService } from '../../core/services/caja.service';
   styleUrls: ['./cortecaja.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule]
+  imports: [
+    CommonModule,
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonContent, 
+    IonGrid, 
+    IonRow, 
+    IonCol, 
+    IonCard, 
+    IonCardContent, 
+    IonText, 
+    IonList, 
+    IonItem, 
+    IonLabel, 
+    IonNote
+  ]
 })
 export class CorteCajaPage implements OnInit {
   private alertCtrl = inject(AlertController);

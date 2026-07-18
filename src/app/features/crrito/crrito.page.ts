@@ -1,7 +1,12 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonNote, IonContent, IonItem, IonLabel, IonCard, IonCardHeader, 
+  IonCardTitle, IonCardContent, IonSearchbar, IonGrid, IonRow, IonCol, 
+  IonBadge, IonList, ModalController 
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
   closeOutline, 
@@ -25,7 +30,30 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
   styleUrls: ['./crrito.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    CommonModule, 
+    FormsModule,
+    IonHeader, 
+    IonToolbar, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonTitle, 
+    IonNote, 
+    IonContent, 
+    IonItem, 
+    IonLabel, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardTitle, 
+    IonCardContent, 
+    IonSearchbar, 
+    IonGrid, 
+    IonRow, 
+    IonCol, 
+    IonBadge, 
+    IonList
+  ]
 })
 export class CrritoPage implements OnInit {
   

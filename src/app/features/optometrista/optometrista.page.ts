@@ -1,6 +1,11 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 
-import { ModalController, IonicModule, AlertController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
+  IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
+  IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol,
+  ModalController, AlertController 
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 // 🎯 ACTUALIZADO: Agregamos todos los iconos que usan tus 3 nuevos botones
 import { personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, addCircleOutline, timeOutline, createOutline } from 'ionicons/icons';
@@ -19,7 +24,11 @@ import { FormularioRecetaComponent } from '../../shared/components/formulario-re
   styleUrls: ['./optometrista.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule]
+  imports: [
+    IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
+    IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
+    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol
+  ]
 })
 export class OptometristaPage {
   // Inyección de dependencias limpia usando inject()

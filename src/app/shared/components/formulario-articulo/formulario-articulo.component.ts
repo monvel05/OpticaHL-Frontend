@@ -1,38 +1,70 @@
-import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import {
+  Component,
+  Input,
+  OnInit,
+  inject,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController, AlertController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonContent, IonCard, IonCardHeader, IonCardSubtitle, IonCardContent, 
+  IonItem, IonInput, IonGrid, IonRow, IonCol, IonTextarea,
+  ModalController, AlertController 
+} from '@ionic/angular/standalone';
 import { SelectorEntidadComponent } from '../selector-entidad/selector-entidad.component';
 
 // IMPORTACIONES NECESARIAS (Servicio e Iconos)
 import { InventarioService } from 'src/app/core/services/inventario.service';
 import { addIcons } from 'ionicons';
-import { 
-  barcodeOutline, 
-  glassesOutline, 
-  cashOutline, 
-  documentTextOutline, 
+import {
+  barcodeOutline,
+  glassesOutline,
+  cashOutline,
+  documentTextOutline,
   closeOutline,
   layersOutline,
-  colorPaletteOutline, 
+  colorPaletteOutline,
   shapesOutline,
-  trashOutline
+  trashOutline,
+  pricetagOutline
 } from 'ionicons/icons';
 
 @Component({
   selector: 'app-formulario-articulo',
   standalone: true,
-  imports: [FormsModule, IonicModule, SelectorEntidadComponent],
+  imports: [
+    FormsModule, 
+    SelectorEntidadComponent,
+    IonHeader, 
+    IonToolbar, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonTitle, 
+    IonContent, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardSubtitle, 
+    IonCardContent, 
+    IonItem, 
+    IonInput, 
+    IonGrid, 
+    IonRow, 
+    IonCol, 
+    IonTextarea
+  ],
   templateUrl: './formulario-articulo.component.html',
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ['./formulario-articulo.component.scss'],
 })
 export class FormularioArticuloComponent implements OnInit {
   // Recibe la categoría ('ARMAZON', 'MICA', 'ACCESORIO', 'SERVICIO') directo desde el inventario principal
-  @Input() tipoArticulo: string = 'ARMAZON'; 
-  
+  @Input() tipoArticulo: string = 'ARMAZON';
+
   // 🆕 RECIBE DATOS SI ESTAMOS EN MODO EDICIÓN
-  @Input() articuloExistente: any = null; 
+  @Input() articuloExistente: any = null;
 
   private modalCtrl = inject(ModalController);
   private inventarioService = inject(InventarioService);
@@ -41,7 +73,7 @@ export class FormularioArticuloComponent implements OnInit {
   // Título dinámico estandarizado para la interfaz de usuario
   tituloVista: string = '';
 
-  // Modelo ampliado con los campos obligatorios 
+  // Modelo ampliado con los campos obligatorios
   articulo: any = {
     codigo: '',
     nombre: '',
@@ -55,7 +87,7 @@ export class FormularioArticuloComponent implements OnInit {
     material: '',
     color: '',
     forma: '',
-    descripcion: ''
+    descripcion: '',
   };
 
   // Lista de marcas declarada en el TS para alimentar al HTML
@@ -65,26 +97,30 @@ export class FormularioArticuloComponent implements OnInit {
     { id: 3, nombre: 'Vogue' },
     { id: 4, nombre: 'Prada' },
     { id: 5, nombre: 'Carrera' },
-    { id: 6, nombre: 'Genérica / Económica' }
+    { id: 6, nombre: 'Genérica / Económica' },
   ];
 
   constructor() {
     // Registramos todos los iconos necesarios para los nuevos campos
-    addIcons({ 
-      barcodeOutline, 
-      glassesOutline, 
-      cashOutline, 
-      documentTextOutline, 
+    addIcons({
+      barcodeOutline,
+      glassesOutline,
+      cashOutline,
+      documentTextOutline,
       closeOutline,
       layersOutline,
-      'color-palette-outline': colorPaletteOutline, 
+      'color-palette-outline': colorPaletteOutline,
       shapesOutline,
-      trashOutline 
+      trashOutline,
+      pricetagOutline
     });
   }
 
   ngOnInit() {
-    console.log('Abriendo formulario para código de categoría:', this.tipoArticulo);
+    console.log(
+      'Abriendo formulario para código de categoría:',
+      this.tipoArticulo,
+    );
     this.definirTituloYValores();
 
     if (this.articuloExistente) {
@@ -101,7 +137,7 @@ export class FormularioArticuloComponent implements OnInit {
         color: this.articuloExistente.color,
         material: this.articuloExistente.material,
         forma: this.articuloExistente.estilo,
-        descripcion: this.articuloExistente.descripcion || ''
+        descripcion: this.articuloExistente.descripcion || '',
       };
     }
   }
@@ -111,26 +147,26 @@ export class FormularioArticuloComponent implements OnInit {
    * Mantiene compatibilidad con 'Z', 'S', 'A' por si llegan letras viejas
    */
   definirTituloYValores() {
-    switch(this.tipoArticulo) {
+    switch (this.tipoArticulo) {
       case 'ARMAZON':
-      case 'Z': 
-        this.tituloVista = 'Armazón'; 
+      case 'Z':
+        this.tituloVista = 'Armazón';
         this.tipoArticulo = 'ARMAZON'; // Estandariza a palabra completa
         break;
       case 'MICA':
-      case 'S': 
-        this.tituloVista = 'Mica / Cristal'; 
+      case 'S':
+        this.tituloVista = 'Mica / Cristal';
         this.tipoArticulo = 'MICA';
         break;
       case 'ACCESORIO':
-      case 'A': 
-        this.tituloVista = 'Accesorio'; 
+      case 'A':
+        this.tituloVista = 'Accesorio';
         this.tipoArticulo = 'ACCESORIO';
         break;
-      case 'SERVICIO': 
-        this.tituloVista = 'Servicio'; 
+      case 'SERVICIO':
+        this.tituloVista = 'Servicio';
         break;
-      default: 
+      default:
         this.tituloVista = 'Artículo';
     }
   }
@@ -141,50 +177,56 @@ export class FormularioArticuloComponent implements OnInit {
   }
 
   cerrar() {
-    this.modalCtrl.dismiss(); 
+    this.modalCtrl.dismiss();
   }
 
   guardar() {
-    // Determinar si el artículo actual corresponde a un servicio intangible
     const esServicio = this.tipoArticulo === 'SERVICIO';
 
     // Payload exacto coordinado con el Backend blindado y la estructura de tu BD
     const articuloParaEnviar = {
-      codigo: this.articulo.codigo || (esServicio ? 'SERV-' : 'ART-') + Date.now(),
+      codigo:
+        this.articulo.codigo || (esServicio ? 'SERV-' : 'ART-') + Date.now(),
       nombre: this.articulo.nombre,
-      categoria: this.tipoArticulo, // Manda 'ARMAZON', 'MICA', 'ACCESORIO' o 'SERVICIO'
-      id_proveedor: 1, // Proveedor por defecto inicial
-      costo: this.articulo.costo || 0, 
+      categoria: this.tipoArticulo,
+      id_proveedor: 1,
+      costo: this.articulo.costo || 0,
       precio_venta: this.articulo.precio,
-      creado_por: 1, // ID del operador estático por ahora
+      creado_por: 1,
 
-      marca: esServicio ? 'Mano de Obra' : (this.articulo.marcaNombre || 'Sin Marca'),
-      color: esServicio ? '' : (this.articulo.color || 'N/A'),
-      material: esServicio ? '' : (this.articulo.material || 'N/A'),
-      style: esServicio ? '' : (this.articulo.forma || 'N/A'), // Se guarda en la columna estilo de la BD
+      marca: esServicio
+        ? 'Mano de Obra'
+        : this.articulo.marcaNombre || 'Sin Marca',
+      color: esServicio ? '' : this.articulo.color || 'N/A',
+      material: esServicio ? '' : this.articulo.material || 'N/A',
+      style: esServicio ? '' : this.articulo.forma || 'N/A',
       puente: 0,
       diagonal: 0,
       base: 'N/A',
 
-      // Control del Stock físico inicial en Matriz (HL01)
-      id_sucursal: 'HL01', 
-      stock_inicial: esServicio ? 0 : (this.articulo.cantidad || 0),
-      stock_minimo: esServicio ? 0 : (this.articulo.stockMinimo || 5),
-      ubicacion: esServicio ? 'Clínica / Laboratorio' : 'Mostrador' 
+      id_sucursal: 'HL01',
+      stock_inicial: esServicio ? 0 : this.articulo.cantidad || 0,
+      stock_minimo: esServicio ? 0 : this.articulo.stockMinimo || 5,
+      // Eliminamos ubicacion_estante de aquí.
     };
 
     console.log('Enviando artículo al backend:', articuloParaEnviar);
 
     if (this.articuloExistente && this.articuloExistente.id_articulo) {
-      this.inventarioService.actualizarArticulo(this.articuloExistente.id_articulo, articuloParaEnviar).subscribe({
-        next: (response: any) => {
-          console.log('¡Artículo actualizado con éxito!', response);
-          this.modalCtrl.dismiss(articuloParaEnviar, 'confirm');
-        },
-        error: (err: any) => {
-          console.error('Error al actualizar artículo:', err);
-        }
-      });
+      this.inventarioService
+        .actualizarArticulo(
+          this.articuloExistente.id_articulo,
+          articuloParaEnviar,
+        )
+        .subscribe({
+          next: (response: any) => {
+            console.log('¡Artículo actualizado con éxito!', response);
+            this.modalCtrl.dismiss(articuloParaEnviar, 'confirm');
+          },
+          error: (err: any) => {
+            console.error('Error al actualizar artículo:', err);
+          },
+        });
     } else {
       this.inventarioService.crearArticulo(articuloParaEnviar).subscribe({
         next: (response: any) => {
@@ -193,35 +235,38 @@ export class FormularioArticuloComponent implements OnInit {
         },
         error: (err: any) => {
           console.error('Error al registrar artículo en el servidor:', err);
-        }
+        },
       });
     }
   }
 
-
   async confirmarEliminacion() {
     const alert = await this.alertController.create({
       header: 'Eliminar Artículo',
-      message: '¿Estás seguro de que deseas desactivar este artículo del catálogo? Esta acción quedará registrada en la bitácora de seguridad.',
+      message:
+        '¿Estás seguro de que deseas desactivar este artículo del catálogo? Esta acción quedará registrada en la bitácora de seguridad.',
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
-        { 
-          text: 'Sí, Eliminar', 
+        {
+          text: 'Sí, Eliminar',
           role: 'destructive',
           handler: () => {
             if (this.articuloExistente && this.articuloExistente.id_articulo) {
-              this.inventarioService.desactivarArticulo(this.articuloExistente.id_articulo).subscribe({
-                next: () => {
-                  console.log('Artículo desactivado correctamente.');
-                  // Enviamos 'eliminado: true' para que el padre recargue la lista
-                  this.modalCtrl.dismiss({ eliminado: true }, 'confirm');
-                },
-                error: (err) => console.error('Error al eliminar el artículo', err)
-              });
+              this.inventarioService
+                .desactivarArticulo(this.articuloExistente.id_articulo)
+                .subscribe({
+                  next: () => {
+                    console.log('Artículo desactivado correctamente.');
+                    // Enviamos 'eliminado: true' para que el padre recargue la lista
+                    this.modalCtrl.dismiss({ eliminado: true }, 'confirm');
+                  },
+                  error: (err) =>
+                    console.error('Error al eliminar el artículo', err),
+                });
             }
-          }
-        }
-      ]
+          },
+        },
+      ],
     });
     await alert.present();
   }

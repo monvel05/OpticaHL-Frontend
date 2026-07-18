@@ -1,7 +1,12 @@
 import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { FormsModule, FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
+  IonContent, IonItem, IonAvatar, IonLabel, IonCard, IonCardHeader, 
+  IonCardTitle, IonCardContent, IonGrid, IonRow, IonCol, IonInput, 
+  IonTextarea, ModalController 
+} from '@ionic/angular/standalone';
 import { ClienteService } from '../../../core/services/cliente.service';
 import { Cliente } from '../../../shared/interfaces/cliente.interface';
 import { addIcons } from 'ionicons';
@@ -13,7 +18,29 @@ import { AuthService } from '../../../core/services/auth.service';
   templateUrl: './formulario-receta.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [FormsModule, IonicModule, ReactiveFormsModule]
+  imports: [
+    FormsModule, 
+    ReactiveFormsModule,
+    IonHeader, 
+    IonToolbar, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonTitle, 
+    IonContent, 
+    IonItem, 
+    IonAvatar, 
+    IonLabel, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardTitle, 
+    IonCardContent, 
+    IonGrid, 
+    IonRow, 
+    IonCol, 
+    IonInput, 
+    IonTextarea
+  ]
 })
 export class FormularioRecetaComponent implements OnInit {
   @Input() cliente!: Cliente;

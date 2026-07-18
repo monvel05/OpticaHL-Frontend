@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 
 import { ImpresionEtiquetasComponent } from './impresion-etiquetas.component';
 
@@ -9,8 +9,8 @@ describe('ImpresionEtiquetasComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ImpresionEtiquetasComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [ ImpresionEtiquetasComponent ],
+      providers: [ provideIonicAngular() ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ImpresionEtiquetasComponent);

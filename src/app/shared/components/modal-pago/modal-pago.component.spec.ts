@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 
 import { ModalPagoComponent } from './modal-pago.component';
 
@@ -9,8 +9,8 @@ describe('ModalPagoComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ModalPagoComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [ ModalPagoComponent ],
+      providers: [ provideIonicAngular() ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ModalPagoComponent);

@@ -1,7 +1,13 @@
 import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { IonicModule, ModalController, LoadingController, ToastController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, 
+  IonList, IonItem, IonSelect, IonSelectOption, IonFooter, IonIcon,
+  ModalController, LoadingController, ToastController 
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { documentTextOutline } from 'ionicons/icons';
 import { FacturacionService } from '../../../core/services/facturacion.service'; // Ajusta la ruta si es necesario
 
 @Component({
@@ -9,7 +15,22 @@ import { FacturacionService } from '../../../core/services/facturacion.service';
   templateUrl: './modal-facturacion.component.html',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    CommonModule, 
+    FormsModule,
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonButtons, 
+    IonButton, 
+    IonContent, 
+    IonList, 
+    IonItem, 
+    IonSelect, 
+    IonSelectOption, 
+    IonFooter, 
+    IonIcon
+  ]
 })
 export class ModalFacturacionComponent {
   @Input() orden!: any; // Recibimos la orden completa desde el Historial
@@ -26,6 +47,10 @@ export class ModalFacturacionComponent {
     metodo_pago: 'PUE',
     forma_pago: '01' // Efectivo
   };
+
+  constructor() {
+    addIcons({ documentTextOutline });
+  }
 
   cerrar() {
     this.modalCtrl.dismiss();

@@ -1,5 +1,4 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
 
 import { VentasChartComponent } from './ventas-chart.component';
 
@@ -9,8 +8,7 @@ describe('VentasChartComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ VentasChartComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [ VentasChartComponent ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(VentasChartComponent);

@@ -1,7 +1,10 @@
 import { Component, Input, Output, EventEmitter, ChangeDetectionStrategy } from '@angular/core';
-
-import { IonicModule } from '@ionic/angular';
+import { 
+  IonItem, IonIcon, IonSelect, IonSelectOption 
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
+import { addIcons } from 'ionicons';
+import { pricetagOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-selector-entidad',
@@ -9,7 +12,13 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./selector-entidad.component.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule]
+  imports: [
+    FormsModule,
+    IonItem, 
+    IonIcon, 
+    IonSelect, 
+    IonSelectOption
+  ]
 })
 export class SelectorEntidadComponent {
   // Recibe el texto que dirá el selector (Ej: "Marca")
@@ -23,6 +32,10 @@ export class SelectorEntidadComponent {
 
   // CORREGIDO: Cambiamos el nombre a 'seleccionado' para que coincida exactamente con tu formulario
   @Output() seleccionado = new EventEmitter<any>();
+
+  constructor() {
+    addIcons({ pricetagOutline });
+  }
 
   onValueChange(event: any) {
     const idSeleccionado = event.detail.value;

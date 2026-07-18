@@ -1,5 +1,5 @@
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
-import { IonicModule } from '@ionic/angular';
+import { provideIonicAngular } from '@ionic/angular/standalone';
 
 import { FormularioRecetaComponent } from './formulario-receta.component';
 
@@ -9,8 +9,8 @@ describe('FormularioRecetaComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ FormularioRecetaComponent ],
-      imports: [IonicModule.forRoot()]
+      imports: [ FormularioRecetaComponent ],
+      providers: [ provideIonicAngular() ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(FormularioRecetaComponent);

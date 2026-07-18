@@ -1,7 +1,12 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
-
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { RouterLink } from '@angular/router';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
+  IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle, 
+  IonCardContent, IonList, IonLabel, IonNote, IonSegment, IonSegmentButton,
+  ModalController 
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline } from 'ionicons/icons';
 
@@ -18,7 +23,29 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   styleUrls: ['./caja.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, FormsModule, ReactiveFormsModule]
+  imports: [
+    FormsModule, 
+    ReactiveFormsModule, 
+    RouterLink,
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonButtons, 
+    IonButton, 
+    IonIcon, 
+    IonContent, 
+    IonItem, 
+    IonInput, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardTitle, 
+    IonCardContent, 
+    IonList, 
+    IonLabel, 
+    IonNote, 
+    IonSegment, 
+    IonSegmentButton
+  ]
 })
 export class CajaPage {
   // Inyecciones modernas con inject()

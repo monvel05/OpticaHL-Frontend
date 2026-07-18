@@ -1,12 +1,26 @@
 import { Component, Input, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ToastController } from '@ionic/angular';
+import { 
+  IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, 
+  IonButton, IonIcon, ToastController 
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { printOutline, barcodeOutline } from 'ionicons/icons';
 import { ImpresoraZebraService } from '../../../core/services/impresora-zebra.service';
 
 @Component({
   selector: 'app-impresion-etiquetas',
   standalone: true,
-  imports: [CommonModule, IonicModule],
+  imports: [
+    CommonModule, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardTitle, 
+    IonCardSubtitle, 
+    IonCardContent, 
+    IonButton, 
+    IonIcon
+  ],
   changeDetection: ChangeDetectionStrategy.Eager,
   templateUrl: './impresion-etiquetas.component.html',
 })
@@ -18,7 +32,9 @@ export class ImpresionEtiquetasComponent {
   constructor(
     private zebraService: ImpresoraZebraService,
     private toastController: ToastController
-  ) {}
+  ) {
+    addIcons({ printOutline, barcodeOutline });
+  }
 
   async imprimir() {
     if (!this.productoSeleccionado) return;

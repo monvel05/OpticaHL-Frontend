@@ -1,8 +1,15 @@
 import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { ToastController, IonicModule } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, 
+  IonSearchbar, IonButton, IonCard, IonCardHeader, IonCardTitle, 
+  IonCardContent, IonItem, IonLabel, IonInput, IonList, IonIcon, 
+  IonCardSubtitle, IonBadge, IonListHeader, IonTextarea, ToastController 
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { addIcons } from 'ionicons';
+import { personCircle } from 'ionicons/icons';
 
 @Component({
   selector: 'app-refraccion',
@@ -10,7 +17,32 @@ import { CommonModule } from '@angular/common';
   styleUrls: ['./refraccion.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule]
+  imports: [
+    CommonModule, 
+    FormsModule,
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonContent, 
+    IonGrid, 
+    IonRow, 
+    IonCol, 
+    IonSearchbar, 
+    IonButton, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardTitle, 
+    IonCardContent, 
+    IonItem, 
+    IonLabel, 
+    IonInput, 
+    IonList, 
+    IonIcon, 
+    IonCardSubtitle, 
+    IonBadge, 
+    IonListHeader, 
+    IonTextarea
+  ]
 })
 export class RefraccionPage implements OnInit {
 /* yo estaba usando una api local para poder hacer pruebas */
@@ -44,7 +76,9 @@ export class RefraccionPage implements OnInit {
   constructor(
     private http: HttpClient,
     private toastCtrl: ToastController
-  ) {}
+  ) {
+    addIcons({ personCircle });
+  }
 
   ngOnInit() {
     this.cargarClientes();

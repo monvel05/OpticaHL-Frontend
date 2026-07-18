@@ -1,7 +1,13 @@
 import { Component, Input, computed, signal, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonicModule, ModalController } from '@ionic/angular';
+import { 
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, 
+  IonCard, IonCardHeader, IonCardSubtitle, IonCardTitle, IonList, 
+  IonItem, IonSelect, IonSelectOption, IonInput, IonIcon, ModalController 
+} from '@ionic/angular/standalone';
 import { FormsModule } from '@angular/forms';
+import { addIcons } from 'ionicons';
+import { cashOutline } from 'ionicons/icons';
 
 @Component({
   selector: 'app-modal-pago',
@@ -9,7 +15,26 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./modal-pago.component.scss'],
   standalone: true, // Asegúrate de incluir standalone si usas Angular moderno
   changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [IonicModule, CommonModule, FormsModule],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    IonHeader, 
+    IonToolbar, 
+    IonTitle, 
+    IonButtons, 
+    IonButton, 
+    IonContent, 
+    IonCard, 
+    IonCardHeader, 
+    IonCardSubtitle, 
+    IonCardTitle, 
+    IonList, 
+    IonItem, 
+    IonSelect, 
+    IonSelectOption, 
+    IonInput, 
+    IonIcon
+  ],
 })
 export class ModalPagoComponent {
 
@@ -49,6 +74,10 @@ export class ModalPagoComponent {
       return monto === saldo;
     }
   });
+
+  constructor() {
+    addIcons({ cashOutline });
+  }
 
   cerrar() {
     this.modalCtrl.dismiss(null, 'cancel');
