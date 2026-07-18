@@ -1,57 +1,89 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
-
-import { FormsModule } from '@angular/forms';
+import { Component, inject, OnInit, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { 
-  IonContent, IonHeader, IonTitle, IonToolbar, IonButtons, IonMenuButton,
-  IonList, IonItem, IonAvatar, IonLabel, IonButton, IonFab, IonFabButton, IonIcon
+  IonHeader, IonToolbar, IonTitle, IonContent, IonList, 
+  IonItem, IonLabel, IonBadge, IonButton, IonIcon, 
+  IonSkeletonText, IonButtons, ModalController, ToastController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { add } from 'ionicons/icons';
+import { addCircleOutline, personCircle } from 'ionicons/icons';
+import { OperadoresService, Operador } from '../../core/services/operadores.service'
+import { ModalOperadorComponent } from '../../shared/components/modal-operador/modal-operador.component';
 
 @Component({
   selector: 'app-operadores',
   templateUrl: './operadores.page.html',
   styleUrls: ['./operadores.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    FormsModule,
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    IonButtons,
-    IonMenuButton,
-    IonList,
-    IonItem,
-    IonAvatar,
-    IonLabel,
-    IonButton,
-    IonFab,
-    IonFabButton,
-    IonIcon
-]
+    CommonModule, IonHeader, IonToolbar, IonTitle, IonContent, 
+    IonList, IonItem, IonLabel, IonBadge, IonButton, IonIcon, 
+    IonSkeletonText, IonButtons
+  ]
 })
 export class OperadoresPage implements OnInit {
+  // Inyecciones
+  private operadoresService = inject(OperadoresService);
+  private modalCtrl = inject(ModalController);
+  private toastCtrl = inject(ToastController);
 
-  operadores: any[] = []; 
+  // Estados reactivos (Signals)
+  cargando = signal<boolean>(true);
+  operadores = signal<Operador[]>([]);
 
-  constructor() { 
-    addIcons({ add });
+  constructor() {
+    addIcons({ addCircleOutline, personCircle });
   }
 
   ngOnInit() {
+    this.cargarOperadores();
   }
 
-  editar(operador: any) {
-    console.log('Editar operador', operador);
+  cargarOperadores() {
+    this.cargando.set(true);
+    
+    // Llamada real a la API unificada
+    this.operadoresService.obtenerOperadores().subscribe({
+      next: (data) => {
+        this.operadores.set(data);
+        this.cargando.set(false);
+      },
+      error: async (err) => {
+        this.cargando.set(false);
+        const toast = await this.toastCtrl.create({
+          message: 'Error al cargar los operadores.',
+          duration: 3000, color: 'danger'
+        });
+        await toast.present();
+      }
+    });
   }
 
-  eliminar(id: number) {
-    console.log('Eliminar operador con ID:', id);
+  async abrirModalNuevoOperador() {
+    const modal = await this.modalCtrl.create({ 
+      component: ModalOperadorComponent 
+    });
+    
+    await modal.present();
+    
+    // Esperamos a que el modal se cierre. Si devuelve 'data', recargamos la lista.
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      this.cargarOperadores();
+    }
   }
 
-  abrirModalCrear() {
-    console.log('Abriendo modal para crear operador...');
+  async editarOperador(operador: Operador) {
+    const modal = await this.modalCtrl.create({ 
+      component: ModalOperadorComponent, 
+      componentProps: { operadorActual: operador } // Pasamos los datos del operador al modal
+    });
+    
+    await modal.present();
+    
+    const { data } = await modal.onDidDismiss();
+    if (data) {
+      this.cargarOperadores();
+    }
   }
 }

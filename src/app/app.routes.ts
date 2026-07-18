@@ -21,49 +21,57 @@ export const routes: Routes = [
     path: 'inventario',
     loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage),
     canActivate: [roleGuard],
-    data: { roles: ['ADMINISTRADOR'] } // 🔒 Solo administradores
+    // 🔒 Administradores y personal de almacén/inventario
+    data: { expectedRoles: ['ADMINISTRADOR', 'INVENTARIO'] } 
   },
   {
     path: 'caja',
     loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage),
     canActivate: [roleGuard],
-    data: { roles: ['CAJA', 'ADMINISTRADOR'] } // 🔒 Cajeros y administradores
+    // 🔒 Cajeros y administradores
+    data: { expectedRoles: ['CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
     path: 'cortecaja',
     loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CorteCajaPage),
     canActivate: [roleGuard],
-    data: { roles: ['CAJA', 'ADMINISTRADOR'] } // 🔒 Cajeros y administradores
+    // 🔒 Cajeros y administradores
+    data: { expectedRoles: ['CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
     path: 'mostrador',
     loadComponent: () => import('./features/mostrador/mostrador.page').then(m => m.MostradorPage),
     canActivate: [roleGuard],
-    data: { roles: ['MOSTRADOR', 'ADMINISTRADOR'] } // 🔒 ¡Aquí entra tu usuario de mostrador!
+    // 🔒 Personal de mostrador y administradores
+    data: { expectedRoles: ['MOSTRADOR', 'ADMINISTRADOR'] } 
   },
   {
     path: 'crrito',
     loadComponent: () => import('./features/crrito/crrito.page').then(m => m.CrritoPage),
     canActivate: [roleGuard],
-    data: { roles: ['MOSTRADOR', 'ADMINISTRADOR'] } // 🔒 Ventas y carrito
+    // 🔒 Ventas y carrito
+    data: { expectedRoles: ['MOSTRADOR', 'ADMINISTRADOR'] } 
   },
   {
     path: 'orden',
     loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage),
     canActivate: [roleGuard],
-    data: { roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] } // 🔒 Todos ocupan gestionar órdenes
+    // 🔒 Todos ocupan gestionar órdenes (Mostrador crea, Caja cobra)
+    data: { expectedRoles: ['MOSTRADOR', 'CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
-    path: 'optometrista', // 🎯 ¡MOVIDA AQUÍ ARRIBA Y PROTEGIDA!
+    path: 'optometrista', 
     loadComponent: () => import('./features/optometrista/optometrista.page').then(m => m.OptometristaPage),
     canActivate: [roleGuard],
-    data: { roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] } // 🔒 Optometristas y Administradores
+    // 🔒 Optometristas y Administradores
+    data: { expectedRoles: ['OPTOMETRISTA', 'ADMINISTRADOR'] } 
   },
   {
-    path: 'operadores', // 🎯 Movida aquí arriba también
+    path: 'operadores', 
     loadComponent: () => import('./features/operadores/operadores.page').then(m => m.OperadoresPage),
     canActivate: [roleGuard],
-    data: { roles: ['ADMINISTRADOR'] }
+    // 🔒 Gestión exclusiva del administrador
+    data: { expectedRoles: ['ADMINISTRADOR'] }
   },
   
   // ==========================================

@@ -1,6 +1,6 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Generar Factura</ion-title>
+    <ion-title>Timbrar Factura</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cerrar()">Cerrar</ion-button>
     </ion-buttons>
@@ -9,54 +9,53 @@
 
 <ion-content class="ion-padding">
   <div class="ion-text-center ion-margin-bottom">
-    <h3>Orden: {{ orden?.folio }}</h3>
-    <p>Total a facturar: <strong>{{ orden?.total | currency }}</strong></p>
+    <h2>Orden: {{ folioOrden() }}</h2>
+    <p>Complete los datos fiscales para la emisión (CFDI 4.0).</p>
   </div>
 
   <ion-list>
     <ion-item>
-      <ion-select label="Uso de CFDI" label-placement="floating" [(ngModel)]="datosFiscales.uso_cfdi">
-        <ion-select-option value="G01">G01 - Adquisición de mercancías</ion-select-option>
+      <ion-label position="stacked">Uso de CFDI</ion-label>
+      <ion-select [(ngModel)]="usoCfdi" interface="action-sheet">
+        <ion-select-option value="G01">G01 - Adquisición de mercancias</ion-select-option>
         <ion-select-option value="G03">G03 - Gastos en general</ion-select-option>
-        <ion-select-option value="D01">D01 - Honorarios médicos, dentales y gastos hospitalarios</ion-select-option>
+        <ion-select-option value="D01">D01 - Honorarios médicos y ópticos</ion-select-option>
         <ion-select-option value="S01">S01 - Sin efectos fiscales</ion-select-option>
       </ion-select>
     </ion-item>
 
     <ion-item>
-      <ion-select label="Régimen Fiscal" label-placement="floating" [(ngModel)]="datosFiscales.regimen_fiscal">
+      <ion-label position="stacked">Régimen Fiscal del Cliente</ion-label>
+      <ion-select [(ngModel)]="regimenFiscal" interface="action-sheet">
         <ion-select-option value="601">601 - General de Ley Personas Morales</ion-select-option>
-        <ion-select-option value="605">605 - Sueldos y Salarios</ion-select-option>
-        <ion-select-option value="606">606 - Arrendamiento</ion-select-option>
         <ion-select-option value="612">612 - Personas Físicas con Actividades Empresariales</ion-select-option>
-        <ion-select-option value="616">616 - Sin obligaciones fiscales</ion-select-option>
+        <ion-select-option value="616">616 - Sin obligaciones fiscales (Público General)</ion-select-option>
         <ion-select-option value="626">626 - Régimen Simplificado de Confianza (RESICO)</ion-select-option>
       </ion-select>
     </ion-item>
 
     <ion-item>
-      <ion-select label="Forma de Pago" label-placement="floating" [(ngModel)]="datosFiscales.forma_pago">
-        <ion-select-option value="01">01 - Efectivo</ion-select-option>
-        <ion-select-option value="04">04 - Tarjeta de Crédito</ion-select-option>
-        <ion-select-option value="28">28 - Tarjeta de Débito</ion-select-option>
-        <ion-select-option value="03">03 - Transferencia electrónica</ion-select-option>
-      </ion-select>
-    </ion-item>
-
-    <ion-item>
-      <ion-select label="Método de Pago" label-placement="floating" [(ngModel)]="datosFiscales.metodo_pago">
+      <ion-label position="stacked">Método de Pago</ion-label>
+      <ion-select [(ngModel)]="metodoPago" interface="popover">
         <ion-select-option value="PUE">PUE - Pago en una sola exhibición</ion-select-option>
         <ion-select-option value="PPD">PPD - Pago en parcialidades o diferido</ion-select-option>
       </ion-select>
     </ion-item>
-  </ion-list>
-</ion-content>
 
-<ion-footer>
-  <ion-toolbar>
-    <ion-button expand="block" color="success" class="ion-margin" (click)="timbrar()">
-      <ion-icon name="document-text-outline" slot="start"></ion-icon>
-      Timbrar Comprobante
-    </ion-button>
-  </ion-toolbar>
-</ion-footer>
+    <ion-item>
+      <ion-label position="stacked">Forma de Pago</ion-label>
+      <ion-select [(ngModel)]="formaPago" interface="popover">
+        <ion-select-option value="01">01 - Efectivo</ion-select-option>
+        <ion-select-option value="03">03 - Transferencia electrónica de fondos</ion-select-option>
+        <ion-select-option value="04">04 - Tarjeta de crédito</ion-select-option>
+        <ion-select-option value="28">28 - Tarjeta de débito</ion-select-option>
+        <ion-select-option value="99">99 - Por definir</ion-select-option>
+      </ion-select>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" color="success" class="ion-margin-top" (click)="timbrar()">
+    <ion-icon name="document-text-outline" slot="start"></ion-icon>
+    Generar Factura (Timbrar)
+  </ion-button>
+</ion-content>

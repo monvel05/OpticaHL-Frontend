@@ -75,3 +75,6 @@ environment.ts
 environment.prod.ts
 /environment
 envs.ts
+
+# Carpeta www generada por Ionic
+www/

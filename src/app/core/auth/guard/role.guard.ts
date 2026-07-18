@@ -1,38 +1,35 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
-import { AuthService } from '../../services/auth.service'; // <-- Asegúrate de que esta ruta apunte bien a tu servicio
-import { Usuario } from '../../services/auth.service'; // <-- También importamos la interfaz Usuario para el tipado
+import { AuthService } from 'src/app/core/services/auth.service';
+import { ToastController } from '@ionic/angular/standalone';
 
-export const roleGuard: CanActivateFn = (route, state) => {
-  // Forzamos explícitamente el tipo AuthService para quitar el error 'unknown'
-  const authService: AuthService = inject(AuthService);
+export const roleGuard: CanActivateFn = async (route, state) => {
+  const authService = inject(AuthService);
   const router = inject(Router);
+  const toastCtrl = inject(ToastController);
+  
+  // Extraemos el array de roles permitidos desde la configuración de la ruta
+  const expectedRoles: string[] = route.data['expectedRoles'] || [];
+  
+  // Asumimos que tu servicio tiene un método síncrono o un signal con el rol
+  const userRoles = authService.obtenerRolesActuales(); 
 
-  // Leemos los roles permitidos en la ruta
-  const rolesPermitidos = route.data['roles'] as Array<string>;
-
-  if (!rolesPermitidos || rolesPermitidos.length === 0) {
+  // Validamos autenticación y si el rol del usuario está incluido en los permitidos
+  if (authService.estaAutenticado() && expectedRoles.some(rol => userRoles.includes(rol))) {
     return true;
   }
 
-  // Obtenemos el usuario de forma síncrona desde el servicio optimizado
-  const usuario: Usuario | null = authService.getCurrentUser();
+  // UX: Notificación nativa de Ionic informando el bloqueo
+  const toast = await toastCtrl.create({
+    message: 'Acceso denegado: No tienes los permisos necesarios para esta sección.',
+    duration: 3000,
+    color: 'danger',
+    position: 'bottom',
+    icon: 'lock-closed-outline'
+  });
+  await toast.present();
 
-  if (!usuario) {
-    router.navigate(['/login']);
-    return false;
-  }
-
-  // Verificamos si tiene el rol (ignorando mayúsculas/minúsculas)
-  const tienePermiso = usuario.roles.some(rol => 
-    rolesPermitidos.map(r => r.toUpperCase()).includes(rol.toUpperCase())
-  );
-
-  if (tienePermiso) {
-    return true;
-  } else {
-    console.warn(`Acceso denegado. Se requiere uno de estos roles: ${rolesPermitidos}`);
-    router.navigate(['/home']); // Modifica '/home' por tu ruta por defecto si es otra
-    return false;
-  }
+  // Redirección de seguridad (fallback) a la pantalla principal operativa
+  router.navigate(['/mostrador']);
+  return false;
 };

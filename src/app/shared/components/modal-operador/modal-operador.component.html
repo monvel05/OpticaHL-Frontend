@@ -1,0 +1,51 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ esEdicion ? 'Editar' : 'Nuevo' }} Operador</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cancelar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list>
+    <ion-item>
+      <ion-label position="stacked">Nombre Completo</ion-label>
+      <ion-input type="text" [(ngModel)]="formData.nombre_completo"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Usuario (Login)</ion-label>
+      <ion-input type="text" [(ngModel)]="formData.usuario_login"></ion-input>
+    </ion-item>
+
+    <!-- La contraseña es obligatoria al crear, opcional al editar -->
+    <ion-item>
+      <ion-label position="stacked">
+        Contraseña {{ esEdicion ? '(Dejar en blanco para no cambiar)' : '*' }}
+      </ion-label>
+      <ion-input type="password" [(ngModel)]="formData.password"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Rol Principal</ion-label>
+      <ion-select [(ngModel)]="formData.roles" multiple="true" interface="action-sheet">
+        <ion-select-option value="ADMINISTRADOR">Administrador</ion-select-option>
+        <ion-select-option value="MOSTRADOR">Mostrador</ion-select-option>
+        <ion-select-option value="CAJER@">Cajero(a)</ion-select-option>
+        <ion-select-option value="INVENTARIO">Inventario</ion-select-option>
+        <ion-select-option value="OPTOMETRISTA">Optometrista</ion-select-option>
+        <ion-select-option value="FACTURADOR@">Facturador(a)</ion-select-option>
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Estatus Activo</ion-label>
+      <ion-toggle slot="end" [(ngModel)]="formData.activo"></ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" class="ion-margin-top" (click)="guardar()">
+    Guardar Operador
+  </ion-button>
+</ion-content>

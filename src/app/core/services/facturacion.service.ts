@@ -1,9 +1,17 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { environment } from 'src/environment/envs';
-import {DatosFacturacion} from '../../shared/interfaces/datos-facturacion.interface';
+import { environment } from '../../../environment/envs';
 
+export interface DatosFacturacion {
+  folio_orden: string;
+  uso_cfdi: string;
+  regimen_fiscal: string;
+  metodo_pago: string;
+  forma_pago: string;
+  id_sucursal: number;
+  id_operador: number;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -13,9 +21,9 @@ export class FacturacionService {
   private apiUrl = `${environment.apiUrl}/api/facturacion`; 
 
   /**
-   * Envía los datos para timbrar una nueva factura
+   * Envía los datos para timbrar una nueva factura (CFDI 4.0) ante el SAT
    */
-  timbrarFactura(datos: DatosFacturacion): Observable<any> {
+  generarFactura(datos: DatosFacturacion): Observable<any> {
     return this.http.post(`${this.apiUrl}/timbrar`, datos);
   }
 

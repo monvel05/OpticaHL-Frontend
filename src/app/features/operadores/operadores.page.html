@@ -1,32 +1,52 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-menu-button></ion-menu-button>
-    </ion-buttons>
     <ion-title>Gestión de Operadores</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalNuevoOperador()">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Nuevo
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
-  <ion-list>
-    @for (op of operadores; track op.id || $index) {
-      <ion-item>
-        <ion-avatar slot="start">
-          <img [src]="'https://ui-avatars.com/api/?name=' + op.nombre" />
-        </ion-avatar>
-        <ion-label>
-          <h2>{{ op.nombre }}</h2>
-          <p>{{ op.rol }} - {{ op.sucursal }}</p>
-        </ion-label>
-        <ion-button fill="clear" (click)="editar(op)">Editar</ion-button>
-        <ion-button fill="clear" color="danger" (click)="eliminar(op.id)">Eliminar</ion-button>
-      </ion-item>
-    }
-  </ion-list>
-
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="abrirModalCrear()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+<ion-content class="ion-padding">
+  <!-- Estado de carga con Skeleton (Mejora de UX) -->
+  @if (cargando()) {
+    <ion-list>
+      @for (i of [1,2,3,4]; track i) {
+        <ion-item>
+          <ion-label>
+            <h3><ion-skeleton-text animated style="width: 60%"></ion-skeleton-text></h3>
+            <p><ion-skeleton-text animated style="width: 40%"></ion-skeleton-text></p>
+          </ion-label>
+        </ion-item>
+      }
+    </ion-list>
+  } 
+  <!-- Renderizado de la lista real -->
+  @else {
+    <ion-list>
+      @for (operador of operadores(); track operador.id_operador) {
+        <ion-item>
+          <ion-icon name="person-circle" slot="start" color="medium"></ion-icon>
+          <ion-label>
+            <h2>{{ operador.nombre_completo }}</h2>
+            <p>Usuario: {{ operador.usuario_login }} | Sucursal: {{ operador.id_sucursal }}</p>
+          </ion-label>
+          <ion-badge slot="end" [color]="operador.activo ? 'success' : 'danger'">
+            {{ operador.activo ? 'Activo' : 'Inactivo' }}
+          </ion-badge>
+          <!-- Botón de acciones -->
+          <ion-button fill="clear" slot="end" (click)="editarOperador(operador)">
+            Editar
+          </ion-button>
+        </ion-item>
+      } @empty {
+        <div class="ion-text-center ion-padding">
+          <p>No se encontraron operadores registrados.</p>
+        </div>
+      }
+    </ion-list>
+  }
 </ion-content>

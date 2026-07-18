@@ -6,12 +6,13 @@ import { tap } from 'rxjs/operators';
 import { Preferences } from '@capacitor/preferences';
 import { environment } from '../../../environment/envs';
 
-// Interfaces para mantener el tipado fuerte
+// 1. INTERFACES ACTUALIZADAS
 export interface Usuario {
   id_operador: number;
   nombre_completo: string;
   usuario_login: string; 
   roles: string[];
+  id_sucursal: number; // Vital para la separación de datos por sucursal en el backend
 }
 
 export interface AuthResponse {
@@ -28,13 +29,15 @@ export class AuthService {
   
   private apiUrl = `${environment.apiUrl}/auth`;
 
-  // Estado reactivo para la sesión (Booleano)
+  // 2. ESTADOS REACTIVOS
   private authState = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.authState.asObservable();
 
-  // Estado reactivo para el objeto Usuario
   private currentUserSubject = new BehaviorSubject<Usuario | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+
+  // 3. CACHÉ EN MEMORIA (Para acceso síncrono ultra-rápido en Interceptors)
+  private currentToken: string | null = null;
 
   constructor() {
     this.checkToken();
@@ -44,75 +47,77 @@ export class AuthService {
   // LOGIN & LOGOUT
   // =====================
 
-  /** Login conectado a la API */
- /** Login conectado a la API */
   login(credenciales: any): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credenciales).pipe(
       tap(async (response: any) => {
         if (response && response.token) {
           
-          // Capturamos el usuario de la respuesta
-          const usuarioLogueado = response.usuario || response.user || {};
+          let usuarioLogueado = response.usuario || response.user || {};
           
-          // 🚨 BYPASS DE ENTRADA: Si el backend devuelve un arreglo de roles vacío [],
-          // le inyectamos 'MOSTRADOR' antes de guardar en memoria y preferencias.
+          // BYPASS: Inyección de rol de emergencia si el backend falla
           if (!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) {
-            console.warn('⚠️ Roles vacíos detectados en AuthService. Aplicando rol MOSTRADOR de emergencia.');
+            console.warn('⚠️ Roles vacíos detectados. Aplicando rol MOSTRADOR de emergencia.');
             usuarioLogueado.roles = ['MOSTRADOR'];
-            usuarioLogueado.rol = 'MOSTRADOR'; // Por si acaso
           }
           
-          // Guardamos en Capacitor Preferences de forma segura (¡Ya con el rol parchado!)
+          // Formatear a array si viene como string
+          if (typeof usuarioLogueado.roles === 'string') {
+            usuarioLogueado.roles = [usuarioLogueado.roles];
+          }
+
+          // Guardar caché en memoria
+          this.currentToken = response.token;
+          
+          // Persistencia en Capacitor
           await Preferences.set({ key: 'auth_token', value: response.token });
           await Preferences.set({ key: 'usuario', value: JSON.stringify(usuarioLogueado) });
           
-          // Actualizamos los estados reactivos inmediatamente
+          // Actualizar estados reactivos
           this.currentUserSubject.next(usuarioLogueado);
           this.authState.next(true);
         }
       })
-      
     );
   }
 
-  /** Logout limpio de la aplicación */
   async logout(): Promise<void> {
-    await Preferences.clear(); // Limpia token y usuario
+    this.currentToken = null; // Limpiar memoria
+    await Preferences.clear(); // Limpiar persistencia
+    
     this.currentUserSubject.next(null);
     this.authState.next(false);
     
-    this.router.navigate(['/auth/login']);
+    this.router.navigate(['/login']);
   }
 
   // =====================
-  // VALIDACIONES Y PERSISTENCIA
+  // INICIALIZACIÓN Y PERSISTENCIA
   // =====================
 
-  /** Restaura la sesión automáticamente si el usuario recarga la página */
   private async checkToken() {
     try {
-      const token = await this.getToken();
+      const token = await this.getTokenAsync();
       const { value: usuarioJson } = await Preferences.get({ key: 'usuario' });
 
       if (token && !this.isTokenExpired(token) && usuarioJson && usuarioJson !== 'undefined' && usuarioJson !== 'null') {
+        this.currentToken = token; // Cargar a memoria
         this.currentUserSubject.next(JSON.parse(usuarioJson));
         this.authState.next(true);
       } else {
         await this.logout();
       }
     } catch (e) {
-      console.warn('Error al restaurar la sesión, limpiando credenciales corruptas...', e);
+      console.warn('Error al restaurar sesión. Limpiando credenciales...', e);
       await this.logout();
     }
   }
 
-  /** Recupera el token guardado en las preferencias del dispositivo */
-  async getToken(): Promise<string | null> {
+  /** Método asíncrono para Capacitor */
+  private async getTokenAsync(): Promise<string | null> {
     const { value } = await Preferences.get({ key: 'auth_token' });
     return value;
   }
 
-  /** Verifica si el JWT ya expiró basándose en su payload */
   private isTokenExpired(token: string): boolean {
     const payload = this.decodePayload(token);
     if (!payload || !payload.exp) return true; 
@@ -120,16 +125,6 @@ export class AuthService {
     return payload.exp < now;
   }
 
-  // =====================
-  // GESTIÓN DE USUARIO Y ROLES
-  // =====================
-
-  /** Obtiene el usuario actual de forma síncrona */
-  getCurrentUser(): Usuario | null {
-    return this.currentUserSubject.value;
-  }
-
-  /** Decodifica el JWT para obtener los datos integrados del payload */
   private decodePayload(token: string): any {
     try {
       const payload = token.split('.')[1];
@@ -139,25 +134,48 @@ export class AuthService {
     }
   }
 
-  /** 🛡️ OPTIMIZADO Y SEGURO: Validación de roles a prueba de balas para Guards */
-  async tieneRol(rol: string): Promise<boolean> {
-    const { value } = await Preferences.get({ key: 'usuario' });
-    if (!value || value === 'undefined' || value === 'null') return false;
-    
-    try {
-      const usuario = JSON.parse(value);
-      
-      // Capturamos cualquier variante posible de roles del backend (.roles o .rol)
-      const rolesRaw = usuario?.roles || usuario?.rol || [];
-      
-      // Si viene como un string plano (ej: "MOSTRADOR"), lo convertimos a arreglo automáticamente
-      const rolesArray = Array.isArray(rolesRaw) ? rolesRaw : [rolesRaw];
-      
-      // Evaluamos de forma segura comparando en mayúsculas
-      return rolesArray.some((r: any) => String(r).toUpperCase() === rol.toUpperCase());
-    } catch (e) {
-      console.error('Error al validar rol en Guard:', e);
-      return false;
-    }
+  // =====================
+  // ⚡ NUEVOS MÉTODOS SÍNCRONOS (Para Guards e Interceptors)
+  // =====================
+
+  /** 
+   * Devuelve si el usuario está autenticado instantáneamente.
+   * Ideal para el auth.guard.ts
+   */
+  estaAutenticado(): boolean {
+    return this.authState.value;
+  }
+
+  /** 
+   * Extrae los roles actuales del usuario en memoria.
+   * Usado por el role.guard.ts
+   */
+  obtenerRolesActuales(): string[] {
+    const user = this.currentUserSubject.value;
+    return user?.roles || [];
+  }
+
+  /**
+   * Verifica instantáneamente si el usuario tiene al menos un rol permitido.
+   */
+  tieneRolesPermitidos(rolesPermitidos: string[]): boolean {
+    if (!rolesPermitidos || rolesPermitidos.length === 0) return true;
+    const misRoles = this.obtenerRolesActuales().map(r => r.toUpperCase());
+    return rolesPermitidos.some(rol => misRoles.includes(rol.toUpperCase()));
+  }
+
+  /**
+   * Obtiene la sucursal activa del operador.
+   * Crítico para inyectar en las peticiones de ventas, inventario y caja.
+   */
+  obtenerSucursalActual(): number | null {
+    return this.currentUserSubject.value?.id_sucursal || null;
+  }
+
+  /**
+   * Obtiene el token de manera síncrona. 
+   */
+  getTokenSync(): string | null {
+    return this.currentToken;
   }
 }

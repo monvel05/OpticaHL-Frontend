@@ -16,7 +16,7 @@ import { AuthService, Usuario } from './core/services/auth.service';
 import { addIcons } from 'ionicons';
 import { 
   cubeOutline, cashOutline, documentTextOutline, 
-  peopleOutline, logOutOutline, cartOutline 
+  peopleOutline, logOutOutline, cartOutline, eyeOutline
 } from 'ionicons/icons';
 
 // Interfaz para la configuración de las rutas
@@ -60,11 +60,12 @@ export class AppComponent implements OnInit, OnDestroy {
   // Esto debe hacer match con lo que tienes en app.routes.ts
   private allPages: AppPage[] = [
     { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
-    { title: 'Órdenes', url: '/optometrista', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
+    { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
     { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
-    { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] }
+    { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
+    { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] }
   ];
 
   constructor(private authService: AuthService, private router: Router) {
@@ -75,7 +76,8 @@ export class AppComponent implements OnInit, OnDestroy {
       'document-text-outline': documentTextOutline,
       'people-outline': peopleOutline,
       'cart-outline': cartOutline,
-      'log-out-outline': logOutOutline
+      'log-out-outline': logOutOutline,
+      'eye-outline': eyeOutline
     });
   }
 

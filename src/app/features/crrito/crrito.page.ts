@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonNote, IonContent, IonItem, IonLabel, IonCard, IonCardHeader, 
   IonCardTitle, IonCardContent, IonSearchbar, IonGrid, IonRow, IonCol, 
-  IonBadge, IonList, ModalController 
+  IonBadge, IonList, ModalController , IonInfiniteScroll, IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -52,7 +52,9 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
     IonRow, 
     IonCol, 
     IonBadge, 
-    IonList
+    IonList,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent
   ]
 })
 export class CrritoPage implements OnInit {

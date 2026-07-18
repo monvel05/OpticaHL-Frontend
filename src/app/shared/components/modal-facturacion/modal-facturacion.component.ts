@@ -1,105 +1,81 @@
-import { Component, Input, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, input, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonContent, 
-  IonList, IonItem, IonSelect, IonSelectOption, IonFooter, IonIcon,
-  ModalController, LoadingController, ToastController 
+  IonHeader, IonToolbar, IonTitle, IonContent, IonButton, 
+  IonButtons, IonItem, IonLabel, IonSelect, IonSelectOption, 
+  ModalController, ToastController, LoadingController 
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { documentTextOutline } from 'ionicons/icons';
-import { FacturacionService } from '../../../core/services/facturacion.service'; // Ajusta la ruta si es necesario
+import { FacturacionService } from '../../../core/services/facturacion.service';
 
 @Component({
   selector: 'app-modal-facturacion',
-  templateUrl: './modal-facturacion.component.html',
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule, 
-    FormsModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonButtons, 
-    IonButton, 
-    IonContent, 
-    IonList, 
-    IonItem, 
-    IonSelect, 
-    IonSelectOption, 
-    IonFooter, 
-    IonIcon
-  ]
+    CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, 
+    IonContent, IonButton, IonButtons, IonItem, IonLabel, 
+    IonSelect, IonSelectOption
+  ],
+  templateUrl: './modal-facturacion.component.html',
+  styleUrls: ['./modal-facturacion.component.scss']
 })
 export class ModalFacturacionComponent {
-  @Input() orden!: any; // Recibimos la orden completa desde el Historial
-
+  // Inyecciones modernas
   private modalCtrl = inject(ModalController);
   private facturacionService = inject(FacturacionService);
-  private loadingCtrl = inject(LoadingController);
   private toastCtrl = inject(ToastController);
+  private loadingCtrl = inject(LoadingController);
 
-  // Valores por defecto (muy comunes para clientes de óptica)
-  datosFiscales = {
-    uso_cfdi: 'G03',
-    regimen_fiscal: '616', // Sin obligaciones fiscales
-    metodo_pago: 'PUE',
-    forma_pago: '01' // Efectivo
-  };
+  // Inputs recibidos al abrir el modal (ej. folio de la orden a facturar)
+  folioOrden = input.required<string>();
 
-  constructor() {
-    addIcons({ documentTextOutline });
-  }
+  // Signals para el manejo del formulario
+  usoCfdi = signal<string>('G01');
+  regimenFiscal = signal<string>('616');
+  metodoPago = signal<string>('PUE');
+  formaPago = signal<string>('01');
 
   cerrar() {
     this.modalCtrl.dismiss();
   }
 
   async timbrar() {
-    // Mostramos un loader mientras el backend habla con el SAT
     const loading = await this.loadingCtrl.create({
-      message: 'Conectando con el SAT...',
-      spinner: 'crescent'
+      message: 'Timbrando factura ante el SAT...',
+      spinner: 'circular'
     });
     await loading.present();
 
     const payload = {
-      folio_orden: this.orden.folio,
-      id_sucursal: 1, // TODO: Reemplazar con el ID de sucursal del Auth Service
-      id_operador: 1, // TODO: Reemplazar con el ID del operador logueado
-      ...this.datosFiscales
+      folio_orden: this.folioOrden(),
+      uso_cfdi: this.usoCfdi(),
+      regimen_fiscal: this.regimenFiscal(),
+      metodo_pago: this.metodoPago(),
+      forma_pago: this.formaPago(),
+      id_sucursal: 1, // Obtener dinámicamente del contexto del usuario
+      id_operador: 1  // Obtener dinámicamente del token
     };
 
-    this.facturacionService.timbrarFactura(payload).subscribe({
+    this.facturacionService.generarFactura(payload).subscribe({
       next: async (res) => {
         await loading.dismiss();
-        
-        const toast = await this.toastCtrl.create({
-          message: `¡Factura generada exitosamente! UUID: ${res.datos.uuid}`,
-          duration: 4000,
-          color: 'success',
-          position: 'top'
-        });
-        await toast.present();
-
-        // Cerramos el modal y le avisamos al padre que fue un éxito
-        this.modalCtrl.dismiss({ facturado: true });
+        this.mostrarToast('Factura timbrada exitosamente', 'success');
+        // Devolvemos los datos al componente padre (ej. base64 del PDF)
+        this.modalCtrl.dismiss(res.datos);
       },
       error: async (err) => {
         await loading.dismiss();
-        
-        // Extraemos el error del PAC que nos manda tu backend
-        const msjError = err.error?.detalle || err.error?.mensaje || 'Ocurrió un error inesperado';
-        
-        const toast = await this.toastCtrl.create({
-          message: `Error del SAT: ${msjError}`,
-          duration: 6000,
-          color: 'danger',
-          buttons: ['Cerrar']
-        });
-        await toast.present();
+        this.mostrarToast(`Error: ${err.error.mensaje}`, 'danger');
       }
     });
+  }
+
+  private async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 3500,
+      color: color
+    });
+    await toast.present();
   }
 }
