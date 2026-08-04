@@ -8,7 +8,7 @@ import {
   ModalController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline, analyticsOutline } from 'ionicons/icons';
 
 // SERVICIOS REALES
 import { OrdenService } from '../../core/services/orden.service';
@@ -22,7 +22,7 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   templateUrl: './caja.page.html',
   styleUrls: ['./caja.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.Default, // 🎯 Corregido aquí para evitar errores de compilación
   imports: [
     FormsModule, 
     ReactiveFormsModule, 
@@ -59,30 +59,23 @@ export class CajaPage {
 
   constructor() {
     // Registro de los iconos necesarios en la vista de caja
-    addIcons({ 
-      searchOutline, 
-      cashOutline, 
-      cardOutline, 
-      receiptOutline, 
-      checkmarkCircleOutline 
-    });
+    addIcons({analyticsOutline,searchOutline,cashOutline,cardOutline,receiptOutline,checkmarkCircleOutline});
   }
 
   /**
    * Busca la orden real guardada previamente por el mostrador
    */
   buscarOrden() {
-    // Aseguramos obtener el valor limpio y manejamos nulidad
     const folio = this.folioBusqueda.value;
     if (!folio || folio.trim() === '') return;
 
     console.log('Buscando folio en la óptica:', folio.trim());
     
-    // Conectamos al método unificado en tu OrdenService
     this.ordenService.obtenerOrdenPorFolio(folio.trim()).subscribe({
-      next: (orden: any) => {
-        if (orden) {
-          this.ordenSeleccionada = orden;
+      next: (respuesta: any) => {
+        // 🎯 Se desenvuelve correctamente el objeto 'datos' enviado por tu nuevo controlador
+        if (respuesta && respuesta.exito && respuesta.datos) {
+          this.ordenSeleccionada = respuesta.datos; 
         } else {
           alert('No se encontró ninguna orden con ese folio o ya fue liquidada.');
           this.ordenSeleccionada = null;
@@ -128,7 +121,7 @@ export class CajaPage {
         metodo_pago: (pagoConfirmado.metodo || this.metodoPago).toUpperCase(), 
         // Prioriza el monto exacto cobrado reportado por tus Signals
         monto: pagoConfirmado.montoAbonado || this.ordenSeleccionada.total,
-        concepto: `Liquidación de Orden - Cliente: ${this.ordenSeleccionada.cliente || 'Venta General'}`
+        concepto: `Liquidación de Orden - Cliente: ${this.ordenSeleccionada.paciente_nombre || 'Venta General'}` // 🎯 Mapeado al campo correcto del SQL
       };
 
       // Guardamos en la base de datos el ingreso de dinero a la caja chica

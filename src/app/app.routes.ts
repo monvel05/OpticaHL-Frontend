@@ -73,6 +73,12 @@ export const routes: Routes = [
     // 🔒 Gestión exclusiva del administrador
     data: { expectedRoles: ['ADMINISTRADOR'] }
   },
+  {
+    path: 'reportes',
+    loadComponent: () => import('./features/reportes/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent),
+    canActivate: [roleGuard],
+    data: { expectedRoles: ['ADMINISTRADOR'] }
+  },
   
   // ==========================================
   // RUTA DE PRUEBAS O LIBRES

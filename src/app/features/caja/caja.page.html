@@ -31,16 +31,23 @@
     <ion-card style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin: 0;">
       <ion-card-header color="medium" style="padding: 12px 16px;">
         <ion-card-title style="font-size: 16px; font-weight: bold; color: white;">
-          Orden de: {{ ordenSeleccionada.cliente }}
+          <!-- 🎯 Corregido: Ahora apunta a paciente_nombre -->
+          Orden de: {{ ordenSeleccionada.paciente_nombre }}
         </ion-card-title>
       </ion-card-header>
 
       <ion-card-content style="padding: 16px;">
         <ion-list lines="none" style="background: transparent;">
-          @for (item of ordenSeleccionada.items; track item.desc) {
+          
+          <!-- 🎯 Corregido: Cambiado ordenSeleccionada.items por ordenSeleccionada.articulos -->
+          @for (item of ordenSeleccionada.articulos; track item.id_articulo) {
             <ion-item style="--background: transparent; --min-height: 35px;">
-              <ion-label style="color: #555;">{{ item.desc }}</ion-label>
-              <ion-note slot="end" style="font-weight: 600; color: #2c3e50;">${{ item.precio }}</ion-note>
+              <ion-label style="color: #555;">
+                Articulo Cód: {{ item.id_articulo }} (x{{ item.cantidad }})
+              </ion-label>
+              <ion-note slot="end" style="font-weight: 600; color: #2c3e50;">
+                ${{ item.precio_unitario }}
+              </ion-note>
             </ion-item>
           }
           
