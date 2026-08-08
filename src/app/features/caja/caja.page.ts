@@ -8,13 +8,17 @@ import {
   ModalController, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline, analyticsOutline, logOutOutline } from 'ionicons/icons';
+import { 
+  searchOutline, cashOutline, cardOutline, receiptOutline, 
+  checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline 
+} from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth.service';
+
 // SERVICIOS REALES
 import { OrdenService } from '../../core/services/orden.service';
 import { CajaService } from '../../core/services/caja.service';
 
-// TU MODAL DE PAGO CON SIGNALS
+// MODAL DE PAGO CON SIGNALS
 import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pago.component';
 
 @Component({
@@ -22,7 +26,7 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   templateUrl: './caja.page.html',
   styleUrls: ['./caja.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Default, // 🎯 Corregido aquí para evitar errores de compilación
+  changeDetection: ChangeDetectionStrategy.Default,
   imports: [
     FormsModule, 
     ReactiveFormsModule, 
@@ -49,7 +53,6 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   ]
 })
 export class CajaPage {
-  // Inyecciones modernas con inject()
   private ordenService = inject(OrdenService);
   private cajaService = inject(CajaService);
   private modalCtrl = inject(ModalController);
@@ -57,91 +60,159 @@ export class CajaPage {
 
   folioBusqueda = new FormControl('');
   ordenSeleccionada: any = null; 
-  metodoPago: string = 'efectivo'; // Vinculado dinámicamente al ion-segment
+  metodoPago: string = 'efectivo'; 
+  esLiquidada: boolean = false;
 
   constructor() {
-    // Registro de los iconos necesarios en la vista de caja
-    addIcons({analyticsOutline,logOutOutline,searchOutline,cashOutline,cardOutline,receiptOutline,checkmarkCircleOutline});
+    addIcons({
+      analyticsOutline,
+      logOutOutline,
+      searchOutline,
+      cashOutline,
+      cardOutline,
+      receiptOutline,
+      checkmarkCircleOutline,
+      documentTextOutline
+    });
   }
 
   /**
-   * Busca la orden real guardada previamente por el mostrador
+   * Busca la orden y evalúa si ya está liquidada
    */
   buscarOrden() {
     const folio = this.folioBusqueda.value;
     if (!folio || folio.trim() === '') return;
 
-    console.log('Buscando folio en la óptica:', folio.trim());
-    
-    this.ordenService.obtenerOrdenPorFolio(folio.trim()).subscribe({
+    const folioLimpio = folio.trim();
+    console.log('Buscando folio en la óptica:', folioLimpio);
+
+    this.ordenService.obtenerOrdenPorFolio(folioLimpio).subscribe({
       next: (respuesta: any) => {
-        // 🎯 Se desenvuelve correctamente el objeto 'datos' enviado por tu nuevo controlador
-        if (respuesta && respuesta.exito && respuesta.datos) {
-          this.ordenSeleccionada = respuesta.datos; 
+        const datos = respuesta?.datos || respuesta;
+        if (datos) {
+          this.ordenSeleccionada = datos;
+          
+          // Evalúa si ya fue pagada según el estatus o saldo de la respuesta
+          const saldoPendiente = datos.saldo !== undefined ? datos.saldo : (datos.total - (datos.anticipo || 0));
+          this.esLiquidada = (datos.estatus === 'PAGADO' || saldoPendiente <= 0);
+          
+          if (this.esLiquidada) {
+            alert('Aviso: Esta orden ya se encuentra liquidada completamente.');
+          }
         } else {
-          alert('No se encontró ninguna orden con ese folio o ya fue liquidada.');
+          alert('No se encontró ninguna orden con ese folio.');
           this.ordenSeleccionada = null;
+          this.esLiquidada = false;
         }
       },
       error: (err: any) => {
         console.error('Error al buscar la orden:', err);
-        alert('Error al conectar con el servidor para buscar la orden.');
+        alert('No se encontró la orden o hubo un problema al conectar con el servidor.');
+        this.ordenSeleccionada = null;
+        this.esLiquidada = false;
       }
     });
   }
 
   /**
-   * Abre tu Modal de Cobro con Signals antes de impactar la caja general
+   * Abre el Modal de Cobro solo si la orden no está liquidada
    */
   async registrarPago() {
-    if (!this.ordenSeleccionada) return;
+    if (!this.ordenSeleccionada || this.esLiquidada) return;
 
-    // Levantamos tu componente interactivo pasándole el total de la orden buscada
+    const saldoCalculado = this.ordenSeleccionada.saldo !== undefined 
+      ? this.ordenSeleccionada.saldo 
+      : (this.ordenSeleccionada.total - (this.ordenSeleccionada.anticipo || 0));
+
     const modalPago = await this.modalCtrl.create({
       component: ModalPagoComponent,
       componentProps: {
-        saldo: this.ordenSeleccionada.total // Esto inicializa las Signals de tu calculadora de pago
+        saldo: saldoCalculado
       }
     });
 
     await modalPago.present();
 
-    // Capturamos lo que arroja tu modal al cerrarse con las Signals
     const { data: pagoConfirmado, role } = await modalPago.onDidDismiss();
 
-    // Si en tu modal con signals el cajero presionó "Confirmar Pago"
     if (role === 'confirm' && pagoConfirmado) {
-      
-      // Creamos el movimiento oficial para el flujo financiero utilizando
-      // los datos reales calculados por tus Signals (metodo y monto reales) si existen
+      const folioOrdenPago = this.ordenSeleccionada.folio || this.ordenSeleccionada.folio_orden || this.folioBusqueda.value;
+
       const movimiento = {
         id_sucursal: 'HL01',
-        id_operador: 1, // Id del Cajero en turno
-        folio_orden: this.ordenSeleccionada.folio || this.ordenSeleccionada.id_orden || this.folioBusqueda.value,
+        id_operador: 1,
+        folio_orden: folioOrdenPago,
         tipo_movimiento: 'INGRESO',
-        // Prioriza el método de pago que calculó el modal interactivo, de lo contrario toma el del segmento
-        metodo_pago: (pagoConfirmado.metodo || this.metodoPago).toUpperCase(), 
-        // Prioriza el monto exacto cobrado reportado por tus Signals
-        monto: pagoConfirmado.montoAbonado || this.ordenSeleccionada.total,
-        concepto: `Liquidación de Orden - Cliente: ${this.ordenSeleccionada.paciente_nombre || 'Venta General'}` // 🎯 Mapeado al campo correcto del SQL
+        metodo_pago: (pagoConfirmado.metodo || this.metodoPago).toUpperCase(),
+        monto: pagoConfirmado.montoAbonado || saldoCalculado,
+        concepto: `Liquidación de Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`
       };
 
-      // Guardamos en la base de datos el ingreso de dinero a la caja chica
       this.cajaService.registrarMovimiento(movimiento).subscribe({
-        next: (res: any) => {
-          alert('¡Pago registrado con éxito en Caja! Orden finalizada de forma correcta.');
+        next: () => {
+          alert('¡Pago registrado con éxito!');
           
-          // Reseteamos y limpiamos la pantalla para el siguiente cliente en fila
+          // Preguntamos antes de limpiar la pantalla
+          if (confirm('¿Deseas descargar e imprimir el Ticket PDF en este momento?')) {
+            this.imprimirTicket(folioOrdenPago);
+          }
+
+          // Limpiar formulario y resetear estado
           this.ordenSeleccionada = null;
           this.folioBusqueda.setValue('');
+          this.esLiquidada = false;
         },
         error: (err: any) => {
           console.error('Error al registrar dinero en caja:', err);
-          alert('Error crítico al procesar el ingreso financiero en el servidor.');
+          alert(err.error?.mensaje || 'Error al procesar el pago en el servidor.');
         }
       });
     }
   }
+
+  /**
+   * Genera y abre el Ticket PDF evitando bloqueos de pop-up
+   */
+  imprimirTicket(folioParam?: string) {
+    const folio = folioParam || this.ordenSeleccionada?.folio || this.ordenSeleccionada?.folio_orden;
+    
+    if (!folio) {
+      alert('No hay un folio seleccionado para generar el ticket.');
+      return;
+    }
+
+    // 1. Abrimos la pestaña INMEDIATAMENTE para evitar el bloqueo de ventanas emergentes del navegador
+    const ventanaPDF = window.open('', '_blank');
+    if (ventanaPDF) {
+      ventanaPDF.document.write('Cargando Ticket PDF...');
+    }
+
+    // 2. Solicitamos el Blob al backend
+    this.cajaService.descargarTicketPDF(folio).subscribe({
+      next: (blob: Blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+
+        if (ventanaPDF) {
+          // Asignamos la URL del PDF a la ventana pre-abierta
+          ventanaPDF.location.href = blobUrl;
+        } else {
+          // Respaldo de descarga forzada si la ventana emergente fue bloqueada por completo
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `Ticket_${folio}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      },
+      error: (err: any) => {
+        if (ventanaPDF) ventanaPDF.close();
+        console.error('Error descargando el ticket PDF:', err);
+        alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
+      }
+    });
+  }
+
   async logout() {
     await this.authService.logout();
   }
