@@ -52,4 +52,9 @@ export class ClienteService {
   obtenerUltimaRX(clienteId: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${clienteId}/ultima-rx`);
   }
+  // ✅ CORRECTO
+actualizarCliente(idCliente: number, datos: any): Observable<any> {
+  // Si tu 'this.apiUrl' ya incluye la palabra '/clientes' (ej. http://localhost:3000/api/clientes):
+  return this.http.put(`${this.apiUrl}/${idCliente}`, datos);
+}
 }

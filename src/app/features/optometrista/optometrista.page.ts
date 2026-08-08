@@ -7,7 +7,10 @@ import {
   ModalController, AlertController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, addCircleOutline, timeOutline, createOutline, logOutOutline } from 'ionicons/icons';
+import { 
+  personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, 
+  addCircleOutline, timeOutline, createOutline, logOutOutline 
+} from 'ionicons/icons';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component'; 
 import { ClienteService } from '../../core/services/cliente.service'; 
 import { Cliente } from '../../shared/interfaces/cliente.interface';
@@ -24,21 +27,30 @@ import { AuthService } from 'src/app/core/services/auth.service';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
     IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
-    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons // 👈 Agregado para soportar ion-buttons slot="end"
+    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons
   ]
 })
 export class OptometristaPage {
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private clienteService = inject(ClienteService); 
-  private authService = inject(AuthService); // 👈 Inyección agregada
+  private authService = inject(AuthService);
 
   public pacienteSeleccionado: any = null;
   public resultadosBusqueda: Cliente[] = []; 
   public cargando: boolean = false;
 
   constructor() {
-    addIcons({logOutOutline,eyeOutline,personAddOutline,checkmarkCircleOutline,addCircleOutline,timeOutline,createOutline,searchOutline});
+    addIcons({
+      logOutOutline,
+      eyeOutline,
+      personAddOutline,
+      checkmarkCircleOutline,
+      addCircleOutline,
+      timeOutline,
+      createOutline,
+      searchOutline
+    });
   }
 
   /**
@@ -54,6 +66,29 @@ export class OptometristaPage {
 
     if (role === 'confirm' && data) {
       this.pacienteSeleccionado = data;
+    }
+  }
+
+  /**
+   * ✏️ 1B. Abre el modal para EDITAR la información personal del cliente (Botón CAMBIAR)
+   */
+  async editarPaciente(paciente?: any) {
+    const clienteAEditar = paciente || this.pacienteSeleccionado;
+    if (!clienteAEditar) return;
+
+    const modal = await this.modalCtrl.create({
+      component: ClienteFormComponent,
+      componentProps: {
+        cliente: clienteAEditar // 🎯 Precarga los datos en el formulario
+      }
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data) {
+      // Actualiza la información visible en la tarjeta del optometrista
+      this.pacienteSeleccionado = { ...this.pacienteSeleccionado, ...data };
     }
   }
 
@@ -81,7 +116,7 @@ export class OptometristaPage {
   }
 
   /**
-   * 🔍 BUSCADOR EN TIEMPO REAL: Conexión con tu ClienteService
+   * 🔍 BUSCADOR EN TIEMPO REAL: Conexión con ClienteService
    */
   buscarPacienteExistente(event: any) {
     const query = event.detail?.value || event.target?.value || '';
@@ -96,7 +131,7 @@ export class OptometristaPage {
     this.clienteService.buscarClientes(query).subscribe({
       next: (response: any) => {
         console.log('Pacientes encontrados en gabinete:', response);
-        this.resultadosBusqueda = response && response.data ? response.data : [];
+        this.resultadosBusqueda = response && response.data ? response.data : (Array.isArray(response) ? response : []);
         this.cargando = false;
       },
       error: (err: any) => {
@@ -171,7 +206,7 @@ export class OptometristaPage {
   }
 
   /**
-   * 🕒 VER HISTORIAL CLÍNICO
+   * 🕒 VER HISTORIAL CLÍNICO Y MATERIALES
    */
   verHistorialClinico() {
     if (!this.pacienteSeleccionado || !this.pacienteSeleccionado.id_cliente) return;
@@ -179,14 +214,18 @@ export class OptometristaPage {
     this.cargando = true;
 
     this.clienteService.obtenerHistorial(this.pacienteSeleccionado.id_cliente).subscribe({
-      next: async (historial: any[]) => {
+      next: async (res: any) => {
         this.cargando = false;
+
+        const clinico = res?.data?.clinico || (Array.isArray(res) ? res : []);
+        const materiales = res?.data?.materiales || [];
 
         const modal = await this.modalCtrl.create({
           component: HistorialOrdenComponent,
           componentProps: {
-            historialRaw: historial,
-            nombreCliente: this.pacienteSeleccionado.nombre_completo
+            nombreCliente: this.pacienteSeleccionado.nombre_completo,
+            historialClinico: clinico,
+            historialMateriales: materiales
           }
         });
 

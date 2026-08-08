@@ -67,7 +67,12 @@
               <p>ID Paciente: {{ pacienteSeleccionado.id_cliente }}</p>
               <p>Tel: {{ pacienteSeleccionado.telefono || 'No disponible' }}</p>
             </ion-label>
-            <ion-button slot="end" fill="clear" color="danger" (click)="pacienteSeleccionado = null; resultadosBusqueda = []">Cambiar</ion-button>
+
+            <!-- 🎯 BOTÓN PARA EDITAR LOS DATOS DEL PACIENTE -->
+            <ion-button slot="end" fill="clear" color="danger" (click)="editarPaciente(pacienteSeleccionado)">
+              <ion-icon name="create-outline" slot="start"></ion-icon>
+              CAMBIAR
+            </ion-button>
           </ion-item>
 
           <ion-grid class="ion-no-padding" style="padding: 12px 16px 4px 16px;">

@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, Input, inject, ChangeDetectionStrategy } from '@angular/core';
 
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonContent, IonListHeader, IonLabel, IonList, IonItem, IonInput, 
   IonGrid, IonRow, IonCol, ModalController 
-} from '@ionic/angular/standalone'; // Inyectamos ModalController para cerrar
+} from '@ionic/angular/standalone';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ClienteService } from '../../../core/services/cliente.service'; 
 import { addIcons } from 'ionicons';
@@ -38,7 +38,9 @@ import {
   ]
 })
 export class ClienteFormComponent implements OnInit {
-  // Quitamos los EventEmitters tradicionales ya que usaremos el ModalController nativo de Ionic, que es más limpio para Mostrador
+  // 🎯 Recibe el paciente si se abre el modal en modo EDICIÓN
+  @Input() cliente: any = null;
+
   private fb = inject(FormBuilder);
   private clientesService = inject(ClienteService);
   private modalCtrl = inject(ModalController);
@@ -46,7 +48,6 @@ export class ClienteFormComponent implements OnInit {
   clienteForm!: FormGroup;
 
   constructor() {
-    // Registramos los iconos que tu formulario utiliza internamente
     addIcons({
       personOutline,
       callOutline,
@@ -60,13 +61,15 @@ export class ClienteFormComponent implements OnInit {
   }
 
   ngOnInit() {
-    // El formulario arranca limpio para un nuevo paciente
+    // 🎯 Si se pasó un cliente por @Input, precargamos sus datos en el formulario
+    if (this.cliente) {
+      this.cargarDatosCliente(this.cliente);
+    }
   }
 
   initForm() {
     this.clienteForm = this.fb.group({
       nombre_completo: ['', [Validators.required]],
-      // Forzamos que acepte letras en minúsculas también en la validación si el usuario escribe directo
       rfc: ['', [Validators.pattern('^[a-zA-Z0-9]{12,13}$')]], 
       telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10,20}$')]],
       email: ['', [Validators.required, Validators.email]],
@@ -79,7 +82,24 @@ export class ClienteFormComponent implements OnInit {
   }
 
   /**
-   * Cierra el modal sin guardar ningún dato
+   * Precarga la información preexistente para edición
+   */
+  cargarDatosCliente(data: any) {
+    this.clienteForm.patchValue({
+      nombre_completo: data.nombre_completo || '',
+      rfc: data.rfc || '',
+      telefono: data.telefono || '',
+      email: data.email || '',
+      domicilio: data.domicilio || '',
+      colonia: data.colonia || '',
+      cp: data.cp || '',
+      localidad: data.localidad || '',
+      estado: data.estado || ''
+    });
+  }
+
+  /**
+   * Cierra el modal sin guardar cambios
    */
   cancelar() {
     this.modalCtrl.dismiss(null, 'cancel');
@@ -87,39 +107,53 @@ export class ClienteFormComponent implements OnInit {
 
   submitForm() {
     if (this.clienteForm.valid) {
-      // Convertimos el RFC a mayúsculas de manera automatizada antes de mandarlo a la BD MySQL
       const datosParaEnviar = {
         ...this.clienteForm.value,
         rfc: this.clienteForm.value.rfc ? this.clienteForm.value.rfc.toUpperCase() : null
       };
 
-      console.log('Enviando datos del nuevo cliente al Backend:', datosParaEnviar);
+      // 🔄 MODO EDICIÓN: Si el cliente ya existe en la BD (tiene id_cliente)
+      if (this.cliente && (this.cliente.id_cliente || this.cliente.id)) {
+        const idCliente = this.cliente.id_cliente || this.cliente.id;
+        console.log(`Actualizando datos del cliente ID (${idCliente}):`, datosParaEnviar);
 
-      this.clientesService.crearCliente(datosParaEnviar).subscribe({
-        next: (res) => {
-          console.log('¡Cliente guardado exitosamente en SQL!', res);
-          
-          // Construimos el objeto simulado con el ID que generó la base de datos (res.id_cliente)
-          // para insertarlo de inmediato en la lista del mostrador sin tener que re-escribir
-          const nuevoClienteRegistrado = {
-            id_cliente: res.id_cliente,
-            nombre_completo: datosParaEnviar.nombre_completo,
-            telefono: datosParaEnviar.telefono,
-            email: datosParaEnviar.email,
-            domicilio: datosParaEnviar.domicilio,
-            colonia: datosParaEnviar.colonia,
-            cp: datosParaEnviar.cp,
-            localidad: datosParaEnviar.localidad,
-            estado: datosParaEnviar.estado
-          };
+        this.clientesService.actualizarCliente(idCliente, datosParaEnviar).subscribe({
+          next: (res) => {
+            console.log('¡Cliente actualizado exitosamente en SQL!', res);
 
-          // Cerramos el modal regresando el rol de confirmación y el objeto
-          this.modalCtrl.dismiss(nuevoClienteRegistrado, 'confirm');
-        },
-        error: (err) => {
-          console.error('Error al registrar cliente en el servidor:', err);
-        }
-      });
+            const clienteActualizado = {
+              id_cliente: idCliente,
+              ...datosParaEnviar
+            };
+
+            this.modalCtrl.dismiss(clienteActualizado, 'confirm');
+          },
+          error: (err) => {
+            console.error('Error al actualizar el cliente:', err);
+          }
+        });
+
+      } else {
+        // 🆕 MODO REGISTRO NUEVO: Si no viene un objeto de cliente preexistente
+        console.log('Enviando datos del nuevo cliente al Backend:', datosParaEnviar);
+
+        this.clientesService.crearCliente(datosParaEnviar).subscribe({
+          next: (res) => {
+            console.log('¡Cliente guardado exitosamente en SQL!', res);
+
+            const nuevoClienteRegistrado = {
+              id_cliente: res.id_cliente || res.data?.id_cliente,
+              ...datosParaEnviar
+            };
+
+            this.modalCtrl.dismiss(nuevoClienteRegistrado, 'confirm');
+          },
+          error: (err) => {
+            console.error('Error al registrar cliente en el servidor:', err);
+          }
+        });
+      }
+
     } else {
       this.clienteForm.markAllAsTouched();
     }
