@@ -1,5 +1,5 @@
-import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectionStrategy, ChangeDetectorRef, ViewChild } from '@angular/core';
+import { CommonModule, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BaseChartDirective } from 'ng2-charts';
 import { ChartConfiguration, ChartData, ChartType, Chart, registerables } from 'chart.js';
@@ -9,7 +9,7 @@ import {
   IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader,
   IonCardTitle, IonCardSubtitle, IonCardContent, IonSelect, IonSelectOption,
   IonSegment, IonSegmentButton, IonBadge, IonChip, IonLabel,
-  IonSpinner, IonRefresher, IonRefresherContent, IonMenuButton
+  IonSpinner, IonRefresher, IonRefresherContent, IonMenuButton, IonItem, IonInput
 } from '@ionic/angular/standalone';
 
 import { addIcons } from 'ionicons';
@@ -19,8 +19,13 @@ import {
   filterOutline, refreshOutline, downloadOutline, pricetagOutline,
   arrowUpOutline, arrowDownOutline, checkmarkCircleOutline, storefrontOutline,
   trophyOutline, sparklesOutline, cubeOutline, cartOutline, flashOutline,
-  statsChartOutline, analyticsOutline, buildOutline
+  statsChartOutline, analyticsOutline, buildOutline, documentTextOutline,
+  fileTrayFullOutline, printOutline
 } from 'ionicons/icons';
+
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 import {
   DashboardService,
@@ -29,7 +34,9 @@ import {
   ProductoBajaRotacion,
   MetricasFinancieras,
   ProductividadOperador,
-  FiltrosDashboard
+  FiltrosDashboard,
+  VentaReporte,
+  DescuentoReporte
 } from '../../core/services/dashboard.service';
 
 Chart.register(...registerables);
@@ -43,6 +50,8 @@ Chart.register(...registerables);
   imports: [
     CommonModule,
     FormsModule,
+    DatePipe,
+    DecimalPipe,
     BaseChartDirective,
     IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
     IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardHeader,
@@ -53,10 +62,17 @@ Chart.register(...registerables);
 })
 export class DashboardPage implements OnInit {
 
+  @ViewChild(BaseChartDirective) chartDirective?: BaseChartDirective;
+
+  // Pestaña principal activa: 'METRICAS' | 'REPORTES'
+  public vistaPrincipal: 'METRICAS' | 'REPORTES' = 'METRICAS';
+
   // Estado de Filtros
   public filtros: FiltrosDashboard = {
     idSucursal: 0, // Todas
-    rangoTiempo: 'MENSUAL'
+    rangoTiempo: 'MENSUAL',
+    fechaInicio: '',
+    fechaFin: ''
   };
 
   public sucursalesCatalog: { id: number; nombre: string }[] = [];
@@ -99,7 +115,7 @@ export class DashboardPage implements OnInit {
   public barTopOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    indexAxis: 'y', // Barras horizontales para ranking legible
+    indexAxis: 'y',
     plugins: {
       legend: { display: false },
       tooltip: {
@@ -163,12 +179,8 @@ export class DashboardPage implements OnInit {
   public barMostradorOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: true, position: 'top' }
-    },
-    scales: {
-      y: { beginAtZero: true }
-    }
+    plugins: { legend: { display: true, position: 'top' } },
+    scales: { y: { beginAtZero: true } }
   };
   public barMostradorData: ChartData<'bar'> = {
     labels: [],
@@ -180,17 +192,17 @@ export class DashboardPage implements OnInit {
   public barOptoOptions: ChartConfiguration['options'] = {
     responsive: true,
     maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false }
-    },
-    scales: {
-      y: { beginAtZero: true }
-    }
+    plugins: { legend: { display: false } },
+    scales: { y: { beginAtZero: true } }
   };
   public barOptoData: ChartData<'bar'> = {
     labels: [],
     datasets: []
   };
+
+  // 6. Datos de Reportes Unificados
+  public reporteVentas: VentaReporte[] = [];
+  public reporteDescuentos: DescuentoReporte[] = [];
 
   constructor(
     private dashboardService: DashboardService,
@@ -202,8 +214,15 @@ export class DashboardPage implements OnInit {
       filterOutline, refreshOutline, downloadOutline, pricetagOutline,
       arrowUpOutline, arrowDownOutline, checkmarkCircleOutline, storefrontOutline,
       trophyOutline, sparklesOutline, cubeOutline, cartOutline, flashOutline,
-      statsChartOutline, analyticsOutline, buildOutline
+      statsChartOutline, analyticsOutline, buildOutline, documentTextOutline,
+      fileTrayFullOutline, printOutline
     });
+
+    const hoy = new Date();
+    const haceUnMes = new Date();
+    haceUnMes.setMonth(hoy.getMonth() - 1);
+    this.filtros.fechaInicio = haceUnMes.toISOString().split('T')[0];
+    this.filtros.fechaFin = hoy.toISOString().split('T')[0];
   }
 
   ngOnInit() {
@@ -223,6 +242,13 @@ export class DashboardPage implements OnInit {
     this.cargarDashboard();
   }
 
+  public onFechasChange() {
+    if (this.filtros.fechaInicio && this.filtros.fechaFin) {
+      this.filtros.rangoTiempo = 'PERSONALIZADO';
+      this.cargarDashboard();
+    }
+  }
+
   public doRefresh(event: any) {
     this.cargarDashboard(() => {
       event.target.complete();
@@ -231,7 +257,7 @@ export class DashboardPage implements OnInit {
 
   public cargarDashboard(callback?: () => void) {
     this.cargando = true;
-    let pendientes = 5;
+    let pendientes = 7;
 
     const checkFinalizado = () => {
       pendientes--;
@@ -340,31 +366,43 @@ export class DashboardPage implements OnInit {
         this.productividadMostrador = prod.mostrador;
         this.productividadOptometristas = prod.optometristas;
 
-        // Chart Mostrador
         this.barMostradorData = {
           labels: prod.mostrador.map(m => m.nombre),
-          datasets: [
-            {
-              label: 'Monto Ventas ($)',
-              data: prod.mostrador.map(m => m.ventasCerradasMonto),
-              backgroundColor: '#3880ff',
-              borderRadius: 6
-            }
-          ]
+          datasets: [{
+            label: 'Monto Ventas ($)',
+            data: prod.mostrador.map(m => m.ventasCerradasMonto),
+            backgroundColor: '#3880ff',
+            borderRadius: 6
+          }]
         };
 
-        // Chart Optometristas
         this.barOptoData = {
           labels: prod.optometristas.map(o => o.nombre),
-          datasets: [
-            {
-              label: 'Exámenes / Refracciones',
-              data: prod.optometristas.map(o => o.refraccionesCompletadas),
-              backgroundColor: '#2dd36f',
-              borderRadius: 6
-            }
-          ]
+          datasets: [{
+            label: 'Exámenes / Refracciones',
+            data: prod.optometristas.map(o => o.refraccionesCompletadas),
+            backgroundColor: '#2dd36f',
+            borderRadius: 6
+          }]
         };
+        checkFinalizado();
+      },
+      error: () => checkFinalizado()
+    });
+
+    // 6. Reporte de Ventas Completo
+    this.dashboardService.getReporteVentasCompleto(this.filtros.fechaInicio, this.filtros.fechaFin).subscribe({
+      next: (ventas) => {
+        this.reporteVentas = ventas;
+        checkFinalizado();
+      },
+      error: () => checkFinalizado()
+    });
+
+    // 7. Reporte de Descuentos
+    this.dashboardService.getReporteDescuentos().subscribe({
+      next: (descuentos) => {
+        this.reporteDescuentos = descuentos;
         checkFinalizado();
       },
       error: () => checkFinalizado()
@@ -384,7 +422,163 @@ export class DashboardPage implements OnInit {
     alert(`Acción iniciada para ${prod.nombre} (${prod.codigo}):\n"${prod.accionSugerida}" enviada a la sucursal ${prod.sucursal}.`);
   }
 
+  // CÁLCULOS KPI REPORTES
+  public obtenerTotalVentasPagado(): number {
+    return this.reporteVentas.reduce((sum, item) => sum + (Number(item.total_pagado) || 0), 0);
+  }
+
+  public obtenerTotalDescuentos(): number {
+    return this.reporteDescuentos.reduce((sum, item) => sum + (Number(item.descuento) || 0), 0);
+  }
+
+  // EXPORTAR A EXCEL (.xlsx)
+  public exportarReporteExcel() {
+    const wb = XLSX.utils.book_new();
+
+    // Hoja 1: Resumen General
+    const resumenData = [
+      { Indicador: 'Ingresos Reales', Valor: `$${this.metricasFinancieras?.ingresoReal || 0}` },
+      { Indicador: 'Ganancia Neta', Valor: `$${this.metricasFinancieras?.gananciaNeta || 0}` },
+      { Indicador: 'Transacciones Totales', Valor: this.totalTransaccionesGral },
+      { Indicador: 'Stock en Riesgo', Valor: `$${this.capitalEstancadoTotal}` },
+      { Indicador: 'Periodo Filtro', Valor: `${this.filtros.rangoTiempo} (${this.filtros.fechaInicio || 'Inicio'} a ${this.filtros.fechaFin || 'Fin'})` }
+    ];
+    const wsResumen = XLSX.utils.json_to_sheet(resumenData);
+    XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen Ejecutivo');
+
+    // Hoja 2: Ventas Detalladas
+    if (this.reporteVentas.length > 0) {
+      const ventasFormat = this.reporteVentas.map(v => ({
+        Folio: v.folio,
+        Fecha: v.fecha_emision,
+        Cliente: v.cliente,
+        Estatus: v.estatus,
+        'Total Orden ($)': v.total_orden,
+        'Total Pagado ($)': v.total_pagado
+      }));
+      const wsVentas = XLSX.utils.json_to_sheet(ventasFormat);
+      XLSX.utils.book_append_sheet(wb, wsVentas, 'Reporte Ventas');
+    }
+
+    // Hoja 3: Descuentos
+    if (this.reporteDescuentos.length > 0) {
+      const descuentosFormat = this.reporteDescuentos.map(d => ({
+        Folio: d.folio_orden || d.num_factura || 'N/A',
+        Fecha: d.fecha,
+        Cliente: d.cliente,
+        'Subtotal ($)': d.subtotal,
+        'Descuento ($)': d.descuento,
+        'Total ($)': d.total
+      }));
+      const wsDescuentos = XLSX.utils.json_to_sheet(descuentosFormat);
+      XLSX.utils.book_append_sheet(wb, wsDescuentos, 'Descuentos Aplicados');
+    }
+
+    // Hoja 4: Top Productos
+    if (this.topProductos.length > 0) {
+      const topFormat = this.topProductos.map(p => ({
+        Código: p.codigo,
+        Nombre: p.nombre,
+        Categoría: p.categoria,
+        'Unidades Vendidas': p.unidadesVendidas,
+        'Total Ventas ($)': p.totalVentas,
+        Stock: p.stockActual
+      }));
+      const wsTop = XLSX.utils.json_to_sheet(topFormat);
+      XLSX.utils.book_append_sheet(wb, wsTop, 'Top Productos');
+    }
+
+    const fileName = `Informe_Dashboard_OpticaHL_${new Date().toISOString().split('T')[0]}.xlsx`;
+    XLSX.writeFile(wb, fileName);
+  }
+
+  // EXPORTAR A PDF (.pdf con Tablas y Gráficas)
   public exportarReportePDF() {
-    alert('Exportando Informe de Dashboard a PDF/Excel con los filtros seleccionados...');
+    const doc = new jsPDF('p', 'mm', 'a4');
+    const fechaActual = new Date().toLocaleDateString('es-MX');
+
+    // Encabezado Principal
+    doc.setFillColor(44, 62, 80);
+    doc.rect(0, 0, 210, 28, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.text('ÓPTICA HL - INFORME EJECUTIVO & BI', 14, 16);
+    doc.setFontSize(10);
+    doc.text(`Fecha de Emisión: ${fechaActual} | Periodo: ${this.filtros.rangoTiempo}`, 14, 23);
+
+    let yOffset = 35;
+
+    // Métricas Resumen
+    doc.setTextColor(44, 62, 80);
+    doc.setFontSize(13);
+    doc.text('1. RESUMEN DE INDICADORES CLAVE (KPIs)', 14, yOffset);
+    yOffset += 6;
+
+    autoTable(doc, {
+      startY: yOffset,
+      head: [['Métrica', 'Valor Actual', 'Detalle / Estado']],
+      body: [
+        ['Ingresos Reales', `$${(this.metricasFinancieras?.ingresoReal || 0).toLocaleString('es-MX')}`, `${this.metricasFinancieras?.cumplimientoMetaPorcentaje || 0}% Meta alcanzada`],
+        ['Ganancia Neta', `$${(this.metricasFinancieras?.gananciaNeta || 0).toLocaleString('es-MX')}`, `Margen Neto: ${this.metricasFinancieras?.margenNetoPorcentaje || 0}%`],
+        ['Transacciones Totales', `${this.totalTransaccionesGral}`, `Monto total: $${this.totalMontoGral.toLocaleString('es-MX')}`],
+        ['Stock en Riesgo', `$${this.capitalEstancadoTotal.toLocaleString('es-MX')}`, `${this.itemsEstancadosTotal} artículos estancados`]
+      ],
+      theme: 'striped',
+      headStyles: { fillColor: [56, 128, 255] }
+    });
+
+    yOffset = (doc as any).lastAutoTable.finalY + 10;
+
+    // Distribución por Sucursal
+    doc.setFontSize(13);
+    doc.text('2. DISTRIBUCIÓN COMERCIAL POR SUCURSAL', 14, yOffset);
+    yOffset += 6;
+
+    const sucursalesBody = this.distribucionSucursales.map(s => [
+      s.nombre,
+      s.numTransacciones.toString(),
+      `$${s.montoTotal.toLocaleString('es-MX')}`,
+      `${s.porcentaje}%`
+    ]);
+
+    autoTable(doc, {
+      startY: yOffset,
+      head: [['Sucursal', 'Transacciones', 'Monto Total', 'Participación']],
+      body: sucursalesBody,
+      theme: 'grid',
+      headStyles: { fillColor: [45, 211, 111] }
+    });
+
+    yOffset = (doc as any).lastAutoTable.finalY + 10;
+
+    // Tabla de Ventas Recientes
+    if (this.reporteVentas.length > 0) {
+      if (yOffset > 240) {
+        doc.addPage();
+        yOffset = 20;
+      }
+
+      doc.setFontSize(13);
+      doc.text('3. REPORTES DETALLADOS DE VENTAS', 14, yOffset);
+      yOffset += 6;
+
+      const ventasBody = this.reporteVentas.slice(0, 10).map(v => [
+        v.folio,
+        v.cliente,
+        v.estatus,
+        `$${Number(v.total_orden).toLocaleString('es-MX')}`,
+        `$${Number(v.total_pagado).toLocaleString('es-MX')}`
+      ]);
+
+      autoTable(doc, {
+        startY: yOffset,
+        head: [['Folio', 'Cliente', 'Estatus', 'Total Orden', 'Total Pagado']],
+        body: ventasBody,
+        theme: 'striped',
+        headStyles: { fillColor: [112, 68, 255] }
+      });
+    }
+
+    doc.save(`Informe_Ejecutivo_OpticaHL_${new Date().toISOString().split('T')[0]}.pdf`);
   }
 }

@@ -75,9 +75,8 @@ export const routes: Routes = [
   },
   {
     path: 'reportes',
-    loadComponent: () => import('./features/reportes/reporting-dashboard/reporting-dashboard.component').then(m => m.ReportingDashboardComponent),
-    canActivate: [roleGuard],
-    data: { expectedRoles: ['ADMINISTRADOR'] }
+    redirectTo: 'dashboard',
+    pathMatch: 'full'
   },
   
   // ==========================================
