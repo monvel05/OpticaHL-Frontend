@@ -4,7 +4,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
   IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
   IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons,
-  ModalController, AlertController 
+  ModalController, AlertController, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { 
@@ -27,7 +27,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
     IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
-    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons
+    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons, IonMenuButton
   ]
 })
 export class OptometristaPage {

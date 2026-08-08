@@ -41,7 +41,7 @@ import {
   imports: [
     IonFabButton, IonLabel, IonAvatar, IonItem, IonCard, IonCol,
     IonRow, IonGrid, IonButton, IonSearchbar, IonButtons, IonIcon,
-    IonFab, IonContent, IonHeader, IonTitle, IonToolbar,
+    IonFab, IonContent, IonHeader, IonTitle, IonToolbar, IonMenuButton,
     CommonModule, FormsModule
   ]
 })

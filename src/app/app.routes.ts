@@ -84,6 +84,13 @@ export const routes: Routes = [
   // RUTA DE PRUEBAS O LIBRES
   // ==========================================
   {
+    path: 'dashboard', 
+    loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
+    canActivate: [roleGuard],
+    // 🔒 Dashboard Ejecutivo
+    data: { expectedRoles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'OPTOMETRISTA'] }
+  },
+  {
     path: 'calizdeformulario',
     loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then(m => m.CalizdeformularioPage)
   },

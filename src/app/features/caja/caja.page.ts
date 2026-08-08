@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
   IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle, 
   IonCardContent, IonList, IonLabel, IonNote, IonSegment, IonSegmentButton,
-  ModalController 
+  ModalController, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline, analyticsOutline, logOutOutline } from 'ionicons/icons';
@@ -44,7 +44,8 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
     IonLabel, 
     IonNote, 
     IonSegment, 
-    IonSegmentButton
+    IonSegmentButton,
+    IonMenuButton
   ]
 })
 export class CajaPage {

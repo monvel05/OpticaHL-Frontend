@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { 
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
   IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonText, 
-  IonList, IonItem, IonLabel, IonNote, AlertController, ToastController 
+  IonList, IonItem, IonLabel, IonNote, AlertController, ToastController, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { printOutline, cashOutline, cardOutline, receiptOutline, logOutOutline } from 'ionicons/icons';
@@ -33,7 +33,8 @@ import{ AuthService } from 'src/app/core/services/auth.service';
     IonList, 
     IonItem, 
     IonLabel, 
-    IonNote
+    IonNote,
+    IonMenuButton
   ]
 })
 export class CorteCajaPage implements OnInit {

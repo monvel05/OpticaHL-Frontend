@@ -1,0 +1,455 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-title-container">
+        <ion-icon name="analytics-outline" class="title-icon"></ion-icon>
+        <span>Dashboard Ejecutivo & BI Comercial</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="exportarReportePDF()" fill="clear">
+        <ion-icon slot="icon-only" name="download-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- PANEL DE FILTROS PRINCIPAL -->
+  <div class="filter-bar-header">
+    <div class="filter-group">
+      <ion-icon name="storefront-outline" class="filter-icon"></ion-icon>
+      <span class="filter-label">Sucursal:</span>
+      <ion-select 
+        [value]="filtros.idSucursal" 
+        (ionChange)="onSucursalChange($event)" 
+        interface="popover"
+        class="custom-select">
+        @for (suc of sucursalesCatalog; track suc.id) {
+          <ion-select-option [value]="suc.id">{{ suc.nombre }}</ion-select-option>
+        }
+      </ion-select>
+    </div>
+
+    <div class="filter-group segment-group">
+      <ion-icon name="calendar-outline" class="filter-icon"></ion-icon>
+      <span class="filter-label">Periodo:</span>
+      <ion-segment [value]="filtros.rangoTiempo" (ionChange)="onRangoTiempoChange($event)" class="custom-segment">
+        <ion-segment-button value="DIARIO">
+          <ion-label>Diario</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="SEMANAL">
+          <ion-label>Semanal</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="MENSUAL">
+          <ion-label>Mensual</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="ANUAL">
+          <ion-label>Anual</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="ion-padding dashboard-content">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar datos..." refreshingSpinner="circles"></ion-refresher-content>
+  </ion-refresher>
+
+  @if (cargando) {
+    <div class="loading-overlay">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p>Actualizando indicadores y métricas...</p>
+    </div>
+  }
+
+  <!-- RESUMEN EXECUTIVE HIGHLIGHTS -->
+  <ion-grid class="highlights-grid">
+    <ion-row>
+      <ion-col size="12" size-md="3">
+        <div class="kpi-card kpi-income">
+          <div class="kpi-icon-wrapper">
+            <ion-icon name="cash-outline"></ion-icon>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-title">Ingresos Reales</span>
+            <h3 class="kpi-value">${{ metricasFinancieras?.ingresoReal | number:'1.0-0' }}</h3>
+            <span class="kpi-subtext positive">
+              <ion-icon name="arrow-up-outline"></ion-icon>
+              {{ metricasFinancieras?.cumplimientoMetaPorcentaje }}% Meta alcanzada
+            </span>
+          </div>
+        </div>
+      </ion-col>
+
+      <ion-col size="12" size-md="3">
+        <div class="kpi-card kpi-profit">
+          <div class="kpi-icon-wrapper">
+            <ion-icon name="trending-up-outline"></ion-icon>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-title">Ganancia Neta</span>
+            <h3 class="kpi-value">${{ metricasFinancieras?.gananciaNeta | number:'1.0-0' }}</h3>
+            <span class="kpi-subtext highlight">
+              Margen Neto: {{ metricasFinancieras?.margenNetoPorcentaje }}%
+            </span>
+          </div>
+        </div>
+      </ion-col>
+
+      <ion-col size="12" size-md="3">
+        <div class="kpi-card kpi-transactions">
+          <div class="kpi-icon-wrapper">
+            <ion-icon name="cart-outline"></ion-icon>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-title">Transacciones Totales</span>
+            <h3 class="kpi-value">{{ totalTransaccionesGral | number }}</h3>
+            <span class="kpi-subtext">
+              Ticket prom: ${{ (totalTransaccionesGral > 0 ? totalMontoGral / totalTransaccionesGral : 0) | number:'1.0-0' }}
+            </span>
+          </div>
+        </div>
+      </ion-col>
+
+      <ion-col size="12" size-md="3">
+        <div class="kpi-card kpi-stagnant">
+          <div class="kpi-icon-wrapper">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <div class="kpi-info">
+            <span class="kpi-title">Stock en Riesgo</span>
+            <h3 class="kpi-value">${{ capitalEstancadoTotal | number:'1.0-0' }}</h3>
+            <span class="kpi-subtext warning">
+              {{ itemsEstancadosTotal }} unidades estancadas
+            </span>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- BLOQUE 1: DISTRIBUCIÓN MULTISUCURSAL & TOP 10 PRODUCTOS -->
+  <ion-grid>
+    <ion-row>
+      <!-- SECTION 1: DISTRIBUCIÓN COMERCIAL MULTISUCURSAL -->
+      <ion-col size="12" size-lg="6">
+        <ion-card class="dashboard-card">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <div>
+                <ion-card-title class="section-title">
+                  <ion-icon name="pie-chart-outline" class="title-accent"></ion-icon>
+                  Distribución Comercial Multisucursal
+                </ion-card-title>
+                <ion-card-subtitle>Volumen total de transacciones financieras por sucursal</ion-card-subtitle>
+              </div>
+              <ion-badge color="tertiary">{{ filtros.rangoTiempo }}</ion-badge>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container-pie">
+              <canvas baseChart
+                [data]="pieChartData"
+                [options]="pieChartOptions"
+                [type]="pieChartType">
+              </canvas>
+            </div>
+
+            <!-- Tabla cuantitativa multisucursal -->
+            <div class="table-responsive margin-top-15">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Sucursal</th>
+                    <th>Transacciones</th>
+                    <th>Ingreso Total</th>
+                    <th>Participación</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (suc of distribucionSucursales; track suc.idSucursal) {
+                    <tr>
+                      <td>
+                        <span class="color-indicator" [style.background-color]="suc.color"></span>
+                        <strong>{{ suc.nombre }}</strong>
+                      </td>
+                      <td>{{ suc.numTransacciones | number }}</td>
+                      <td>${{ suc.montoTotal | number:'1.0-0' }}</td>
+                      <td>
+                        <div class="progress-bar-wrapper">
+                          <span>{{ suc.porcentaje }}%</span>
+                          <div class="bar-outer">
+                            <div class="bar-inner" [style.width.%]="suc.porcentaje" [style.background-color]="suc.color"></div>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+      <!-- SECTION 2: TOP 10 PRODUCTOS DE MAYOR ROTACIÓN -->
+      <ion-col size="12" size-lg="6">
+        <ion-card class="dashboard-card">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <div>
+                <ion-card-title class="section-title">
+                  <ion-icon name="bar-chart-outline" class="title-accent"></ion-icon>
+                  Top 10 Productos de Mayor Rotación
+                </ion-card-title>
+                <ion-card-subtitle>Artículos con mayor índice de ventas y aceleración de stock</ion-card-subtitle>
+              </div>
+              <ion-chip color="primary" outline="true">
+                <ion-icon name="filter-outline"></ion-icon>
+                <ion-label>{{ filtros.idSucursal === 0 ? 'Todas' : 'Sucursal Seleccionada' }}</ion-label>
+              </ion-chip>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container-bar">
+              <canvas baseChart
+                [data]="barTopData"
+                [options]="barTopOptions"
+                [type]="barTopType">
+              </canvas>
+            </div>
+
+            <div class="top-list-container margin-top-15">
+              @for (prod of topProductos.slice(0, 5); track prod.idArticulo; let i = $index) {
+                <div class="top-product-item">
+                  <span class="rank-badge" [class.rank-1]="i===0" [class.rank-2]="i===1" [class.rank-3]="i===2">#{{ i + 1 }}</span>
+                  <div class="product-details">
+                    <span class="product-name">{{ prod.nombre }}</span>
+                    <span class="product-meta">SKU: {{ prod.codigo }} | Categoría: {{ prod.categoria }}</span>
+                  </div>
+                  <div class="product-sales">
+                    <strong class="sales-count">{{ prod.unidadesVendidas }} u.</strong>
+                    <span class="sales-amount">${{ prod.totalVentas | number:'1.0-0' }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- BLOQUE 2: ANÁLISIS DE BAJA ROTACIÓN (PRODUCTOS MENOS VENDIDOS) -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-card class="dashboard-card border-warning">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <div>
+                <ion-card-title class="section-title text-warning">
+                  <ion-icon name="alert-circle-outline" class="title-accent color-warning"></ion-icon>
+                  Análisis de Baja Rotación & Stock Estancado
+                </ion-card-title>
+                <ion-card-subtitle>Detección automatizada de artículos inactivos para optimización de inventarios</ion-card-subtitle>
+              </div>
+              <div class="risk-filters">
+                <ion-button [fill]="filtroRiesgo === 'TODOS' ? 'solid' : 'outline'" size="small" color="medium" (click)="aplicarFiltroRiesgo('TODOS')">Todos</ion-button>
+                <ion-button [fill]="filtroRiesgo === 'CRITICO' ? 'solid' : 'outline'" size="small" color="danger" (click)="aplicarFiltroRiesgo('CRITICO')">Crítico (>150d)</ion-button>
+                <ion-button [fill]="filtroRiesgo === 'ALTO' ? 'solid' : 'outline'" size="small" color="warning" (click)="aplicarFiltroRiesgo('ALTO')">Alto (100d-150d)</ion-button>
+                <ion-button [fill]="filtroRiesgo === 'MEDIO' ? 'solid' : 'outline'" size="small" color="tertiary" (click)="aplicarFiltroRiesgo('MEDIO')">Medio (<100d)</ion-button>
+              </div>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="table-responsive">
+              <table class="custom-table table-hover">
+                <thead>
+                  <tr>
+                    <th>Código / Artículo</th>
+                    <th>Categoría</th>
+                    <th>Sucursal</th>
+                    <th>Stock Actual</th>
+                    <th>Días Estancado</th>
+                    <th>Capital Inmóvil</th>
+                    <th>Nivel Riesgo</th>
+                    <th>Acción Recomendada</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (prod of productosBajaRotacionFiltrados; track prod.idArticulo) {
+                    <tr>
+                      <td>
+                        <strong>{{ prod.nombre }}</strong>
+                        <div class="text-subtle">SKU: {{ prod.codigo }}</div>
+                      </td>
+                      <td><ion-badge color="light">{{ prod.categoria }}</ion-badge></td>
+                      <td>{{ prod.sucursal }}</td>
+                      <td><strong>{{ prod.stockActual }} pzs</strong></td>
+                      <td>
+                        <span class="days-badge" [class.badge-danger]="prod.diasEstancado > 150" [class.badge-warning]="prod.diasEstancado <= 150 && prod.diasEstancado >= 100">
+                          {{ prod.diasEstancado }} días
+                        </span>
+                      </td>
+                      <td><strong class="text-danger">${{ prod.capitalEstancado | number:'1.0-0' }}</strong></td>
+                      <td>
+                        <ion-badge [color]="prod.nivelRiesgo === 'CRITICO' ? 'danger' : prod.nivelRiesgo === 'ALTO' ? 'warning' : 'tertiary'">
+                          {{ prod.nivelRiesgo }}
+                        </ion-badge>
+                      </td>
+                      <td>
+                        <ion-button size="small" fill="outline" color="secondary" (click)="ejecutarAccionDepuracion(prod)">
+                          <ion-icon name="sparkles-outline" slot="start"></ion-icon>
+                          Acción
+                        </ion-button>
+                      </td>
+                    </tr>
+                  }
+                  @if (productosBajaRotacionFiltrados.length === 0) {
+                    <tr>
+                      <td colspan="8" class="text-center padding-20">
+                        No se encontraron productos estancados en este nivel de filtro.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- BLOQUE 3: MÉTRICAS DE RENDIMIENTO FINANCIERO Y UTILIDADES -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-card class="dashboard-card">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <div>
+                <ion-card-title class="section-title">
+                  <ion-icon name="trending-up-outline" class="title-accent color-success"></ion-icon>
+                  Rendimiento Financiero & Proyecciones vs Ingresos Reales
+                </ion-card-title>
+                <ion-card-subtitle>Balance de ingresos devengados, margen bruto y utilidades netas</ion-card-subtitle>
+              </div>
+              <div class="financial-summary-pills">
+                <span class="summary-pill pill-success">Bruta: ${{ metricasFinancieras?.gananciaBruta | number:'1.0-0' }} ({{ metricasFinancieras?.margenBrutoPorcentaje }}%)</span>
+                <span class="summary-pill pill-primary">Neta: ${{ metricasFinancieras?.gananciaNeta | number:'1.0-0' }} ({{ metricasFinancieras?.margenNetoPorcentaje }}%)</span>
+              </div>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            <div class="chart-container-financial">
+              <canvas baseChart
+                [data]="chartFinancieroData"
+                [options]="chartFinancieroOptions"
+                [type]="chartFinancieroType">
+              </canvas>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- BLOQUE 4: EVALUACIÓN DEL PERSONAL Y PRODUCTIVIDAD -->
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12">
+        <ion-card class="dashboard-card">
+          <ion-card-header>
+            <div class="card-header-flex">
+              <div>
+                <ion-card-title class="section-title">
+                  <ion-icon name="people-outline" class="title-accent"></ion-icon>
+                  Evaluación de Personal & Productividad Laboral
+                </ion-card-title>
+                <ion-card-subtitle>Métricas de desempeño de operadores de mostrador y exámenes de optometristas</ion-card-subtitle>
+              </div>
+              <ion-segment [(ngModel)]="tabProductividad" class="tab-segment">
+                <ion-segment-button value="MOSTRADOR">
+                  <ion-label>Mostrador (Ventas)</ion-label>
+                </ion-segment-button>
+                <ion-segment-button value="OPTOMETRISTA">
+                  <ion-label>Optometristas (Refracciones)</ion-label>
+                </ion-segment-button>
+              </ion-segment>
+            </div>
+          </ion-card-header>
+          <ion-card-content>
+            @if (tabProductividad === 'MOSTRADOR') {
+              <ion-row class="align-items-center">
+                <ion-col size="12" size-lg="7">
+                  <div class="chart-container-prod">
+                    <canvas baseChart
+                      [data]="barMostradorData"
+                      [options]="barMostradorOptions"
+                      [type]="barMostradorType">
+                    </canvas>
+                  </div>
+                </ion-col>
+                <ion-col size="12" size-lg="5">
+                  <div class="productivity-list">
+                    <h4>Top Productividad Mostrador</h4>
+                    @for (op of productividadMostrador; track op.idOperador; let i = $index) {
+                      <div class="productivity-item">
+                        <div class="avatar-circle">{{ op.nombre.charAt(0) }}</div>
+                        <div class="op-info">
+                          <strong>{{ op.nombre }}</strong>
+                          <span class="text-subtle">{{ op.sucursal }}</span>
+                        </div>
+                        <div class="op-metrics">
+                          <span class="metric-primary">${{ op.ventasCerradasMonto | number:'1.0-0' }}</span>
+                          <span class="metric-subtle">{{ op.ventasCerradasCantidad }} ventas cerradas</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </ion-col>
+              </ion-row>
+            }
+
+            @if (tabProductividad === 'OPTOMETRISTA') {
+              <ion-row class="align-items-center">
+                <ion-col size="12" size-lg="7">
+                  <div class="chart-container-prod">
+                    <canvas baseChart
+                      [data]="barOptoData"
+                      [options]="barOptoOptions"
+                      [type]="barOptoType">
+                    </canvas>
+                  </div>
+                </ion-col>
+                <ion-col size="12" size-lg="5">
+                  <div class="productivity-list">
+                    <h4>Exámenes Clínicos por Optometrista</h4>
+                    @for (opt of productividadOptometristas; track opt.idOperador; let i = $index) {
+                      <div class="productivity-item">
+                        <div class="avatar-circle op-avatar">{{ opt.nombre.charAt(4) || opt.nombre.charAt(0) }}</div>
+                        <div class="op-info">
+                          <strong>{{ opt.nombre }}</strong>
+                          <span class="text-subtle">{{ opt.sucursal }}</span>
+                        </div>
+                        <div class="op-metrics">
+                          <span class="metric-success">{{ opt.refraccionesCompletadas }} Refracciones</span>
+                          <span class="metric-subtle">Clínica completada</span>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </ion-col>
+              </ion-row>
+            }
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

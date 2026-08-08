@@ -14,6 +14,7 @@ import {
   IonContent, IonList, IonItem, IonLabel, IonSearchbar,
   IonButton, IonIcon, IonCard, IonCardHeader,
   IonCardTitle, IonCardContent, IonListHeader,
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton
 } from '@ionic/angular/standalone';
 
 @Component({
@@ -25,22 +26,20 @@ import {
   imports: [
     CommonModule, FormsModule, IonContent,
     IonList, IonItem, IonLabel, IonSearchbar, IonButton, IonIcon,
-    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonListHeader
+    IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonListHeader,
+    IonHeader, IonToolbar, IonTitle, IonButtons, IonMenuButton
   ]
 })
 export class OrdenPage implements OnInit {
-  // Inyección de servicios usando inject()
   public cartService = inject(CartService);
   private clientesService = inject(ClienteService);
   private inventarioService = inject(InventarioService);
   private ordenService = inject(OrdenService);
 
-  // Signals para el manejo del estado de la UI
   public filteredProducts = signal<any[]>([]);
   public searchTerm = signal('');
   public isLoading = signal(false);
 
-  // Copia local para búsqueda reactiva instantánea
   private productosDisponibles: Articulo[] = [];
 
   constructor() {
@@ -56,13 +55,9 @@ export class OrdenPage implements OnInit {
 
   ngOnInit() {
     console.log('POS Conectado a Servicios Reales');
-    
-    // Suscripción al stream reactivo de artículos de la base de datos
     this.inventarioService.getArticulosStream().subscribe((productos: Articulo[]) => {
       this.productosDisponibles = productos;
     });
-
-    // Petición inicial del inventario físico para la sucursal activa
     this.inventarioService.cargarArticulos('HL01');
   }
 
@@ -74,17 +69,12 @@ export class OrdenPage implements OnInit {
     this.proceedToCheckout();
   }
 
-  /**
-   * Búsqueda en tiempo real alineada a la Base de Datos
-   */
   onSearchProduct(event: any) {
     const query = event.detail.value?.toLowerCase() || '';
     this.searchTerm.set(query);
 
     if (query && query.length > 2) {
       this.isLoading.set(true);
-
-      // Filtro local directo sobre los datos sincronizados
       const filtrados = this.productosDisponibles.filter(p =>
         p.nombre.toLowerCase().includes(query) ||
         (p.marca && p.marca.toLowerCase().includes(query)) ||
@@ -98,9 +88,6 @@ export class OrdenPage implements OnInit {
     }
   }
 
-  /**
-   * Selección Real de Paciente
-   */
   async openPatientSelector() {
     this.clientesService.getClientes().subscribe({
       next: (pacientes: any[]) => {
@@ -110,21 +97,14 @@ export class OrdenPage implements OnInit {
             id: seleccionado.id,
             nombre: seleccionado.nombre
           });
-          console.log('Paciente conectado:', seleccionado);
         }
       },
       error: (err: any) => console.error('Error al traer pacientes:', err)
     });
   }
 
-  /**
-   * Gestión del Carrito con tipado estricto (Mapeo BD -> OrderItem)
-   */
   addProductToCart(product: Articulo) {
-    // 1. Convertimos el ID numérico a String para cumplir con la interfaz del carrito
     const idString = product.id_articulo ? product.id_articulo.toString() : '0';
-
-    // 2. Clasificamos de forma segura la categoría según los literales válidos
     let tipoMapeado: 'armazon' | 'lente' | 'servicio' = 'armazon';
     const categoriaBD = product.categoria?.toLowerCase();
 
@@ -134,7 +114,6 @@ export class OrdenPage implements OnInit {
       tipoMapeado = 'servicio';
     }
 
-    // 3. Estructuración del objeto según las necesidades de CartService
     const newItem: OrderItem = {
       id: idString, 
       name: product.nombre,

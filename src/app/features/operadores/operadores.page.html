@@ -1,60 +1,295 @@
-<ion-header>
+<ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title style="font-weight: bold;">Gestión de Operadores</ion-title>
+    <!-- BOTÓN DE MENÚ LATERAL SIDEBAR -->
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
 
-    <!-- Botones de Acción en la esquina superior derecha -->
+    <ion-title>
+      <div class="header-title-container">
+        <ion-icon name="people-outline" class="title-icon"></ion-icon>
+        <span>Gestión Integral de Operadores</span>
+      </div>
+    </ion-title>
+
     <ion-buttons slot="end">
-      <!-- Botón Agregar Nuevo Operador -->
-      <ion-button (click)="abrirModalNuevoOperador()" title="Nuevo Operador">
-        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
-        Nuevo
+      <ion-button (click)="abrirModalNuevoOperador()" class="btn-nuevo">
+        <ion-icon name="person-add-outline" slot="start"></ion-icon>
+        Nuevo Operador
       </ion-button>
-
-      <!-- Botón Cerrar Sesión -->
       <ion-button (click)="logout()" title="Cerrar Sesión">
         <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- BARRA DE BÚSQUEDA Y SELECCIÓN DE VISTA -->
+  <div class="search-view-bar">
+    <div class="search-input-wrapper">
+      <ion-searchbar 
+        [value]="filtros.busqueda" 
+        (ionInput)="onSearchChange($event)" 
+        placeholder="Buscar por nombre o usuario de login..." 
+        debounce="300"
+        class="custom-searchbar">
+      </ion-searchbar>
+    </div>
+    
+    <div class="view-toggle-buttons">
+      <ion-button [fill]="vistaModo === 'CARDS' ? 'solid' : 'outline'" size="small" (click)="vistaModo = 'CARDS'">
+        <ion-icon name="grid-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button [fill]="vistaModo === 'TABLE' ? 'solid' : 'outline'" size="small" (click)="vistaModo = 'TABLE'">
+        <ion-icon name="list-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- FILTROS AVANZADOS MULTI-CRITERIO -->
+  <div class="filters-row-bar">
+    <div class="filter-item">
+      <span class="filter-lbl">Estatus:</span>
+      <ion-select [(ngModel)]="filtros.activo" (ionChange)="onFiltroChange()" interface="popover" class="filter-select">
+        <ion-select-option value="all">Todos los estatus</ion-select-option>
+        <ion-select-option value="true">Activos únicamente</ion-select-option>
+        <ion-select-option value="false">Inactivos únicamente</ion-select-option>
+      </ion-select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-lbl">Sucursal:</span>
+      <ion-select [(ngModel)]="filtros.id_sucursal" (ionChange)="onFiltroChange()" interface="popover" class="filter-select">
+        <ion-select-option value="all">Todas las sucursales</ion-select-option>
+        @for (s of catalogos.sucursales; track s.id_sucursal) {
+          <ion-select-option [value]="s.id_sucursal">{{ s.nombre }}</ion-select-option>
+        }
+      </ion-select>
+    </div>
+
+    <div class="filter-item">
+      <span class="filter-lbl">Rol / Perfil:</span>
+      <ion-select [(ngModel)]="filtros.rol" (ionChange)="onFiltroChange()" interface="popover" class="filter-select">
+        <ion-select-option value="all">Todos los roles</ion-select-option>
+        @for (r of catalogos.roles; track r.id_rol) {
+          <ion-select-option [value]="r.nombre_rol">{{ r.nombre_rol }}</ion-select-option>
+        }
+      </ion-select>
+    </div>
+
+    <ion-button fill="clear" size="small" color="medium" (click)="limpiarFiltros()" class="btn-clear-filters">
+      <ion-icon name="refresh-outline" slot="start"></ion-icon>
+      Restablecer
+    </ion-button>
+  </div>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <!-- Estado de carga con Skeleton (Mejora de UX) -->
-  @if (cargando()) {
-    <ion-list>
-      @for (i of [1,2,3,4]; track i) {
-        <ion-item>
-          <ion-label>
-            <h3><ion-skeleton-text animated style="width: 60%"></ion-skeleton-text></h3>
-            <p><ion-skeleton-text animated style="width: 40%"></ion-skeleton-text></p>
-          </ion-label>
-        </ion-item>
-      }
-    </ion-list>
-  } 
-  <!-- Renderizado de la lista real -->
-  @else {
-    <ion-list>
-      @for (operador of operadores(); track operador.id_operador) {
-        <ion-item>
-          <ion-icon name="person-circle" slot="start" color="medium"></ion-icon>
-          <ion-label>
-            <h2>{{ operador.nombre_completo }}</h2>
-            <p>Usuario: {{ operador.usuario_login }} | Sucursal: {{ operador.id_sucursal }}</p>
-          </ion-label>
-          <ion-badge slot="end" [color]="operador.activo ? 'success' : 'danger'">
-            {{ operador.activo ? 'Activo' : 'Inactivo' }}
-          </ion-badge>
-          <!-- Botón de acciones -->
-          <ion-button fill="clear" slot="end" (click)="editarOperador(operador)">
-            Editar
-          </ion-button>
-        </ion-item>
-      } @empty {
-        <div class="ion-text-center ion-padding">
-          <p>No se encontraron operadores registrados.</p>
+<ion-content class="ion-padding operadores-content">
+  <ion-refresher slot="fixed" (ionRefresh)="cargarOperadores($event)">
+    <ion-refresher-content pullingText="Desliza para refrescar lista..."></ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TARJETAS DE INDICADORES / KPIS -->
+  <ion-grid class="kpi-grid">
+    <ion-row>
+      <ion-col size="6" size-md="3">
+        <div class="stat-box box-total">
+          <div class="stat-icon"><ion-icon name="people-outline"></ion-icon></div>
+          <div class="stat-info">
+            <span class="stat-val">{{ kpiTotal }}</span>
+            <span class="stat-label">Total Operadores</span>
+          </div>
         </div>
-      }
-    </ion-list>
+      </ion-col>
+      <ion-col size="6" size-md="3">
+        <div class="stat-box box-active">
+          <div class="stat-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+          <div class="stat-info">
+            <span class="stat-val">{{ kpiActivos }}</span>
+            <span class="stat-label">Activos</span>
+          </div>
+        </div>
+      </ion-col>
+      <ion-col size="6" size-md="3">
+        <div class="stat-box box-inactive">
+          <div class="stat-icon"><ion-icon name="close-circle-outline"></ion-icon></div>
+          <div class="stat-info">
+            <span class="stat-val">{{ kpiInactivos }}</span>
+            <span class="stat-label">Inactivos</span>
+          </div>
+        </div>
+      </ion-col>
+      <ion-col size="6" size-md="3">
+        <div class="stat-box box-special">
+          <div class="stat-icon"><ion-icon name="eye-outline"></ion-icon></div>
+          <div class="stat-info">
+            <span class="stat-val">{{ kpiOptometristas }}</span>
+            <span class="stat-label">Optometristas</span>
+          </div>
+        </div>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+
+  <!-- CARGANDO STATE SKELETON -->
+  @if (cargando()) {
+    <ion-grid>
+      <ion-row>
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <ion-col size="12" size-md="6" size-lg="4">
+            <ion-card class="operator-card">
+              <ion-card-header>
+                <ion-skeleton-text animated style="width: 70%; height: 20px;"></ion-skeleton-text>
+                <ion-skeleton-text animated style="width: 40%; height: 14px;"></ion-skeleton-text>
+              </ion-card-header>
+              <ion-card-content>
+                <ion-skeleton-text animated style="width: 90%; height: 16px;"></ion-skeleton-text>
+              </ion-card-content>
+            </ion-card>
+          </ion-col>
+        }
+      </ion-row>
+    </ion-grid>
+  } 
+  <!-- RENDERING REAL LIST OR CARDS -->
+  @else {
+    @if (vistaModo === 'CARDS') {
+      <ion-grid>
+        <ion-row>
+          @for (op of operadores(); track op.id_operador) {
+            <ion-col size="12" size-md="6" size-lg="4">
+              <ion-card class="operator-card" [class.inactive-card]="!op.activo">
+                <div class="card-top-bar">
+                  <div class="user-avatar-circle" [class.avatar-inactive]="!op.activo">
+                    {{ op.nombre_completo.charAt(0).toUpperCase() }}
+                  </div>
+                  <div class="user-main-info">
+                    <h3 class="user-name">{{ op.nombre_completo }}</h3>
+                    <span class="user-login">&#64;{{ op.usuario_login }}</span>
+                  </div>
+                  <ion-badge [color]="op.activo ? 'success' : 'danger'" class="status-badge">
+                    {{ op.activo ? 'Activo' : 'Inactivo' }}
+                  </ion-badge>
+                </div>
+
+                <div class="card-body-details">
+                  <div class="detail-row">
+                    <ion-icon name="business-outline" class="detail-icon"></ion-icon>
+                    <span>Sucursal: <strong>{{ op.nombre_sucursal || ('Sucursal #' + op.id_sucursal) }}</strong></span>
+                  </div>
+
+                  <div class="detail-row roles-row">
+                    <ion-icon name="shield-checkmark-outline" class="detail-icon"></ion-icon>
+                    <div class="roles-chips">
+                      @for (r of op.roles; track r) {
+                        <ion-chip [color]="getBadgeColorForRol(r)" size="small" class="custom-chip">
+                          {{ r }}
+                        </ion-chip>
+                      }
+                      @if (!op.roles || op.roles.length === 0) {
+                        <ion-chip color="medium" size="small">Sin rol asignado</ion-chip>
+                      }
+                    </div>
+                  </div>
+
+                  @if (op.descripcion) {
+                    <p class="operator-desc">{{ op.descripcion }}</p>
+                  }
+                </div>
+
+                <div class="card-footer-actions">
+                  <div class="toggle-switch-wrapper">
+                    <span>Estatus:</span>
+                    <ion-toggle [checked]="op.activo" (ionChange)="cambiarEstado(op, $event.detail.checked)" color="success"></ion-toggle>
+                  </div>
+
+                  <div class="buttons-group">
+                    <ion-button fill="outline" size="small" color="tertiary" (click)="cambiarPasswordModal(op)" title="Cambiar Contraseña">
+                      <ion-icon name="key-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button fill="solid" size="small" color="primary" (click)="editarOperador(op)">
+                      <ion-icon name="create-outline" slot="start"></ion-icon>
+                      Editar
+                    </ion-button>
+                  </div>
+                </div>
+              </ion-card>
+            </ion-col>
+          } @empty {
+            <ion-col size="12">
+              <div class="empty-state">
+                <ion-icon name="people-outline"></ion-icon>
+                <h3>No se encontraron operadores</h3>
+                <p>Intenta ajustar la búsqueda o los filtros seleccionados.</p>
+                <ion-button fill="outline" (click)="limpiarFiltros()">Limpiar Filtros</ion-button>
+              </div>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    }
+
+    @if (vistaModo === 'TABLE') {
+      <div class="table-card-container">
+        <table class="custom-table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nombre Completo</th>
+              <th>Usuario (Login)</th>
+              <th>Sucursal</th>
+              <th>Roles Asignados</th>
+              <th>Estatus</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (op of operadores(); track op.id_operador) {
+              <tr [class.row-inactive]="!op.activo">
+                <td>#{{ op.id_operador }}</td>
+                <td>
+                  <strong>{{ op.nombre_completo }}</strong>
+                  @if (op.descripcion) {
+                    <div class="text-subtle">{{ op.descripcion }}</div>
+                  }
+                </td>
+                <td><code>{{ op.usuario_login }}</code></td>
+                <td>{{ op.nombre_sucursal || ('Sucursal ' + op.id_sucursal) }}</td>
+                <td>
+                  <div class="roles-chips">
+                    @for (r of op.roles; track r) {
+                      <ion-badge [color]="getBadgeColorForRol(r)" class="role-badge-small">{{ r }}</ion-badge>
+                    }
+                  </div>
+                </td>
+                <td>
+                  <ion-badge [color]="op.activo ? 'success' : 'danger'">
+                    {{ op.activo ? 'ACTIVO' : 'INACTIVO' }}
+                  </ion-badge>
+                </td>
+                <td class="text-right">
+                  <div class="table-actions">
+                    <ion-button size="small" fill="clear" color="tertiary" (click)="cambiarPasswordModal(op)" title="Cambiar Contraseña">
+                      <ion-icon name="key-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button size="small" fill="clear" color="primary" (click)="editarOperador(op)">
+                      <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                    <ion-button size="small" fill="clear" [color]="op.activo ? 'danger' : 'success'" (click)="cambiarEstado(op, !op.activo)" title="Activar/Desactivar">
+                      <ion-icon [name]="op.activo ? 'power-outline' : 'checkmark-circle-outline'" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="7" class="text-center padding-30">
+                  No hay operadores que coincidan con los criterios de búsqueda.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
   }
 </ion-content>
