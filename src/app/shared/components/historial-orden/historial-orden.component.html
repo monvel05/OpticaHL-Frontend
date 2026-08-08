@@ -1,81 +1,157 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-buttons slot="start">
-      <ion-button (click)="cerrar()">
-        <ion-icon slot="icon-only" name="close-outline"></ion-icon>
+    <ion-title>Historial del Cliente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title style="font-weight: bold;">Historial Clínico</ion-title>
+  </ion-toolbar>
+
+  <!-- PESTAÑAS DIVIDIDAS -->
+  <ion-toolbar color="primary">
+    <ion-segment [(ngModel)]="pestanaActiva" mode="md">
+      <ion-segment-button value="clinico">
+        <ion-icon name="medical-outline"></ion-icon>
+        <ion-label>HISTORIAL CLÍNICO</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="materiales">
+        <ion-icon name="glasses-outline"></ion-icon>
+        <ion-label>HISTORIAL MATERIALES</ion-label>
+      </ion-segment-button>
+    </ion-segment>
   </ion-toolbar>
 </ion-header>
 
-<ion-content color="light" class="ion-padding">
-  <div style="margin-bottom: 16px; padding-left: 8px;">
-    <h5 style="font-weight: bold; color: #2c3e50; margin: 0;">Expediente de Refracción</h5>
-    <p style="color: var(--ion-color-medium); font-size: 14px; margin: 4px 0 0 0;">{{ nombreCliente }}</p>
+<ion-content class="ion-padding">
+
+  <!-- ENCABEZADO PACIENTE -->
+  <div class="ion-margin-bottom">
+    <h2 style="font-weight: bold; margin-bottom: 2px; color: #1e293b;">Expediente de Paciente</h2>
+    <p style="color: #64748b; margin: 0; text-transform: capitalize; font-weight: 500;">
+      {{ nombreCliente || 'Cliente General' }}
+    </p>
   </div>
 
-  @if (historialAgrupado.length === 0) {
-    <div class="ion-text-center ion-padding" style="margin-top: 60px;">
-      <ion-icon name="folder-open-outline" style="font-size: 74px; color: var(--ion-color-medium); opacity: 0.5;"></ion-icon>
-      <h4 style="color: #2c3e50; font-weight: 600; margin-top: 16px;">Sin antecedentes</h4>
-      <p style="color: var(--ion-color-medium); font-size: 14px; max-width: 240px; margin: 8px auto;">
-        Este paciente no cuenta con registros de graduaciones o consultas previas en el sistema.
-      </p>
-    </div>
-  } @else {
-    @for (consulta of historialAgrupado; track consulta.folio) {
-      <ion-card style="border-radius: 16px; margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.04); background: #fff; overflow: hidden;">
-        
-        <ion-item lines="none" style="--background: #f8f9fa; border-bottom: 1px solid #f1f3f5;">
-          <ion-icon name="document-text-outline" slot="start" color="primary"></ion-icon>
-          <ion-label>
-            <h2 style="font-weight: 700; color: #2c3e50; font-size: 14px;">Folio: {{ consulta.folio }}</h2>
-            <p style="font-size: 12px; color: var(--ion-color-medium);">Atendido el: {{ consulta.fecha_emision | date:'dd/MM/yyyy, h:mm a' }}</p>
-          </ion-label>
-        </ion-item>
+  <!-- PESTAÑA 1: CLÍNICO (GRADUACIONES) -->
+  @if (pestanaActiva === 'clinico') {
+    @for (receta of historialClinico; track receta.folio || $index) {
+      <ion-card class="historial-card">
+        <ion-card-content>
+          <div class="card-header-info">
+            <ion-icon name="document-text-outline" color="primary" class="icon-folio"></ion-icon>
+            <div>
+              <h3 class="folio-title">Folio: {{ receta.folio }}</h3>
+              <p class="fecha-txt">
+                Atendido el: {{ receta.fecha_emision ? (receta.fecha_emision | date:'dd/MM/yyyy, h:mm a') : 'Fecha no disponible' }}
+              </p>
+            </div>
+          </div>
 
-        <ion-card-content style="padding: 12px;">
-          <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 13px;">
+          <!-- TABLA DE GRADUACIÓN -->
+          <div class="table-container ion-margin-top">
+            <table class="graduacion-table">
               <thead>
-                <tr style="background: #f1f3f5; color: #616161; font-weight: bold;">
-                  <th style="padding: 6px; border-radius: 4px 0 0 4px;">Ojo</th>
-                  <th style="padding: 6px;">Esfera</th>
-                  <th style="padding: 6px;">Cilindro</th>
-                  <th style="padding: 6px;">Eje</th>
-                  <th style="padding: 6px; border-radius: 0 4px 4px 0;">Add</th>
+                <tr>
+                  <th>Ojo</th>
+                  <th>Esfera</th>
+                  <th>Cilindro</th>
+                  <th>Eje</th>
+                  <th>Add</th>
                 </tr>
               </thead>
               <tbody>
-                <tr style="border-bottom: 1px solid #f4f5f8;">
-                  <td style="padding: 8px; font-weight: bold; color: #e74c3c;">OD</td>
-                  <td style="padding: 8px;">{{ consulta.od?.esfera || '-' }}</td>
-                  <td style="padding: 8px;">{{ consulta.od?.cilindro || '-' }}</td>
-                  <td style="padding: 8px;">{{ consulta.od?.eje ? consulta.od.eje + '°' : '-' }}</td>
-                  <td style="padding: 8px; color: var(--ion-color-medium);">{{ consulta.od?.adicion || '-' }}</td>
+                <tr>
+                  <td class="eye-od">OD</td>
+                  <td>{{ receta.od_esfera ?? receta.od?.esfera ?? '-' }}</td>
+                  <td>{{ receta.od_cilindro ?? receta.od?.cilindro ?? '-' }}</td>
+                  <td>{{ receta.od_eje ? (receta.od_eje + '°') : (receta.od?.eje ? receta.od.eje + '°' : '-') }}</td>
+                  <td>{{ receta.od_adicion ?? receta.od?.adicion ?? '-' }}</td>
                 </tr>
                 <tr>
-                  <td style="padding: 8px; font-weight: bold; color: #3498db;">OI</td>
-                  <td style="padding: 8px;">{{ consulta.oi?.esfera || '-' }}</td>
-                  <td style="padding: 8px;">{{ consulta.oi?.cilindro || '-' }}</td>
-                  <td style="padding: 8px;">{{ consulta.oi?.eje ? consulta.oi.eje + '°' : '-' }}</td>
-                  <td style="padding: 8px; color: var(--ion-color-medium);">{{ consulta.oi?.adicion || '-' }}</td>
+                  <td class="eye-oi">OI</td>
+                  <td>{{ receta.oi_esfera ?? receta.oi?.esfera ?? '-' }}</td>
+                  <td>{{ receta.oi_cilindro ?? receta.oi?.cilindro ?? '-' }}</td>
+                  <td>{{ receta.oi_eje ? (receta.oi_eje + '°') : (receta.oi?.eje ? receta.oi.eje + '°' : '-') }}</td>
+                  <td>{{ receta.oi_adicion ?? receta.oi?.adicion ?? '-' }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          @if (consulta.observaciones) {
-            <div style="margin-top: 10px; padding: 8px 12px; background: #fafafa; border-left: 3px solid var(--ion-color-medium); border-radius: 0 8px 8px 0;">
-              <p style="margin: 0; font-size: 12px; color: #555; font-style: italic;">
-                <strong>Notas:</strong> {{ consulta.observaciones }}
-              </p>
+          <!-- NOTAS / OBSERVACIONES -->
+          @if (receta.observaciones) {
+            <div class="notas-box ion-margin-top">
+              <p><strong>Notas:</strong> <em>{{ receta.observaciones }}</em></p>
             </div>
           }
         </ion-card-content>
-
       </ion-card>
+    } @empty {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <p>No se encontraron registros de graduación para este paciente.</p>
+      </div>
+    }
+  }
+
+  <!-- PESTAÑA 2: MATERIALES (COMPRAS REALES) -->
+  <!-- PESTAÑA 2: MATERIALES (COMPRAS REALES) -->
+  @if (pestanaActiva === 'materiales') {
+    @for (compra of historialMateriales; track compra.folio_orden || $index) {
+      <ion-card class="historial-card">
+        <ion-card-content>
+          <div class="card-header-info">
+            <ion-icon name="cart-outline" color="success" class="icon-folio"></ion-icon>
+            <div>
+              <h3 class="folio-title">Folio: {{ compra.folio_orden }}</h3>
+              <p class="fecha-txt">
+                Fecha: {{ compra.fecha ? (compra.fecha | date:'dd/MM/yyyy') : 'N/A' }}
+              </p>
+            </div>
+          </div>
+
+          <ion-grid class="ion-no-padding ion-margin-top">
+            <ion-row>
+              <ion-col size="12">
+                <p class="detalle-item">
+                  <strong>Producto(s):</strong> {{ compra.productos || compra.armazon || 'Producto general' }}
+                </p>
+              </ion-col>
+            </ion-row>
+
+            @if (compra.tipo_lente !== 'N/A') {
+              <ion-row>
+                <ion-col size="12" size-sm="6">
+                  <p class="detalle-item"><strong>Tipo Lente:</strong> {{ compra.tipo_lente }}</p>
+                  <p class="detalle-item">
+                    <strong>Material:</strong> 
+                    <ion-chip color="primary" class="chip-custom">{{ compra.material }}</ion-chip>
+                  </p>
+                </ion-col>
+                <ion-col size="12" size-sm="6">
+                  <p class="detalle-item"><strong>Tratamiento:</strong> {{ compra.tratamiento }}</p>
+                </ion-col>
+              </ion-row>
+            }
+
+            <!-- TOTAL PAGADO -->
+            <ion-row class="ion-margin-top ion-align-items-center">
+              <ion-col size="12" class="ion-text-right">
+                <span style="font-weight: bold; color: #16a34a; font-size: 1.1rem;">
+                  Total: ${{ compra.total | number:'1.2-2' }}
+                </span>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+    } @empty {
+      <div class="empty-state">
+        <ion-icon name="glasses-outline"></ion-icon>
+        <p>No hay registro de ventas o materiales comprados.</p>
+      </div>
     }
   }
 </ion-content>

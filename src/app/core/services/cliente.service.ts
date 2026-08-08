@@ -13,8 +13,8 @@ export class ClienteService {
   /**
    * 1. Buscar clientes por término (Mostrador y Gabinete)
    */
-  buscarClientes(termino: string): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(`${this.apiUrl}/buscar?q=${termino}`);
+  buscarClientes(termino: string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/buscar?q=${termino}`);
   }
 
   /**
@@ -27,15 +27,16 @@ export class ClienteService {
   /**
    * 3. Obtener la lista completa de clientes
    */
-  getClientes(): Observable<Cliente[]> {
-    return this.http.get<Cliente[]>(this.apiUrl);
+  getClientes(): Observable<any> {
+    return this.http.get<any>(this.apiUrl);
   }
 
   /**
-   * 4. Obtener historial clínico del paciente
+   * 4. Obtener historial completo (Clínico + Materiales) del paciente
+   * 🎯 ACTUALIZADO: Devuelve { success: true, data: { clinico: [...], materiales: [...] } }
    */
-  obtenerHistorial(idCliente: number | string): Observable<any[]> {
-    return this.http.get<any[]>(`${this.apiUrl}/${idCliente}/historial`);
+  obtenerHistorial(idCliente: number | string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${idCliente}/historial`);
   }
 
   /**
@@ -47,7 +48,6 @@ export class ClienteService {
 
   /**
    * 6. Obtener la última receta de un paciente para clonar/editar
-   * 🎯 CORREGIDO: Se removió el prefijo '/clientes' duplicado
    */
   obtenerUltimaRX(clienteId: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${clienteId}/ultima-rx`);

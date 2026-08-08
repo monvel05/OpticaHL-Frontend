@@ -7,6 +7,11 @@ import {
   IonCardTitle, IonCardContent, IonSearchbar, IonGrid, IonRow, IonCol, 
   IonBadge, IonList, ModalController , IonInfiniteScroll, IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
+
+// Importaciones de PDF corregidas
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+
 import { addIcons } from 'ionicons';
 import { 
   closeOutline, 
@@ -124,10 +129,9 @@ export class CrritoPage implements OnInit {
 
   /**
    * Ejecutado por el (ionInput) o el botón de búsqueda.
-   * Reinicia la paginación y le pide al backend que busque sobre los 34,000 registros.
+   * Reinicia la paginación y le pide al backend que busque sobre los registros.
    */
-buscarMaterial(event?: any) {
-    // Si el evento trae directamente el valor del ion-searchbar lo capturamos, si no, usamos la propiedad vinculada
+  buscarMaterial(event?: any) {
     const valor = event?.target?.value !== undefined ? event.target.value : this.filtroBusqueda;
     this.filtroBusqueda = valor || '';
 
@@ -148,7 +152,6 @@ buscarMaterial(event?: any) {
     this.paginaActual++;
     this.cargarDatosServidor();
 
-    // Le damos un pequeño respiro a la UI para completar la animación del scroll
     setTimeout(() => {
       event.target.complete();
     }, 600);
@@ -231,17 +234,86 @@ buscarMaterial(event?: any) {
 
     this.ordenService.crearOrden(orden).subscribe({
       next: (res: any) => {
-        const folioGenerado = res?.folio || 'OPT-001';
-        alert(`¡Orden creada con éxito!\n\nPor favor, indique al paciente su Folio de seguimiento: ${folioGenerado}`);
+        const folioGenerado = res?.folio || res?.data?.folio || 'ORD-HL01-' + Date.now();
+        
+        // 📄 1. Generamos e imprimimos el PDF del ticket automáticamente
+        this.generarPDFNota(folioGenerado);
+
+        // 2. Limpiamos carrito y cerramos el modal
+        const respuestaSalida = {
+          ...res,
+          folio: folioGenerado,
+          carrito: this.carrito,
+          total: this.total
+        };
+
         this.carrito = [];
         this.total = 0;
-        this.modalCtrl.dismiss(res, 'confirm');
+        this.modalCtrl.dismiss(respuestaSalida, 'confirm');
       },
       error: (err) => {
         console.error('Error al guardar la orden desde el mostrador:', err);
         alert('Ocurrió un error al registrar la orden de trabajo en el servidor.');
       }
     });
+  }
+
+  /**
+   * 📄 GENERACIÓN DE TICKET EN PDF
+   */
+  public generarPDFNota(folio: string) {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 200] // Tamaño Ticket (80mm)
+    });
+
+    // Encabezado
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text('ÓPTICA HL', 40, 10, { align: 'center' });
+
+    doc.setFontSize(8);
+    doc.setFont('helvetica', 'normal');
+    doc.text('Nota de Venta / Orden de Trabajo', 40, 15, { align: 'center' });
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Folio: ${folio}`, 40, 19, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, 40, 23, { align: 'center' });
+
+    // Datos del Cliente
+    const nombreCliente = this.cliente?.nombre_completo || 'Cliente General';
+    doc.text(`Cliente: ${nombreCliente}`, 5, 29);
+
+    // Tabla de Productos Comprados
+    const cuerpoTabla = this.carrito.map((item: any) => [
+      item.nombre || item.descripcion || 'Producto',
+      item.cantidad || 1,
+      `$${((item.precio_venta || item.precio || 0) * (item.cantidad || 1)).toFixed(2)}`
+    ]);
+
+    autoTable(doc, {
+      startY: 32,
+      head: [['Producto', 'Cant.', 'Total']],
+      body: cuerpoTabla.length > 0 ? cuerpoTabla : [['Sin productos', '0', '$0.00']],
+      styles: { fontSize: 7 },
+      headStyles: { fillColor: [0, 128, 0] },
+      margin: { left: 5, right: 5 }
+    });
+
+    // Total General
+    const finalY = (doc as any).lastAutoTable?.finalY || 50;
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.text(`TOTAL: $${Number(this.total).toFixed(2)}`, 75, finalY + 6, { align: 'right' });
+
+    // Mensaje Final
+    doc.setFontSize(7);
+    doc.setFont('helvetica', 'normal');
+    doc.text('¡Gracias por su preferencia!', 40, finalY + 12, { align: 'center' });
+
+    // Abrir ventana lista para imprimir
+    doc.output('dataurlnewwindow');
   }
 
   cerrar() {

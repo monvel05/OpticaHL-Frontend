@@ -1,10 +1,18 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Gestión de Operadores</ion-title>
+    <ion-title style="font-weight: bold;">Gestión de Operadores</ion-title>
+
+    <!-- Botones de Acción en la esquina superior derecha -->
     <ion-buttons slot="end">
-      <ion-button (click)="abrirModalNuevoOperador()">
+      <!-- Botón Agregar Nuevo Operador -->
+      <ion-button (click)="abrirModalNuevoOperador()" title="Nuevo Operador">
         <ion-icon name="add-circle-outline" slot="start"></ion-icon>
         Nuevo
+      </ion-button>
+
+      <!-- Botón Cerrar Sesión -->
+      <ion-button (click)="logout()" title="Cerrar Sesión">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

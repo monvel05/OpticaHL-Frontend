@@ -1,9 +1,17 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar color="primary">
     <ion-title style="font-weight: bold;">Mostrador Óptica</ion-title>
+    
+    <!-- ACCIONES EN EL ENCABEZADO -->
     <ion-buttons slot="end">
-      <ion-button (click)="cargarClientes()">
+      <!-- Botón Refrescar -->
+      <ion-button (click)="cargarClientes()" title="Recargar lista">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+      
+      <!-- Botón Cerrar Sesión -->
+      <ion-button (click)="logout()" title="Cerrar Sesión" color="light">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

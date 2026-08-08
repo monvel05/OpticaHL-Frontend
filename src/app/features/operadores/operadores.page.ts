@@ -6,9 +6,10 @@ import {
   IonSkeletonText, IonButtons, ModalController, ToastController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { addCircleOutline, personCircle } from 'ionicons/icons';
-import { OperadoresService, Operador } from '../../core/services/operadores.service'
+import { addCircleOutline, personCircle, logOutOutline } from 'ionicons/icons';
+import { OperadoresService, Operador } from '../../core/services/operadores.service';
 import { ModalOperadorComponent } from '../../shared/components/modal-operador/modal-operador.component';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
   selector: 'app-operadores',
@@ -24,6 +25,7 @@ import { ModalOperadorComponent } from '../../shared/components/modal-operador/m
 export class OperadoresPage implements OnInit {
   // Inyecciones
   private operadoresService = inject(OperadoresService);
+  private authService = inject(AuthService); // 👈 AQUÍ ESTABA LO QUE FALTABA
   private modalCtrl = inject(ModalController);
   private toastCtrl = inject(ToastController);
 
@@ -32,7 +34,7 @@ export class OperadoresPage implements OnInit {
   operadores = signal<Operador[]>([]);
 
   constructor() {
-    addIcons({ addCircleOutline, personCircle });
+    addIcons({ addCircleOutline, logOutOutline, personCircle });
   }
 
   ngOnInit() {
@@ -52,7 +54,8 @@ export class OperadoresPage implements OnInit {
         this.cargando.set(false);
         const toast = await this.toastCtrl.create({
           message: 'Error al cargar los operadores.',
-          duration: 3000, color: 'danger'
+          duration: 3000, 
+          color: 'danger'
         });
         await toast.present();
       }
@@ -85,5 +88,9 @@ export class OperadoresPage implements OnInit {
     if (data) {
       this.cargarOperadores();
     }
+  }
+
+  async logout() {
+    await this.authService.logout();
   }
 }

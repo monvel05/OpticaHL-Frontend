@@ -2,7 +2,10 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 
-// Importaciones de Ionic Standalone
+// Servicio de Autenticación
+import { AuthService } from 'src/app/core/services/auth.service';
+
+// Importaciones Standalone de Ionic
 import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, IonIcon,
   IonCard, IonCardHeader, IonCardTitle, IonCardContent, IonGrid, IonRow,
@@ -13,7 +16,7 @@ import {
 import { addIcons } from 'ionicons';
 import {
   downloadOutline, funnelOutline, searchOutline,
-  cartOutline, pricetagOutline, pricetagsOutline, documentTextOutline
+  cartOutline, pricetagOutline, pricetagsOutline, documentTextOutline, logOutOutline 
 } from 'ionicons/icons';
 
 // ==========================================
@@ -57,9 +60,10 @@ export class ReportingDashboardComponent implements OnInit {
 
   // Inyección de dependencias
   private fb = inject(FormBuilder);
+  private authService = inject(AuthService); // 👈 Agregado para que funcione this.authService
 
   // Variables de estado
-  public filtroForm!: FormGroup;
+  public filtroForm!: FormGroup; 
   public cargando = false;
 
   // Listas para almacenar los resultados del reporte
@@ -69,13 +73,14 @@ export class ReportingDashboardComponent implements OnInit {
   constructor() {
     // Registro global de íconos
     addIcons({
-      'download-outline': downloadOutline,
-      'funnel-outline': funnelOutline,
-      'search-outline': searchOutline,
-      'cart-outline': cartOutline,
-      'pricetag-outline': pricetagOutline,
-      'pricetags-outline': pricetagsOutline,
-      'document-text-outline': documentTextOutline
+      downloadOutline,
+      logOutOutline,
+      funnelOutline,
+      searchOutline,
+      cartOutline,
+      documentTextOutline,
+      pricetagOutline,
+      pricetagsOutline
     });
   }
 
@@ -96,14 +101,14 @@ export class ReportingDashboardComponent implements OnInit {
   }
 
   /**
-   * Carga los reportes (o usa datos de prueba temporalmente)
+   * Carga los reportes
    */
   public consultarReporte() {
-    if (this.filtroForm.invalid) return;
+    if (this.filtroForm && this.filtroForm.invalid) return;
 
     this.cargando = true;
 
-    // Simulación de carga (sustituir por tu llamado a API cuando tengas el servicio)
+    // Simulación de carga
     setTimeout(() => {
       this.reporteVentas = [
         { folio: 'ORD-001', fecha_emision: new Date(), cliente: 'Juan Pérez', estatus: 'PAGADO', total_orden: 1500, total_pagado: 1500 },
@@ -120,7 +125,7 @@ export class ReportingDashboardComponent implements OnInit {
 
   public exportarAExcel() {
     if (this.reporteVentas.length === 0 && this.reporteDescuentos.length === 0) return;
-    console.log('Exportando datos a Excel...');
+    console.log('Exportando datos a Excel...', this.filtroForm.value);
   }
 
   // ==========================================
@@ -134,4 +139,10 @@ export class ReportingDashboardComponent implements OnInit {
     return this.reporteDescuentos.reduce((sum, item) => sum + (Number(item.descuento) || 0), 0);
   }
 
+  /**
+   * 🚪 Cierra la sesión activa del usuario
+   */
+  async logout() {
+    await this.authService.logout();
+  }
 }

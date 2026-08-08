@@ -1,9 +1,17 @@
 <ion-header>
   <ion-toolbar color="dark">
     <ion-title style="font-weight: bold;">Corte de Caja</ion-title>
+
+    <!-- Botones de Acción a la derecha -->
     <ion-buttons slot="end">
-      <ion-button (click)="imprimirResumen()">
+      <!-- Botón Imprimir Resumen -->
+      <ion-button (click)="imprimirResumen()" title="Imprimir Resumen">
         <ion-icon name="print-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+
+      <!-- Botón Cerrar Sesión -->
+      <ion-button (click)="logout()" title="Cerrar Sesión">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
       </ion-button>
     </ion-buttons>
   </ion-toolbar>

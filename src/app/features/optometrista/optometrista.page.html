@@ -1,6 +1,13 @@
 <ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar color="primary">
     <ion-title>Gabinete - Optometrista</ion-title>
+
+    <!-- Botón de Cerrar Sesión (Esquina superior derecha) -->
+    <ion-buttons slot="end">
+      <ion-button (click)="logout()" title="Cerrar Sesión">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

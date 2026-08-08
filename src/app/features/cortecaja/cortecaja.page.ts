@@ -6,9 +6,9 @@ import {
   IonList, IonItem, IonLabel, IonNote, AlertController, ToastController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, cashOutline, cardOutline, receiptOutline } from 'ionicons/icons';
+import { printOutline, cashOutline, cardOutline, receiptOutline, logOutOutline } from 'ionicons/icons';
 import { CajaService } from '../../core/services/caja.service';
-
+import{ AuthService } from 'src/app/core/services/auth.service';
 @Component({
   selector: 'app-corte-caja',
   templateUrl: './cortecaja.page.html',
@@ -40,7 +40,7 @@ export class CorteCajaPage implements OnInit {
   private alertCtrl = inject(AlertController);
   private toastCtrl = inject(ToastController);
   private cajaService = inject(CajaService);
-
+  private authService = inject(AuthService);
   // Signal reactiva para los movimientos reales
   movimientos = signal<any[]>([]);
 
@@ -60,7 +60,7 @@ export class CorteCajaPage implements OnInit {
   totalDia = computed(() => this.totalEfectivo() + this.totalBanco());
 
   constructor() {
-    addIcons({ printOutline, cashOutline, cardOutline, receiptOutline });
+    addIcons({printOutline,logOutOutline,receiptOutline,cashOutline,cardOutline});
   }
 
   ngOnInit() {
@@ -148,5 +148,8 @@ export class CorteCajaPage implements OnInit {
 
   imprimirResumen() {
     window.print();
+  }
+  async logout() {
+    await this.authService.logout();
   }
 }

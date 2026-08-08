@@ -8,8 +8,8 @@ import {
   ModalController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline, analyticsOutline } from 'ionicons/icons';
-
+import { searchOutline, cashOutline, cardOutline, receiptOutline, checkmarkCircleOutline, analyticsOutline, logOutOutline } from 'ionicons/icons';
+import { AuthService } from 'src/app/core/services/auth.service';
 // SERVICIOS REALES
 import { OrdenService } from '../../core/services/orden.service';
 import { CajaService } from '../../core/services/caja.service';
@@ -52,6 +52,7 @@ export class CajaPage {
   private ordenService = inject(OrdenService);
   private cajaService = inject(CajaService);
   private modalCtrl = inject(ModalController);
+  private authService = inject(AuthService);
 
   folioBusqueda = new FormControl('');
   ordenSeleccionada: any = null; 
@@ -59,7 +60,7 @@ export class CajaPage {
 
   constructor() {
     // Registro de los iconos necesarios en la vista de caja
-    addIcons({analyticsOutline,searchOutline,cashOutline,cardOutline,receiptOutline,checkmarkCircleOutline});
+    addIcons({analyticsOutline,logOutOutline,searchOutline,cashOutline,cardOutline,receiptOutline,checkmarkCircleOutline});
   }
 
   /**
@@ -139,5 +140,8 @@ export class CajaPage {
         }
       });
     }
+  }
+  async logout() {
+    await this.authService.logout();
   }
 }

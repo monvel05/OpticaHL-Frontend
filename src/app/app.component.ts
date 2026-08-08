@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, ChangeDetectionStrategy } from '@angular/core';
-
 import { Router, RouterModule } from '@angular/router';
 import { Subscription } from 'rxjs';
 
@@ -16,7 +15,7 @@ import { AuthService, Usuario } from './core/services/auth.service';
 import { addIcons } from 'ionicons';
 import { 
   cubeOutline, cashOutline, documentTextOutline, 
-  peopleOutline, logOutOutline, cartOutline, eyeOutline,barChartOutline
+  peopleOutline, logOutOutline, cartOutline, eyeOutline, barChartOutline 
 } from 'ionicons/icons';
 
 // Interfaz para la configuración de las rutas
@@ -47,7 +46,7 @@ interface AppPage {
     IonLabel,
     IonMenuToggle,
     IonFooter
-]
+  ]
 })
 export class AppComponent implements OnInit, OnDestroy {
   public appPages: AppPage[] = [];
@@ -57,18 +56,17 @@ export class AppComponent implements OnInit, OnDestroy {
   private userSub!: Subscription;
 
   // Catálogo maestro de todas las páginas del sistema y sus roles autorizados
-  // Esto debe hacer match con lo que tienes en app.routes.ts
   private allPages: AppPage[] = [
-
-  { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
-  { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
-  { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
-  { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
-  { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
-  { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
-  { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] },
-  { title: 'Reportes', url: '/reportes', icon: 'barChartOutline', roles: ['ADMINISTRADOR'] }
-];
+    { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
+    { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
+    { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
+    { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
+    { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
+    { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
+    { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] },
+    // CORREGIDO: Usamos la sintaxis estándar en kebab-case 'bar-chart-outline'
+    { title: 'Reportes', url: '/reportes', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] }
+  ];
 
   constructor(private authService: AuthService, private router: Router) {
     // 1. Registramos los iconos globalmente para Standalone
@@ -80,7 +78,8 @@ export class AppComponent implements OnInit, OnDestroy {
       'cart-outline': cartOutline,
       'log-out-outline': logOutOutline,
       'eye-outline': eyeOutline,
-      'barChartOutline': barChartOutline
+      // CORREGIDO: Mapeo correcto del string que usaremos en el HTML con el valor importado
+      'bar-chart-outline': barChartOutline
     });
   }
 

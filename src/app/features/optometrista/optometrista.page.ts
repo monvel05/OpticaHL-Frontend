@@ -3,16 +3,17 @@ import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
   IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
-  IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol,
+  IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons,
   ModalController, AlertController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, addCircleOutline, timeOutline, createOutline } from 'ionicons/icons';
+import { personAddOutline, checkmarkCircleOutline, eyeOutline, searchOutline, addCircleOutline, timeOutline, createOutline, logOutOutline } from 'ionicons/icons';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component'; 
 import { ClienteService } from '../../core/services/cliente.service'; 
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { FormularioRecetaComponent } from '../../shared/components/formulario-receta/formulario-receta.component';
+import { AuthService } from 'src/app/core/services/auth.service';
 
 @Component({
   selector: 'app-optometrista',
@@ -23,28 +24,21 @@ import { FormularioRecetaComponent } from '../../shared/components/formulario-re
   imports: [
     IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
     IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
-    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol
+    IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons // 👈 Agregado para soportar ion-buttons slot="end"
   ]
 })
 export class OptometristaPage {
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
   private clienteService = inject(ClienteService); 
+  private authService = inject(AuthService); // 👈 Inyección agregada
 
   public pacienteSeleccionado: any = null;
   public resultadosBusqueda: Cliente[] = []; 
   public cargando: boolean = false;
 
   constructor() {
-    addIcons({ 
-      personAddOutline, 
-      checkmarkCircleOutline, 
-      eyeOutline, 
-      searchOutline,
-      addCircleOutline,
-      timeOutline,
-      createOutline
-    });
+    addIcons({logOutOutline,eyeOutline,personAddOutline,checkmarkCircleOutline,addCircleOutline,timeOutline,createOutline,searchOutline});
   }
 
   /**
@@ -203,5 +197,12 @@ export class OptometristaPage {
         this.cargando = false;
       }
     });
+  }
+
+  /**
+   * 🚪 Cierra la sesión activa del usuario
+   */
+  async logout() {
+    await this.authService.logout();
   }
 }
