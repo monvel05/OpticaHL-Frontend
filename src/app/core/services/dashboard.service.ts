@@ -76,9 +76,28 @@ export interface ProductividadOperador {
 
 export interface FiltrosDashboard {
   idSucursal: number; // 0 = Todas
-  rangoTiempo: 'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'ANUAL';
+  rangoTiempo: 'DIARIO' | 'SEMANAL' | 'MENSUAL' | 'ANUAL' | 'PERSONALIZADO';
   fechaInicio?: string;
   fechaFin?: string;
+}
+
+export interface VentaReporte {
+  folio: string;
+  fecha_emision: string | Date;
+  cliente: string;
+  estatus: string;
+  total_orden: number;
+  total_pagado: number;
+}
+
+export interface DescuentoReporte {
+  num_factura?: string;
+  folio_orden?: string;
+  fecha: string | Date;
+  cliente: string;
+  subtotal: number;
+  descuento: number;
+  total: number;
 }
 
 @Injectable({
@@ -443,6 +462,48 @@ export class DashboardService {
       }),
       catchError(() => of(this.getFallbackProductividad(filtros)))
     );
+  }
+
+  // 6. Reportes de Ventas Completo
+  getReporteVentasCompleto(fechaInicio?: string, fechaFin?: string): Observable<VentaReporte[]> {
+    let params: any = {};
+    if (fechaInicio && fechaFin) {
+      params.fechaInicio = fechaInicio;
+      params.fechaFin = fechaFin;
+    }
+    return this.http.get<{ exito: boolean; datos: VentaReporte[] }>(`${this.apiUrl}/ventas-completo`, { params }).pipe(
+      map(res => res.exito && res.datos ? res.datos : this.getFallbackVentasReporte()),
+      catchError(() => of(this.getFallbackVentasReporte()))
+    );
+  }
+
+  // 7. Reportes de Descuentos
+  getReporteDescuentos(mes?: number, anio?: number): Observable<DescuentoReporte[]> {
+    const hoy = new Date();
+    const params = {
+      mes: (mes || hoy.getMonth() + 1).toString(),
+      anio: (anio || hoy.getFullYear()).toString()
+    };
+    return this.http.get<{ exito: boolean; datos: DescuentoReporte[] }>(`${this.apiUrl}/descuentos-mensuales`, { params }).pipe(
+      map(res => res.exito && res.datos ? res.datos : this.getFallbackDescuentosReporte()),
+      catchError(() => of(this.getFallbackDescuentosReporte()))
+    );
+  }
+
+  private getFallbackVentasReporte(): VentaReporte[] {
+    return [
+      { folio: 'ORD-001', fecha_emision: new Date(), cliente: 'Juan Pérez', estatus: 'PAGADO', total_orden: 1500, total_pagado: 1500 },
+      { folio: 'ORD-002', fecha_emision: new Date(), cliente: 'María López', estatus: 'COMPLETADO', total_orden: 2800, total_pagado: 2800 },
+      { folio: 'ORD-003', fecha_emision: new Date(), cliente: 'Carlos Mendoza', estatus: 'PENDIENTE', total_orden: 3400, total_pagado: 1700 },
+      { folio: 'ORD-004', fecha_emision: new Date(), cliente: 'Sofía Ramírez', estatus: 'COMPLETADO', total_orden: 1950, total_pagado: 1950 }
+    ];
+  }
+
+  private getFallbackDescuentosReporte(): DescuentoReporte[] {
+    return [
+      { folio_orden: 'ORD-001', fecha: new Date(), cliente: 'Juan Pérez', subtotal: 1700, descuento: 200, total: 1500 },
+      { folio_orden: 'ORD-003', fecha: new Date(), cliente: 'Carlos Mendoza', subtotal: 3900, descuento: 500, total: 3400 }
+    ];
   }
 
   // FALLBACKS

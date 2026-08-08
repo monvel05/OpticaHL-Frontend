@@ -64,8 +64,6 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
     { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
     { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] },
-    // CORREGIDO: Usamos la sintaxis estándar en kebab-case 'bar-chart-outline'
-    { title: 'Reportes', url: '/reportes', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] },
     { title: 'Dashboard', url: '/dashboard', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] }
   ];
 

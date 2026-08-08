@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ModalController } from '@ionic/angular/standalone';
 import {
@@ -27,9 +27,15 @@ import {
   IonInfiniteScrollContent,
   IonSpinner,
   IonMenuButton,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardSubtitle,
+  IonCardContent,
+  IonRefresher,
+  IonRefresherContent
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { SelectorEntidadComponent } from '../../shared/components/selector-entidad/selector-entidad.component';
 import {
   InventarioService,
   Articulo,
@@ -56,6 +62,8 @@ import {
   constructOutline,
   createOutline,
   removeOutline,
+  cashOutline,
+  statsChartOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -67,10 +75,10 @@ import {
   imports: [
     CommonModule,
     FormsModule,
+    DecimalPipe,
     IonHeader,
     IonToolbar,
     IonTitle,
-    IonText,
     IonButtons,
     IonButton,
     IonIcon,
@@ -82,7 +90,6 @@ import {
     IonGrid,
     IonRow,
     IonCol,
-    IonThumbnail,
     IonItem,
     IonBadge,
     IonFab,
@@ -91,29 +98,29 @@ import {
     IonInfiniteScrollContent,
     IonSpinner,
     IonMenuButton,
+    IonCard,
+    IonRefresher,
+    IonRefresherContent
   ],
 })
 export class InventarioPage implements OnInit {
   private inventarioService = inject(InventarioService);
   private modalCtrl = inject(ModalController);
 
-  segmentoActual: string = 'ARMAZON'; // Valor inicial de la pestaña activa
+  segmentoActual: string = 'ARMAZON';
   searchTerm: string = '';
   soloAlertas: boolean = false;
   isLoading: boolean = true;
 
-  // Variables de Paginación y Sucursal
   page: number = 1;
   limit: number = 50;
   hayMasDatos: boolean = true;
   idSucursalActual: string = 'HL01';
 
-  marcas = [
-    { id: 1, nombre: 'Ray-Ban' },
-    { id: 2, nombre: 'Oakley' },
-    { id: 3, nombre: 'Vogue' },
-    { id: 4, nombre: 'Arnette' },
-  ];
+  // KPIs Calculados
+  kpiTotalArticulos: number = 0;
+  kpiValorTotal: number = 0;
+  kpiStockCritico: number = 0;
 
   productos: Articulo[] = [];
   productosFiltrados: Articulo[] = [];
@@ -146,6 +153,8 @@ export class InventarioPage implements OnInit {
       constructOutline,
       createOutline,
       removeOutline,
+      cashOutline,
+      statsChartOutline
     });
   }
 
@@ -154,21 +163,19 @@ export class InventarioPage implements OnInit {
       .getArticulosStream()
       .subscribe((data: Articulo[]) => {
         this.productos = data;
-        this.filtrar(); // Se re-filtra automáticamente al llegar nuevos datos
-        this.isLoading = false; // Deja de mostrar el spinner al cargar los datos por primera vez
+        this.recalcularKPIs();
+        this.filtrar();
+        this.isLoading = false;
       });
 
     this.cargarDatos();
   }
 
-  // Resetea la paginación y carga desde el inicio pidiendo datos frescos al Backend
-  // AHORA ES ASÍNCRONO PARA EVALUAR SI HAY MÁS DATOS DESDE EL INICIO
   async cargarDatos() {
     this.page = 1;
     this.hayMasDatos = true;
     this.isLoading = true;
 
-    // Le mandamos la pestaña actual (this.segmentoActual) al servicio y esperamos la respuesta
     const trajoMas = await this.inventarioService.cargarArticulos(
       this.idSucursalActual,
       this.segmentoActual,
@@ -177,13 +184,16 @@ export class InventarioPage implements OnInit {
       true,
     );
 
-    // Si la BD devolvió menos de 50 registros en la primera consulta, apagamos el scroll para que no intente pedir la página 2.
     if (!trajoMas) {
       this.hayMasDatos = false;
     }
   }
 
-  // Evento que dispara el Scroll hacia abajo
+  async doRefresh(event: any) {
+    await this.cargarDatos();
+    event.target.complete();
+  }
+
   async cargarMas(event: any) {
     if (!this.hayMasDatos) {
       event.target.complete();
@@ -192,7 +202,6 @@ export class InventarioPage implements OnInit {
 
     this.page++;
 
-    // Pasamos el segmento actual también al cargar más páginas
     const trajoMas = await this.inventarioService.cargarArticulos(
       this.idSucursalActual,
       this.segmentoActual,
@@ -201,38 +210,39 @@ export class InventarioPage implements OnInit {
       false,
     );
 
-    // Si el backend responde que ya no llenó el límite (trajo menos de 50), apagamos la bandera
     if (!trajoMas) {
       this.hayMasDatos = false;
     }
 
-    // SIEMPRE debemos completar el evento para que Ionic quite la bolita girando del fondo
     event.target.complete();
   }
 
   cambiarSegmento(event: any) {
     this.segmentoActual = event.detail.value;
-
     if (this.segmentoActual !== 'sucursales') {
-      // Al cambiar de pestaña, obligamos al sistema a traer los datos nuevos de ESA categoría desde la BD
       this.cargarDatos();
     }
   }
 
-  // Filtro puramente visual (para buscador de texto y botón de stock bajo)
+  recalcularKPIs() {
+    this.kpiTotalArticulos = this.productos.length;
+    this.kpiValorTotal = this.productos.reduce((sum, p) => sum + (Number(p.precio_venta || 0) * Number(p.stock_actual || 0)), 0);
+    this.kpiStockCritico = this.productos.filter(p => p.categoria !== 'SERVICIO' && Number(p.stock_actual) <= Number(p.stock_minimo)).length;
+  }
+
   filtrar() {
     if (this.segmentoActual === 'sucursales') return;
 
     this.productosFiltrados = this.productos.filter(p => {
-      // 1. Búsqueda Segura (Evita crasheos si el nombre o marca vienen nulos de la BD vieja)
       const nombreSafe = (p.nombre || '').toLowerCase();
       const marcaSafe = (p.marca || '').toLowerCase();
+      const codigoSafe = (p.codigo || '').toLowerCase();
 
       const coincideBusqueda = 
         nombreSafe.includes(this.searchTerm) ||
-        marcaSafe.includes(this.searchTerm);
+        marcaSafe.includes(this.searchTerm) ||
+        codigoSafe.includes(this.searchTerm);
 
-      // 2. Filtro de Campana de Stock Crítico
       let pasaAlertaStock = true;
       if (this.soloAlertas) {
         const catSafe = (p.categoria || '').toUpperCase();
@@ -268,8 +278,7 @@ export class InventarioPage implements OnInit {
     if (data) {
       this.inventarioService.crearArticulo(data).subscribe({
         next: (res: any) => {
-          console.log('¡Producto guardado mediante la API!', res);
-          this.cargarDatos(); // Refresca la lista para mostrar el nuevo artículo
+          this.cargarDatos();
         },
         error: (err: any) => console.error('Error al guardar artículo:', err),
       });
@@ -277,7 +286,6 @@ export class InventarioPage implements OnInit {
   }
 
   verDetalleSucursal(sucursal: any) {
-    console.log('Filtrando inventario por sucursal:', sucursal.nombre);
     this.idSucursalActual = sucursal.id;
     this.cargarDatos();
   }
@@ -287,7 +295,7 @@ export class InventarioPage implements OnInit {
       component: FormularioArticuloComponent,
       componentProps: {
         tipoArticulo: producto.categoria,
-        articuloExistente: producto, // Pasamos la data
+        articuloExistente: producto,
       },
     });
 
@@ -295,16 +303,15 @@ export class InventarioPage implements OnInit {
     const { data } = await modal.onWillDismiss();
 
     if (data) {
-      this.cargarDatos(); // Recargamos si se guardó o eliminó
+      this.cargarDatos();
     }
   }
 
   async ajustarStock(producto: Articulo, cantidadAjuste: number) {
-    // Evitar que el stock baje de 0
     if (producto.stock_actual + cantidadAjuste < 0) return;
 
-    // Actualización optimista (UI rápida)
     producto.stock_actual += cantidadAjuste;
+    this.recalcularKPIs();
 
     this.inventarioService
       .ajustarStockRapido(
@@ -313,11 +320,11 @@ export class InventarioPage implements OnInit {
         cantidadAjuste,
       )
       .subscribe({
-        next: () => console.log('Stock ajustado'),
+        next: () => {},
         error: (err) => {
           console.error('Error al ajustar stock', err);
-          // Revertir el cambio visual si falló el backend
           producto.stock_actual -= cantidadAjuste;
+          this.recalcularKPIs();
         },
       });
   }
