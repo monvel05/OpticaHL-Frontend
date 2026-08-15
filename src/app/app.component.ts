@@ -15,7 +15,8 @@ import { AuthService, Usuario } from './core/services/auth.service';
 import { addIcons } from 'ionicons';
 import { 
   cubeOutline, cashOutline, documentTextOutline, 
-  peopleOutline, logOutOutline, cartOutline, eyeOutline, barChartOutline 
+  peopleOutline, logOutOutline, cartOutline, eyeOutline, barChartOutline, receiptOutline,
+  lockClosedOutline, keyOutline, checkmarkCircleOutline, alertCircleOutline, closeCircleOutline
 } from 'ionicons/icons';
 
 // Interfaz para la configuración de las rutas
@@ -60,6 +61,7 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
     { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
     { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
+    { title: 'Facturación', url: '/facturacion', icon: 'receipt-outline', roles: ['ADMINISTRADOR', 'CONTADOR', 'CAJA', 'CAJER@', 'MOSTRADOR'] },
     { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
     { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
@@ -77,8 +79,15 @@ export class AppComponent implements OnInit, OnDestroy {
       'cart-outline': cartOutline,
       'log-out-outline': logOutOutline,
       'eye-outline': eyeOutline,
-      // CORREGIDO: Mapeo correcto del string que usaremos en el HTML con el valor importado
-      'bar-chart-outline': barChartOutline
+      'receipt-outline': receiptOutline,
+      'bar-chart-outline': barChartOutline,
+      'lock-closed-outline': lockClosedOutline,
+      'key-outline': keyOutline,
+      'checkmark-circle-outline': checkmarkCircleOutline,
+      'alert-circle-outline': alertCircleOutline,
+      'close-circle-outline': closeCircleOutline,
+      lockClosedOutline,
+      keyOutline
     });
   }
 

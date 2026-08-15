@@ -28,18 +28,18 @@ import {
   IonSpinner,
   IonMenuButton,
   IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardSubtitle,
-  IonCardContent,
   IonRefresher,
-  IonRefresherContent
+  IonRefresherContent,
+  IonSelect,
+  IonSelectOption,
+  IonToggle
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   InventarioService,
   Articulo,
 } from '../../core/services/inventario.service';
+import { AuthService } from '../../core/services/auth.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
 
 import {
@@ -63,7 +63,8 @@ import {
   createOutline,
   removeOutline,
   cashOutline,
-  statsChartOutline
+  statsChartOutline,
+  funnelOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -100,11 +101,14 @@ import {
     IonMenuButton,
     IonCard,
     IonRefresher,
-    IonRefresherContent
+    IonRefresherContent,
+    IonSelect,
+    IonSelectOption
   ],
 })
 export class InventarioPage implements OnInit {
   private inventarioService = inject(InventarioService);
+  private authService = inject(AuthService);
   private modalCtrl = inject(ModalController);
 
   segmentoActual: string = 'ARMAZON';
@@ -112,10 +116,13 @@ export class InventarioPage implements OnInit {
   soloAlertas: boolean = false;
   isLoading: boolean = true;
 
+  // Filtro de Sucursal: 'TODAS' o 'POR_SUCURSAL'
+  sucursalModo: 'TODAS' | 'POR_SUCURSAL' = 'TODAS';
+  idSucursalActual: string = 'HL01';
+
   page: number = 1;
   limit: number = 50;
   hayMasDatos: boolean = true;
-  idSucursalActual: string = 'HL01';
 
   // KPIs Calculados
   kpiTotalArticulos: number = 0;
@@ -125,12 +132,7 @@ export class InventarioPage implements OnInit {
   productos: Articulo[] = [];
   productosFiltrados: Articulo[] = [];
 
-  sucursales = [
-    { id: 'HL01', nombre: 'SUC. MATRIZ', totalArticulos: 120 },
-    { id: 'HL02', nombre: 'SUC. PULGAS PANDAS', totalArticulos: 85 },
-    { id: 'HL03', nombre: 'SUC. UNIVERSIDAD', totalArticulos: 95 },
-    { id: 'HL04', nombre: 'SUC. DEL PARQUE', totalArticulos: 210 },
-  ];
+  sucursales: { id: string; nombre: string }[] = [];
 
   constructor() {
     addIcons({
@@ -154,11 +156,39 @@ export class InventarioPage implements OnInit {
       createOutline,
       removeOutline,
       cashOutline,
-      statsChartOutline
+      statsChartOutline,
+      funnelOutline
     });
   }
 
   ngOnInit() {
+    this.inventarioService.obtenerSucursales().subscribe((sucs) => {
+      if (sucs && sucs.length > 0) {
+        this.sucursales = sucs.map(s => ({
+          id: String(s.id_sucursal),
+          nombre: s.nombre || `Sucursal ${s.id_sucursal}`
+        }));
+      } else {
+        this.sucursales = [
+          { id: 'HL01', nombre: 'Matriz Hospital de Lentes' },
+          { id: 'HL02', nombre: 'Sucursal Norte' }
+        ];
+      }
+
+      // Si el usuario tiene una sucursal en sesión, tomarla si coincide
+      const userSuc = this.authService.obtenerSucursalActual();
+      if (userSuc) {
+        const sucStr = typeof userSuc === 'number' ? `HL0${userSuc}` : String(userSuc);
+        if (this.sucursales.some(s => s.id === sucStr)) {
+          this.idSucursalActual = sucStr;
+        } else if (this.sucursales.length > 0) {
+          this.idSucursalActual = this.sucursales[0].id;
+        }
+      } else if (this.sucursales.length > 0) {
+        this.idSucursalActual = this.sucursales[0].id;
+      }
+    });
+
     this.inventarioService
       .getArticulosStream()
       .subscribe((data: Articulo[]) => {
@@ -176,8 +206,10 @@ export class InventarioPage implements OnInit {
     this.hayMasDatos = true;
     this.isLoading = true;
 
+    const sucursalTarget = this.sucursalModo === 'TODAS' ? 'TODAS' : this.idSucursalActual;
+
     const trajoMas = await this.inventarioService.cargarArticulos(
-      this.idSucursalActual,
+      sucursalTarget,
       this.segmentoActual,
       this.page,
       this.limit,
@@ -202,8 +234,10 @@ export class InventarioPage implements OnInit {
 
     this.page++;
 
+    const sucursalTarget = this.sucursalModo === 'TODAS' ? 'TODAS' : this.idSucursalActual;
+
     const trajoMas = await this.inventarioService.cargarArticulos(
-      this.idSucursalActual,
+      sucursalTarget,
       this.segmentoActual,
       this.page,
       this.limit,
@@ -220,6 +254,18 @@ export class InventarioPage implements OnInit {
   cambiarSegmento(event: any) {
     this.segmentoActual = event.detail.value;
     if (this.segmentoActual !== 'sucursales') {
+      this.cargarDatos();
+    }
+  }
+
+  onSucursalModoChange(modo: 'TODAS' | 'POR_SUCURSAL') {
+    this.sucursalModo = modo;
+    this.cargarDatos();
+  }
+
+  onSucursalSelectChange(event: any) {
+    this.idSucursalActual = event.detail.value;
+    if (this.sucursalModo === 'POR_SUCURSAL') {
       this.cargarDatos();
     }
   }
@@ -268,7 +314,7 @@ export class InventarioPage implements OnInit {
     const modal = await this.modalCtrl.create({
       component: FormularioArticuloComponent,
       componentProps: {
-        tipoArticulo: this.segmentoActual,
+        tipoArticulo: this.segmentoActual === 'sucursales' ? 'ARMAZON' : this.segmentoActual,
       },
     });
 
@@ -276,16 +322,12 @@ export class InventarioPage implements OnInit {
 
     const { data } = await modal.onWillDismiss();
     if (data) {
-      this.inventarioService.crearArticulo(data).subscribe({
-        next: (res: any) => {
-          this.cargarDatos();
-        },
-        error: (err: any) => console.error('Error al guardar artículo:', err),
-      });
+      this.cargarDatos();
     }
   }
 
   verDetalleSucursal(sucursal: any) {
+    this.sucursalModo = 'POR_SUCURSAL';
     this.idSucursalActual = sucursal.id;
     this.cargarDatos();
   }
@@ -307,16 +349,26 @@ export class InventarioPage implements OnInit {
     }
   }
 
+  // AJUSTE DE STOCK RÁPIDO CON EL SPINNER (+ / -)
+  // Se aplica directamente a la sucursal de la sesión del usuario o la sucursal activa
   async ajustarStock(producto: Articulo, cantidadAjuste: number) {
     if (producto.stock_actual + cantidadAjuste < 0) return;
 
+    // Determinar la sucursal a la que se le suma/resta stock
+    let sucursalAfectar = this.idSucursalActual;
+    const userSuc = this.authService.obtenerSucursalActual();
+    if (userSuc) {
+      sucursalAfectar = typeof userSuc === 'number' ? `HL0${userSuc}` : userSuc;
+    }
+
+    // Actualización visual en la interfaz
     producto.stock_actual += cantidadAjuste;
     this.recalcularKPIs();
 
     this.inventarioService
       .ajustarStockRapido(
         producto.id_articulo!,
-        this.idSucursalActual,
+        sucursalAfectar,
         cantidadAjuste,
       )
       .subscribe({

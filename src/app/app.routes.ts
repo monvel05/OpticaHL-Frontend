@@ -74,6 +74,13 @@ export const routes: Routes = [
     data: { expectedRoles: ['ADMINISTRADOR'] }
   },
   {
+    path: 'facturacion',
+    loadComponent: () => import('./features/facturacion/facturacion.page').then(m => m.FacturacionPage),
+    canActivate: [roleGuard],
+    // 🔒 Administradores, contadores, cajeros y personal de mostrador
+    data: { expectedRoles: ['ADMINISTRADOR', 'CONTADOR', 'CAJA', 'CAJER@', 'MOSTRADOR'] }
+  },
+  {
     path: 'reportes',
     redirectTo: 'dashboard',
     pathMatch: 'full'

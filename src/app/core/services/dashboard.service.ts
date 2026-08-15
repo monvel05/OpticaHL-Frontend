@@ -105,7 +105,7 @@ export interface DescuentoReporte {
 })
 export class DashboardService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/reporte`;
+  private apiUrl = `${environment.apiUrl}/reporte`;
 
   private colorPalette = ['#3880ff', '#3dc2ff', '#52de97', '#ffc409', '#7044ff', '#eb445a'];
 

@@ -39,7 +39,7 @@ export interface RespuestaApi<T = any> {
 })
 export class OperadoresService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/api/operadores`;
+  private apiUrl = `${environment.apiUrl}/operadores`;
 
   private mockCatalogos: CatalogosOperador = {
     roles: [

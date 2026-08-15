@@ -5,6 +5,11 @@
     </ion-buttons>
     <ion-title style="font-weight: bold">Gestión e Inventario General</ion-title>
     <ion-buttons slot="end">
+      <ion-button (click)="agregarProducto()" fill="solid" color="success" size="small" style="font-weight: bold; margin-right: 6px;">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nuevo Artículo
+      </ion-button>
+
       <ion-button (click)="toggleFiltroAlertas()" [title]="soloAlertas ? 'Mostrar Todos' : 'Stock Crítico'">
         <ion-icon
           slot="icon-only"
@@ -21,6 +26,7 @@
     </ion-buttons>
   </ion-toolbar>
 
+  <!-- BARRA DE BÚSQUEDA Y FILTRO TOGGLE DE SUCURSAL -->
   <ion-toolbar color="primary">
     <ion-searchbar
       placeholder="Buscar por código, nombre o marca..."
@@ -30,6 +36,32 @@
     >
     </ion-searchbar>
   </ion-toolbar>
+
+  <!-- TOGGLE FILTRO SUCURSAL: TODAS VS POR SUCURSAL -->
+  <div class="branch-filter-bar">
+    <div class="filter-toggle-group">
+      <ion-icon name="funnel-outline" class="bar-icon"></ion-icon>      <span class="bar-label">Inventario:</span>
+      <ion-segment [value]="sucursalModo" (ionChange)="onSucursalModoChange($any($event.detail.value))" class="branch-segment">
+        <ion-segment-button value="TODAS">
+          <ion-label>Todas las Sucursales</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="POR_SUCURSAL">
+          <ion-label>Por Sucursal</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    @if (sucursalModo === 'POR_SUCURSAL') {
+      <div class="branch-select-group">
+        <ion-icon name="business-outline" class="bar-icon"></ion-icon>
+        <ion-select [value]="idSucursalActual" (ionChange)="onSucursalSelectChange($event)" interface="popover" class="branch-select">
+          @for (s of sucursales; track s.id) {
+            <ion-select-option [value]="s.id">{{ s.nombre }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
+    }
+  </div>
 
   <ion-toolbar color="primary">
     <ion-segment
@@ -70,7 +102,7 @@
             <div class="stat-icon"><ion-icon name="cube-outline"></ion-icon></div>
             <div class="stat-data">
               <span class="stat-value">{{ kpiTotalArticulos }}</span>
-              <span class="stat-title">Artículos en Sección</span>
+              <span class="stat-title">Artículos Registrados</span>
             </div>
           </div>
         </ion-col>
@@ -79,7 +111,7 @@
             <div class="stat-icon"><ion-icon name="cash-outline"></ion-icon></div>
             <div class="stat-data">
               <span class="stat-value">${{ kpiValorTotal | number:'1.0-0' }}</span>
-              <span class="stat-title">Valor Estimado</span>
+              <span class="stat-title">Valor Estimado ({{ sucursalModo === 'TODAS' ? 'Global' : idSucursalActual }})</span>
             </div>
           </div>
         </ion-col>
@@ -150,13 +182,13 @@
                   </div>
 
                   <div class="card-right">
-                    <ion-button fill="clear" size="small" (click)="editarProducto(producto)" class="btn-edit" title="Editar">
+                    <ion-button fill="clear" size="small" (click)="editarProducto(producto)" class="btn-edit" title="Editar datos y existencias por sucursal">
                       <ion-icon name="create-outline" slot="icon-only"></ion-icon>
                     </ion-button>
 
                     @if ($any(producto).categoria !== 'SERVICIO') {
                       <div class="stock-control-stepper">
-                        <ion-button fill="clear" size="small" color="danger" (click)="ajustarStock(producto, -1)" class="stepper-btn">
+                        <ion-button fill="clear" size="small" color="danger" (click)="ajustarStock(producto, -1)" class="stepper-btn" title="Restar stock en sucursal activa">
                           <ion-icon name="remove-outline"></ion-icon>
                         </ion-button>
 
@@ -164,7 +196,7 @@
                           {{ producto.stock_actual }}
                         </span>
 
-                        <ion-button fill="clear" size="small" color="success" (click)="ajustarStock(producto, 1)" class="stepper-btn">
+                        <ion-button fill="clear" size="small" color="success" (click)="ajustarStock(producto, 1)" class="stepper-btn" title="Sumar stock en sucursal activa">
                           <ion-icon name="add-outline"></ion-icon>
                         </ion-button>
                       </div>
@@ -188,7 +220,7 @@
           <ion-icon name="business-outline" slot="start" color="primary" style="font-size: 24px"></ion-icon>
           <ion-label>
             <h2 style="font-weight: 700; color: #1e293b">{{ suc.nombre }}</h2>
-            <p style="font-size: 13px; color: #64748b">Monitorear existencias físicas de esta sucursal</p>
+            <p style="font-size: 13px; color: #64748b">Filtrar existencias específicas de esta tienda</p>
           </ion-label>
           <ion-badge slot="end" color="tertiary" style="padding: 6px 10px; font-weight: bold; border-radius: 8px">
             {{ suc.id }}

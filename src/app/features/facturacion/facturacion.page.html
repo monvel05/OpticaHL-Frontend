@@ -1,0 +1,625 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>
+      <div class="header-title-container">
+        <ion-icon name="receipt-outline"></ion-icon>
+        <span>Módulo de Facturación CFDI 4.0</span>
+      </div>
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="activeTab = 'crear'" [class.active-tab]="activeTab === 'crear'">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Nueva Factura
+      </ion-button>
+      <ion-button (click)="activeTab = 'historial'; cargarHistorialFacturas()" [class.active-tab]="activeTab === 'historial'">
+        <ion-icon name="document-text-outline" slot="start"></ion-icon>
+        Historial y Consultas
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding facturacion-content">
+
+  <!-- ================================================================= -->
+  <!-- TAB 1: FORMULARIO REACTIVO DE CREACIÓN DE FACTURA (MULTI-FOLIO) -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'crear') {
+    <ion-grid>
+      <ion-row>
+
+        <!-- COLUMNA IZQUIERDA: SELECCIÓN DE ÓRDENES Y CONCEPTOS -->
+        <ion-col size="12" size-lg="7">
+
+          <!-- CARD: SELECCIÓN DE ÓRDENES DE COMPRA (UNO O MÁS FOLIOS) -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <ion-card-title class="card-title-flex">
+                <span><ion-icon name="receipt-outline"></ion-icon> 1. Selección de Orden(es) de Compra</span>
+                @if (selectedFolios.length > 0) {
+                  <ion-chip color="primary">
+                    <ion-label>{{ selectedFolios.length }} orden(es) seleccionada(s)</ion-label>
+                  </ion-chip>
+                }
+              </ion-card-title>
+              <ion-card-subtitle>Busca y selecciona una o más órdenes para facturar conjuntamente</ion-card-subtitle>
+            </ion-card-header>
+            <ion-card-content>
+              <div class="search-bar-row">
+                <ion-searchbar 
+                  placeholder="Buscar por Folio (ORD-...), Nombre o RFC..." 
+                  [(ngModel)]="busquedaOrden" 
+                  (ionInput)="cargarOrdenesDisponibles($event)"
+                  debounce="300">
+                </ion-searchbar>
+                <ion-button fill="outline" (click)="busquedaOrden = ''; cargarOrdenesDisponibles('')" title="Actualizar lista">
+                  <ion-icon name="refresh-outline"></ion-icon>
+                </ion-button>
+              </div>
+
+              @if (cargandoOrdenes) {
+                <div class="text-center ion-padding">
+                  <ion-spinner name="crescent"></ion-spinner>
+                  <p>Cargando órdenes de compra disponibles...</p>
+                </div>
+              } @else if (ordenesDisponibles.length === 0) {
+                <div class="empty-state">
+                  <ion-icon name="alert-circle-outline"></ion-icon>
+                  <p>No se encontraron órdenes disponibles para facturar.</p>
+                </div>
+              } @else {
+                <div class="ordenes-pills-grid">
+                  @for (ord of ordenesDisponibles; track ord.folio) {
+                    <div 
+                      class="orden-pill-card" 
+                      [class.selected]="esFolioSeleccionado(ord.folio)"
+                      (click)="toggleFolioSelection(ord.folio)">
+                      <div class="pill-header">
+                        <span class="folio-tag">{{ ord.folio }}</span>
+                        <span class="total-tag">${{ ord.total }}</span>
+                      </div>
+                      <div class="pill-body">
+                        <span class="cliente-nombre"><ion-icon name="person-outline"></ion-icon> {{ ord.paciente_nombre || 'Cliente General' }}</span>
+                        <span class="rfc-sub" *ngIf="ord.rfc">RFC: {{ ord.rfc }}</span>
+                      </div>
+                      <div class="pill-checkbox">
+                        <ion-icon [name]="esFolioSeleccionado(ord.folio) ? 'checkmark-circle-outline' : 'add-circle-outline'"></ion-icon>
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </ion-card-content>
+          </ion-card>
+
+          <!-- CARD: CONCEPTOS DE FACTURA & PERSONALIZACIÓN DE CONCEPTOS (ARTÍCULOS FALSOS / EDICIÓN) -->
+          <ion-card class="section-card">
+            <ion-card-header>
+              <div class="concepts-header-row">
+                <div>
+                  <ion-card-title><ion-icon name="document-text-outline"></ion-icon> 2. Conceptos de la Factura</ion-card-title>
+                  <ion-card-subtitle>Edita nombres, precios o agrega artículos personalizados/falsos</ion-card-subtitle>
+                </div>
+                <div class="header-actions">
+                  <ion-item lines="none" class="toggle-item">
+                    <ion-label>Modificar ítems</ion-label>
+                    <ion-toggle [(ngModel)]="permitirEdicionConceptos"></ion-toggle>
+                  </ion-item>
+                  <ion-button size="small" color="tertiary" (click)="agregarConceptoFalso()">
+                    <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                    + Artículo Personalizado
+                  </ion-button>
+                </div>
+              </div>
+            </ion-card-header>
+            <ion-card-content>
+
+              @if (conceptos.length === 0) {
+                <div class="empty-state">
+                  <ion-icon name="receipt-outline"></ion-icon>
+                  <p>Selecciona al menos una orden o presiona "+ Artículo Personalizado" para construir los conceptos de la factura.</p>
+                </div>
+              } @else {
+                <div class="table-responsive">
+                  <table class="custom-table concepts-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Descripción</th>
+                        <th>Cant.</th>
+                        <th>P. Unitario (Sin IVA)</th>
+                        <th>Precio Público (Con IVA)</th>
+                        <th>Clave SAT</th>
+                        <th>Subtotal</th>
+                        <th>Acciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      @for (c of conceptos; track $index) {
+                        <tr>
+                          <td>{{ $index + 1 }}</td>
+
+                          <!-- DESCRIPCIÓN -->
+                          <td class="col-desc">
+                            @if (permitirEdicionConceptos) {
+                              <input type="text" class="table-input" [(ngModel)]="c.descripcion" (change)="recalcularTotales()" />
+                            } @else {
+                              <span>{{ c.descripcion }}</span>
+                            }
+                          </td>
+
+                          <!-- CANTIDAD -->
+                          <td class="col-cant">
+                            @if (permitirEdicionConceptos) {
+                              <input type="number" min="1" class="table-input cant-input" [(ngModel)]="c.cantidad" (change)="recalcularTotales()" />
+                            } @else {
+                              <span>{{ c.cantidad }}</span>
+                            }
+                          </td>
+
+                          <!-- VALOR UNITARIO (SIN IVA) -->
+                          <td class="col-precio">
+                            @if (permitirEdicionConceptos) {
+                              <input type="number" step="0.01" class="table-input precio-input" [(ngModel)]="c.valorUnitario" (change)="c.precioPublico = +(c.valorUnitario * 1.16).toFixed(2); recalcularTotales()" />
+                            } @else {
+                              <span>${{ c.valorUnitario | number:'1.2-4' }}</span>
+                            }
+                          </td>
+
+                          <!-- PRECIO PÚBLICO (CON IVA) -->
+                          <td class="col-precio-con-iva">
+                            @if (permitirEdicionConceptos) {
+                              <input type="number" step="0.01" class="table-input precio-input" [ngModel]="c.precioPublico || (c.valorUnitario * 1.16)" (ngModelChange)="actualizarConceptoPrecioPublico($index, $event)" />
+                            } @else {
+                              <span class="highlight-price">${{ (c.precioPublico || (c.valorUnitario * 1.16)) | number:'1.2-2' }}</span>
+                            }
+                          </td>
+
+                          <!-- CLAVE SAT -->
+                          <td class="col-sat">
+                            @if (permitirEdicionConceptos) {
+                              <select class="table-select" [(ngModel)]="c.claveProdServ">
+                                @for (sat of clavesProdServ; track sat.codigo) {
+                                  <option [value]="sat.codigo">{{ sat.codigo }}</option>
+                                }
+                              </select>
+                            } @else {
+                              <ion-badge color="light">{{ c.claveProdServ }}</ion-badge>
+                            }
+                          </td>
+
+                          <!-- SUBTOTAL -->
+                          <td class="col-subtotal font-weight-bold">
+                            ${{ (c.cantidad * c.valorUnitario) | number:'1.2-2' }}
+                          </td>
+
+                          <!-- ACCIONES -->
+                          <td class="col-actions">
+                            <ion-button fill="clear" color="danger" size="small" (click)="eliminarConcepto($index)">
+                              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                            </ion-button>
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              }
+
+            </ion-card-content>
+          </ion-card>
+
+        </ion-col>
+
+        <!-- COLUMNA DERECHA: DATOS FISCALES RECEPTOR, PARÁMETROS CFDI & RESUMEN -->
+        <ion-col size="12" size-lg="5">
+
+          <form [formGroup]="facturaForm" (ngSubmit)="generarFactura()">
+
+            <!-- CARD: DATOS FISCALES DEL RECEPTOR (CLIENTE) -->
+            <ion-card class="section-card">
+              <ion-card-header>
+                <ion-card-title><ion-icon name="business-outline"></ion-icon> 3. Datos Fiscales del Receptor</ion-card-title>
+                <ion-card-subtitle>Ingresa los datos para la emisión del CFDI 4.0</ion-card-subtitle>
+              </ion-card-header>
+              <ion-card-content>
+
+                <div class="form-group-item">
+                  <ion-label position="stacked">RFC Receptor *</ion-label>
+                  <ion-input formControlName="rfc" placeholder="ej. XAXX010101000" class="uppercase-input"></ion-input>
+                </div>
+
+                <div class="form-group-item">
+                  <ion-label position="stacked">Nombre o Razón Social *</ion-label>
+                  <ion-input formControlName="razon_social" placeholder="Nombre completo o Razón Social"></ion-input>
+                </div>
+
+                <div class="form-group-item">
+                  <ion-label position="stacked">Régimen Fiscal Receptor *</ion-label>
+                  <ion-select formControlName="regimen_fiscal" interface="popover">
+                    @for (reg of regimenesFiscales; track reg.codigo) {
+                      <ion-select-option [value]="reg.codigo">{{ reg.descripcion }}</ion-select-option>
+                    }
+                  </ion-select>
+                </div>
+
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Código Postal *</ion-label>
+                      <ion-input formControlName="cp" placeholder="ej. 20000"></ion-input>
+                    </div>
+                  </ion-col>
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Correo Electrónico</ion-label>
+                      <ion-input formControlName="email" type="email" placeholder="cliente@correo.com"></ion-input>
+                    </div>
+                  </ion-col>
+                </ion-row>
+
+                <div class="form-group-item">
+                  <ion-label position="stacked">Domicilio Fiscal (Opcional)</ion-label>
+                  <ion-input formControlName="domicilio" placeholder="Calle, número, colonia..."></ion-input>
+                </div>
+
+              </ion-card-content>
+            </ion-card>
+
+            <!-- CARD: OPCIONES ÚTILES CFDI 4.0 -->
+            <ion-card class="section-card">
+              <ion-card-header>
+                <ion-card-title><ion-icon name="card-outline"></ion-icon> 4. Opciones de Facturación</ion-card-title>
+              </ion-card-header>
+              <ion-card-content>
+
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Uso de CFDI *</ion-label>
+                      <ion-select formControlName="uso_cfdi" interface="popover">
+                        @for (u of usosCFDI; track u.codigo) {
+                          <ion-select-option [value]="u.codigo">{{ u.descripcion }}</ion-select-option>
+                        }
+                      </ion-select>
+                    </div>
+                  </ion-col>
+
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Método de Pago *</ion-label>
+                      <ion-select formControlName="metodo_pago" interface="popover">
+                        @for (m of metodosPago; track m.codigo) {
+                          <ion-select-option [value]="m.codigo">{{ m.descripcion }}</ion-select-option>
+                        }
+                      </ion-select>
+                    </div>
+                  </ion-col>
+                </ion-row>
+
+                <ion-row>
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Forma de Pago *</ion-label>
+                      <ion-select formControlName="forma_pago" interface="popover">
+                        @for (f of formasPago; track f.codigo) {
+                          <ion-select-option [value]="f.codigo">{{ f.descripcion }}</ion-select-option>
+                        }
+                      </ion-select>
+                    </div>
+                  </ion-col>
+
+                  <ion-col size="6">
+                    <div class="form-group-item">
+                      <ion-label position="stacked">Serie</ion-label>
+                      <ion-input formControlName="serie" placeholder="FAC"></ion-input>
+                    </div>
+                  </ion-col>
+                </ion-row>
+
+              </ion-card-content>
+            </ion-card>
+
+            <!-- CARD: RESUMEN DE TOTALES Y BOTÓN DE TIMBRADO -->
+            <ion-card class="section-card totals-summary-card">
+              <ion-card-content>
+                <div class="summary-line">
+                  <span>Subtotal (Sin IVA):</span>
+                  <strong>${{ subtotalCalculado | number:'1.2-2' }}</strong>
+                </div>
+                @if (descuentoCalculado > 0) {
+                  <div class="summary-line text-danger">
+                    <span>Descuento:</span>
+                    <strong>-${{ descuentoCalculado | number:'1.2-2' }}</strong>
+                  </div>
+                }
+                <div class="summary-line">
+                  <span>IVA Trasladado (16%):</span>
+                  <strong>${{ ivaCalculado | number:'1.2-2' }}</strong>
+                </div>
+                <hr />
+                <div class="summary-line total-grand">
+                  <span>Total Factura:</span>
+                  <strong class="text-primary">${{ totalCalculado | number:'1.2-2' }}</strong>
+                </div>
+
+                <ion-button 
+                  expand="block" 
+                  type="submit" 
+                  color="success" 
+                  class="btn-timbrar" 
+                  [disabled]="cargandoTimbrado || conceptos.length === 0">
+                  @if (cargandoTimbrado) {
+                    <ion-spinner name="crescent" slot="start"></ion-spinner>
+                    Generando y Timbrando CFDI 4.0...
+                  } @else {
+                    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+                    Generar y Timbrar Factura
+                  }
+                </ion-button>
+              </ion-card-content>
+            </ion-card>
+
+          </form>
+
+        </ion-col>
+
+      </ion-row>
+    </ion-grid>
+  }
+
+  <!-- ================================================================= -->
+  <!-- TAB 2: HISTORIAL DE FACTURAS REALIZADAS Y BÚSQUEDA AVANZADA     -->
+  <!-- ================================================================= -->
+  @if (activeTab === 'historial') {
+    <div class="historial-container">
+
+      <!-- KPIS INFORMATIVOS -->
+      <ion-row class="kpi-row">
+        <ion-col size="12" size-md="4">
+          <div class="kpi-card bg-primary-light">
+            <div class="kpi-icon"><ion-icon name="receipt-outline"></ion-icon></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Monto Total Facturado</span>
+              <span class="kpi-value">${{ kpiTotalMonto | number:'1.2-2' }}</span>
+            </div>
+          </div>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <div class="kpi-card bg-success-light">
+            <div class="kpi-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Facturas Vigentes</span>
+              <span class="kpi-value">{{ kpiTotalVigentes }}</span>
+            </div>
+          </div>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <div class="kpi-card bg-danger-light">
+            <div class="kpi-icon"><ion-icon name="close-circle-outline"></ion-icon></div>
+            <div class="kpi-details">
+              <span class="kpi-title">Facturas Canceladas</span>
+              <span class="kpi-value">{{ kpiTotalCanceladas }}</span>
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <!-- BARRA DE BÚSQUEDA Y FILTROS -->
+      <ion-card class="section-card filter-card">
+        <ion-card-content>
+          <ion-row class="align-items-center">
+            <ion-col size="12" size-md="4">
+              <ion-searchbar 
+                placeholder="Buscar por Folio, UUID, Cliente o RFC..." 
+                [(ngModel)]="busquedaHistorial" 
+                (ionInput)="cargarHistorialFacturas()"
+                debounce="300">
+              </ion-searchbar>
+            </ion-col>
+            <ion-col size="6" size-md="2">
+              <ion-item class="filter-item">
+                <ion-label position="stacked">Desde</ion-label>
+                <ion-input type="date" [(ngModel)]="filtroFechaInicio" (ionChange)="cargarHistorialFacturas()"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="6" size-md="2">
+              <ion-item class="filter-item">
+                <ion-label position="stacked">Hasta</ion-label>
+                <ion-input type="date" [(ngModel)]="filtroFechaFin" (ionChange)="cargarHistorialFacturas()"></ion-input>
+              </ion-item>
+            </ion-col>
+            <ion-col size="8" size-md="3">
+              <ion-item class="filter-item">
+                <ion-label position="stacked">Estatus SAT</ion-label>
+                <ion-select [(ngModel)]="filtroEstatus" (ionChange)="cargarHistorialFacturas()" interface="popover">
+                  <ion-select-option value="TODAS">Todas</ion-select-option>
+                  <ion-select-option value="VIGENTE">Vigente</ion-select-option>
+                  <ion-select-option value="CANCELADA">Cancelada</ion-select-option>
+                </ion-select>
+              </ion-item>
+            </ion-col>
+            <ion-col size="4" size-md="1" class="text-right">
+              <ion-button fill="outline" (click)="cargarHistorialFacturas()" class="refresh-btn">
+                <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+              </ion-button>
+            </ion-col>
+          </ion-row>
+        </ion-card-content>
+      </ion-card>
+
+      <!-- TABLA DE HISTORIAL DE FACTURAS -->
+      <ion-card class="section-card">
+        <ion-card-content class="ion-no-padding">
+
+          @if (cargandoHistorial) {
+            <div class="text-center ion-padding">
+              <ion-spinner name="crescent"></ion-spinner>
+              <p>Consultando historial de facturas...</p>
+            </div>
+          } @else if (facturasList.length === 0) {
+            <div class="empty-state">
+              <ion-icon name="document-text-outline"></ion-icon>
+              <p>No se encontraron facturas registradas con los filtros seleccionados.</p>
+            </div>
+          } @else {
+            <div class="table-responsive">
+              <table class="custom-table historial-table">
+                <thead>
+                  <tr>
+                    <th>Folio Factura</th>
+                    <th>Folio Orden</th>
+                    <th>UUID Fiscal (SAT)</th>
+                    <th>Fecha</th>
+                    <th>Cliente / Razon Social</th>
+                    <th>RFC</th>
+                    <th>Total</th>
+                    <th>Estatus</th>
+                    <th class="text-center">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (f of facturasList; track f.num_factura) {
+                    <tr [class.row-cancelada]="f.estatus === 'CANCELADA'">
+                      <td class="font-weight-bold">{{ f.num_factura }}</td>
+                      <td>
+                        <ion-badge color="light">{{ f.folio_orden }}</ion-badge>
+                      </td>
+                      <td class="col-uuid" title="{{ f.uuid }}">{{ f.uuid || 'N/A' }}</td>
+                      <td>{{ f.fecha | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ f.cliente }}</td>
+                      <td><code>{{ f.rfc }}</code></td>
+                      <td class="font-weight-bold text-success">${{ f.total | number:'1.2-2' }}</td>
+                      <td>
+                        @if (f.estatus === 'CANCELADA' || f.estatus_sat === 'CANCELADO') {
+                          <ion-badge color="danger">CANCELADA</ion-badge>
+                        } @else {
+                          <ion-badge color="success">VIGENTE</ion-badge>
+                        }
+                      </td>
+                      <td class="text-center action-buttons-cell">
+                        <ion-button size="small" fill="clear" color="primary" (click)="descargarPDFFactura(f.num_factura)" title="Ver/Descargar PDF">
+                          <ion-icon name="download-outline" slot="start"></ion-icon> PDF
+                        </ion-button>
+                        <ion-button size="small" fill="clear" color="secondary" (click)="descargarXMLFactura(f.num_factura)" title="Descargar XML">
+                          <ion-icon name="document-text-outline" slot="start"></ion-icon> XML
+                        </ion-button>
+                        @if (f.estatus !== 'CANCELADA') {
+                          <ion-button size="small" fill="clear" color="danger" (click)="abrirModalCancelar(f)" title="Cancelar Factura SAT">
+                            <ion-icon name="close-circle-outline" slot="start"></ion-icon> Cancelar
+                          </ion-button>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          }
+
+        </ion-card-content>
+      </ion-card>
+
+    </div>
+  }
+
+  <!-- ================================================================= -->
+  <!-- MODAL DE ÉXITO AL TIMBRAR FACTURA                                 -->
+  <!-- ================================================================= -->
+  <ion-modal [isOpen]="mostrarModalExito" (didDismiss)="cerrarModalExito()" class="exito-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="success">
+          <ion-title>¡Factura Timbrada con Éxito!</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalExito()"><ion-icon name="close-circle-outline"></ion-icon></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding text-center" *ngIf="facturaExitoData">
+        <div class="exito-icon-container">
+          <ion-icon name="checkmark-circle-outline"></ion-icon>
+        </div>
+        <h2>Factura {{ facturaExitoData.num_factura }}</h2>
+        <p class="uuid-text"><strong>UUID SAT:</strong> {{ facturaExitoData.uuid }}</p>
+
+        <div class="exito-summary-box">
+          <div class="summary-line"><span>Subtotal:</span> <strong>${{ facturaExitoData.subtotal }}</strong></div>
+          <div class="summary-line"><span>IVA:</span> <strong>${{ facturaExitoData.iva }}</strong></div>
+          <div class="summary-line total"><span>Total:</span> <strong>${{ facturaExitoData.total }}</strong></div>
+        </div>
+
+        <div class="modal-buttons-row">
+          <ion-button color="primary" (click)="descargarPDFFactura(facturaExitoData.num_factura)">
+            <ion-icon name="download-outline" slot="start"></ion-icon>
+            Descargar PDF
+          </ion-button>
+          <ion-button color="secondary" (click)="descargarXMLFactura(facturaExitoData.num_factura)">
+            <ion-icon name="document-text-outline" slot="start"></ion-icon>
+            Descargar XML
+          </ion-button>
+        </div>
+
+        <ion-button fill="outline" color="dark" expand="block" (click)="cerrarModalExito()" class="btn-cerrar-modal">
+          Aceptar y Cerrar
+        </ion-button>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+  <!-- ================================================================= -->
+  <!-- MODAL DE CANCELACIÓN DE FACTURA (MOTIVOS SAT)                      -->
+  <!-- ================================================================= -->
+  <ion-modal [isOpen]="mostrarModalCancelar" (didDismiss)="cerrarModalCancelar()" class="cancelar-modal">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="danger">
+          <ion-title>Cancelar Factura {{ facturaACancelar?.num_factura }}</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="cerrarModalCancelar()"><ion-icon name="close-circle-outline"></ion-icon></ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content class="ion-padding" *ngIf="facturaACancelar">
+        <ion-text color="dark">
+          <p>Vas a solicitar la cancelación fiscal del CFDI ante el SAT para la factura <strong>{{ facturaACancelar.num_factura }}</strong> (UUID: {{ facturaACancelar.uuid }}).</p>
+        </ion-text>
+
+        <div class="form-group-item">
+          <ion-label position="stacked">Motivo de Cancelación (Catálogo SAT) *</ion-label>
+          <ion-select [(ngModel)]="motivoCancelacion" interface="popover">
+            <ion-select-option value="01">01 - Comprobante emitido con errores con relación</ion-select-option>
+            <ion-select-option value="02">02 - Comprobante emitido con errores sin relación</ion-select-option>
+            <ion-select-option value="03">03 - No se llevó a cabo la operación</ion-select-option>
+            <ion-select-option value="04">04 - Operación nominativa relacionada en la factura global</ion-select-option>
+          </ion-select>
+        </div>
+
+        @if (motivoCancelacion === '01') {
+          <div class="form-group-item">
+            <ion-label position="stacked">UUID de la Factura de Sustitución *</ion-label>
+            <ion-input [(ngModel)]="uuidSustitucion" placeholder="ej. 123E4567-E89B-12D3-A456-426614174000"></ion-input>
+          </div>
+        }
+
+        <div class="modal-buttons-row" style="margin-top: 20px;">
+          <ion-button color="medium" fill="outline" (click)="cerrarModalCancelar()" [disabled]="cancelandoFactura">
+            Cancelar Operación
+          </ion-button>
+          <ion-button color="danger" (click)="confirmarCancelacion()" [disabled]="cancelandoFactura">
+            @if (cancelandoFactura) {
+              <ion-spinner name="crescent" slot="start"></ion-spinner>
+              Procesando Cancelación...
+            } @else {
+              Confirmar Cancelación
+            }
+          </ion-button>
+        </div>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
 import { environment } from '../../../environment/envs';
 
 // Interfaz mapeada al 100% con la base de datos
@@ -151,5 +151,18 @@ export class InventarioService {
       id_sucursal: idSucursal,
       cantidad_ajuste: cantidadAjuste,
     });
+  }
+
+  obtenerSucursales(): Observable<{ id_sucursal: string; nombre: string }[]> {
+    return this.http.get<{ success: boolean; data: { id_sucursal: string; nombre: string }[] }>(`${this.URL_INVENTARIO}/sucursales`).pipe(
+      map(res => res && res.data && res.data.length > 0 ? res.data : [
+        { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes' },
+        { id_sucursal: 'HL02', nombre: 'Sucursal Norte' }
+      ]),
+      catchError(() => of([
+        { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes' },
+        { id_sucursal: 'HL02', nombre: 'Sucursal Norte' }
+      ]))
+    );
   }
 }

@@ -5,36 +5,59 @@
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title>Nuevo {{ tituloVista }}</ion-title>
+    <ion-title>{{ articuloExistente ? 'Editar' : 'Nuevo' }} {{ tituloVista }}</ion-title>
     <ion-buttons slot="end">
+      @if (articuloExistente) {
+        <ion-button (click)="confirmarEliminacion()" color="danger" fill="clear">
+          <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+        </ion-button>
+      }
       <ion-button (click)="guardar()" [disabled]="!articulo.nombre || !articulo.precio || articulo.precio <= 0"
         class="btn-guardar" style="font-weight: bold;">
         GUARDAR
       </ion-button>
     </ion-buttons>
   </ion-toolbar>
+
+  <!-- SELECTOR DE CATEGORÍA DEL ARTÍCULO -->
+  <ion-toolbar color="primary">
+    <ion-segment [value]="tipoArticulo" (ionChange)="onCategoriaChange($event)" style="--background: rgba(255, 255, 255, 0.15); border-radius: 0;">
+      <ion-segment-button value="ARMAZON">
+        <ion-label style="font-weight: 500">Armazón</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="MICA">
+        <ion-label style="font-weight: 500">Mica</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="ACCESORIO">
+        <ion-label style="font-weight: 500">Accesorio</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="SERVICIO">
+        <ion-label style="font-weight: 500">Servicio</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
 </ion-header>
 
 <ion-content color="light">
   <div class="form-wrapper" style="padding: 10px;">
 
-    <ion-card class="form-card"
-      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <!-- DATOS BÁSICOS -->
+    <ion-card class="form-card" style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
       <ion-card-header style="padding-bottom: 5px;">
-        <ion-card-subtitle color="primary" style="font-weight: bold;">DATOS BÁSICOS</ion-card-subtitle>
+        <ion-card-subtitle color="primary" style="font-weight: bold;">DATOS BÁSICOS ({{ tipoArticulo }})</ion-card-subtitle>
       </ion-card-header>
 
       <ion-card-content style="padding-top: 0;">
         <ion-item lines="full" class="custom-item">
           <ion-icon name="barcode-outline" slot="start" color="medium"></ion-icon>
           <ion-input label="Código / SKU" labelPlacement="stacked" [(ngModel)]="articulo.codigo"
-            placeholder="Ej. SERV-01"></ion-input>
+            placeholder="Ej. ART-101"></ion-input>
         </ion-item>
 
         <ion-item lines="full" class="custom-item">
-          <ion-icon name="glasses-outline" slot="start" color="medium"></ion-icon>
-          <ion-input label="Nombre del Servicio o Producto *" labelPlacement="stacked" [(ngModel)]="articulo.nombre"
-            placeholder="Ej. Examen de la Vista Completo"></ion-input>
+          <ion-icon [name]="tipoArticulo === 'SERVICIO' ? 'build-outline' : (tipoArticulo === 'MICA' ? 'eye-outline' : (tipoArticulo === 'ACCESORIO' ? 'pricetag-outline' : 'glasses-outline'))" slot="start" color="medium"></ion-icon>
+          <ion-input label="Nombre *" labelPlacement="stacked" [(ngModel)]="articulo.nombre"
+            [placeholder]="tipoArticulo === 'SERVICIO' ? 'Ej. Examen de la vista completo' : 'Ej. Ray-Ban Wayfarer Classic'"></ion-input>
         </ion-item>
 
         @if (tipoArticulo !== 'SERVICIO') {
@@ -47,41 +70,39 @@
       </ion-card-content>
     </ion-card>
 
-    @if (tipoArticulo === 'Z' || tipoArticulo === 'S') {
-    <ion-card class="form-card"
-      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-      <ion-card-header style="padding-bottom: 5px;">
-        <ion-card-subtitle color="primary" style="font-weight: bold;">ESPECIFICACIONES FÍSICAS</ion-card-subtitle>
-      </ion-card-header>
+    <!-- ESPECIFICACIONES FÍSICAS (PARA ARMAZONES Y MICAS) -->
+    @if (tipoArticulo === 'ARMAZON' || tipoArticulo === 'MICA' || tipoArticulo === 'Z' || tipoArticulo === 'S') {
+      <ion-card class="form-card" style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <ion-card-header style="padding-bottom: 5px;">
+          <ion-card-subtitle color="primary" style="font-weight: bold;">ESPECIFICACIONES FÍSICAS</ion-card-subtitle>
+        </ion-card-header>
 
-      <ion-card-content style="padding-top: 0;">
-        <ion-item lines="full" class="custom-item">
-          <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
-          <ion-input label="Material" labelPlacement="stacked" [(ngModel)]="articulo.material"
-            placeholder="Ej. Acetato, Titanio, Metal"></ion-input>
-        </ion-item>
+        <ion-card-content style="padding-top: 0;">
+          <ion-item lines="full" class="custom-item">
+            <ion-icon name="layers-outline" slot="start" color="medium"></ion-icon>
+            <ion-input label="Material" labelPlacement="stacked" [(ngModel)]="articulo.material"
+              placeholder="Ej. Acetato, Titanio, Policarbonato"></ion-input>
+          </ion-item>
 
-        <ion-item lines="full" class="custom-item">
-          <ion-icon name="color-palette-outline" slot="start" color="medium"></ion-icon>
-          <ion-input label="Color / Tono" labelPlacement="stacked" [(ngModel)]="articulo.color"
-            placeholder="Ej. Negro Mate, Carey"></ion-input>
-        </ion-item>
+          <ion-item lines="full" class="custom-item">
+            <ion-icon name="color-palette-outline" slot="start" color="medium"></ion-icon>
+            <ion-input label="Color / Tono" labelPlacement="stacked" [(ngModel)]="articulo.color"
+              placeholder="Ej. Negro Mate, Carey, Transparente"></ion-input>
+          </ion-item>
 
-        <ion-item lines="full" class="custom-item">
-          <ion-icon name="shapes-outline" slot="start" color="medium"></ion-icon>
-          <ion-input label="Forma / Estilo" labelPlacement="stacked" [(ngModel)]="articulo.forma"
-            placeholder="Ej. Rectangular, Redondo, Aviador"></ion-input>
-        </ion-item>
-      </ion-card-content>
-    </ion-card>
+          <ion-item lines="full" class="custom-item">
+            <ion-icon name="shapes-outline" slot="start" color="medium"></ion-icon>
+            <ion-input label="Forma / Estilo / Diseño" labelPlacement="stacked" [(ngModel)]="articulo.forma"
+              placeholder="Ej. Rectangular, Redondo, Aviador, Monofocal HD"></ion-input>
+          </ion-item>
+        </ion-card-content>
+      </ion-card>
     }
 
-    <ion-card class="form-card"
-      style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <!-- PRECIOS Y COSTOS -->
+    <ion-card class="form-card" style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
       <ion-card-header style="padding-bottom: 5px;">
-        <ion-card-subtitle color="primary" style="font-weight: bold;">
-          {{ tipoArticulo === 'SERVICIO' ? 'COSTO Y PRECIO DE VENTA' : 'PRECIO Y EXISTENCIAS INICIALES' }}
-        </ion-card-subtitle>
+        <ion-card-subtitle color="primary" style="font-weight: bold;">COSTO Y PRECIO DE VENTA</ion-card-subtitle>
       </ion-card-header>
 
       <ion-card-content style="padding-top: 0;">
@@ -90,14 +111,14 @@
             <ion-col size="6">
               <ion-item lines="full" class="custom-item">
                 <ion-icon name="cash-outline" slot="start" color="medium"></ion-icon>
-                <ion-input type="number" label="Costo U." labelPlacement="stacked" [(ngModel)]="articulo.costo"
+                <ion-input type="number" label="Costo U. ($)" labelPlacement="stacked" [(ngModel)]="articulo.costo"
                   placeholder="0.00"></ion-input>
               </ion-item>
             </ion-col>
             <ion-col size="6">
               <ion-item lines="full" class="custom-item">
                 <ion-icon name="cash-outline" slot="start" color="success"></ion-icon>
-                <ion-input type="number" label="Precio Venta *" labelPlacement="stacked" [(ngModel)]="articulo.precio"
+                <ion-input type="number" label="Precio Venta * ($)" labelPlacement="stacked" [(ngModel)]="articulo.precio"
                   placeholder="0.00"></ion-input>
               </ion-item>
             </ion-col>
@@ -105,16 +126,10 @@
 
           @if (tipoArticulo !== 'SERVICIO') {
             <ion-row style="margin-top: 8px;">
-              <ion-col size="6">
+              <ion-col size="12">
                 <ion-item lines="full" class="custom-item">
-                  <ion-input type="number" label="Stock Inicial" labelPlacement="stacked"
-                    [(ngModel)]="articulo.cantidad"></ion-input>
-                </ion-item>
-              </ion-col>
-              <ion-col size="6">
-                <ion-item lines="full" class="custom-item">
-                  <ion-input type="number" label="Stock Mínimo" labelPlacement="stacked"
-                    [(ngModel)]="articulo.stockMinimo"></ion-input>
+                  <ion-input type="number" label="Stock Mínimo Alerta Global" labelPlacement="stacked"
+                    [(ngModel)]="articulo.stockMinimo" placeholder="5"></ion-input>
                 </ion-item>
               </ion-col>
             </ion-row>
@@ -123,6 +138,49 @@
       </ion-card-content>
     </ion-card>
 
+    <!-- EXISTENCIAS POR SUCURSAL (CON TOTAL CALCULADO EN LA PARTE INFERIOR) -->
+    @if (tipoArticulo !== 'SERVICIO') {
+      <ion-card class="form-card" style="border-radius: 12px; margin-bottom: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+        <ion-card-header style="padding-bottom: 5px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <ion-card-subtitle color="primary" style="font-weight: bold;">
+              <ion-icon name="business-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+              EXISTENCIAS POR SUCURSAL
+            </ion-card-subtitle>
+            <ion-badge color="tertiary" style="font-size: 0.85rem; padding: 4px 8px;">
+              Total: {{ stockTotalCalculado() }} pzs
+            </ion-badge>
+          </div>
+        </ion-card-header>
+
+        <ion-card-content style="padding-top: 5px;">
+          @for (suc of sucursalesLista; track suc.id) {
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f1f5f9;">
+              <div>
+                <strong style="font-size: 0.9rem; color: #1e293b;">{{ suc.nombre }}</strong>
+                <div style="font-size: 0.75rem; color: #64748b;">Código: {{ suc.id }}</div>
+              </div>
+
+              <div style="display: flex; align-items: center; background: #f8fafc; border-radius: 8px; border: 1px solid #cbd5e1; padding: 2px;">
+                <ion-button fill="clear" size="small" color="danger" (click)="ajustarStockSucursal(suc.id, -1)" style="margin: 0; --padding-start: 6px; --padding-end: 6px;">
+                  <ion-icon name="remove-outline"></ion-icon>
+                </ion-button>
+                <input type="number" [(ngModel)]="stocksSucursales[suc.id]" style="width: 45px; text-align: center; font-weight: bold; border: none; background: transparent; font-size: 0.95rem; color: #0f172a;" />
+                <ion-button fill="clear" size="small" color="success" (click)="ajustarStockSucursal(suc.id, 1)" style="margin: 0; --padding-start: 6px; --padding-end: 6px;">
+                  <ion-icon name="add-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          }
+
+          <div style="margin-top: 12px; padding: 10px; background: #e0f2fe; border-radius: 8px; text-align: center; color: #0369a1; font-weight: bold; font-size: 0.95rem;">
+            Stock Total Combinado: {{ stockTotalCalculado() }} unidades
+          </div>
+        </ion-card-content>
+      </ion-card>
+    }
+
+    <!-- DESCRIPCIÓN Y NOTAS -->
     <ion-card class="form-card" style="border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
       <ion-card-content style="padding: 5px 10px;">
         <ion-item lines="none">

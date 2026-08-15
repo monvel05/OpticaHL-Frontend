@@ -231,3 +231,64 @@
   background: #ffffff;
   margin-top: 5px;
 }
+
+/* FILTRO SUCURSAL BAR */
+.branch-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  padding: 8px 16px;
+  border-bottom: 1px solid #e2e8f0;
+  gap: 12px;
+
+  .bar-icon {
+    font-size: 1.1rem;
+    color: #3880ff;
+  }
+
+  .bar-label {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #475569;
+  }
+
+  .filter-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .branch-segment {
+    background: #f1f5f9;
+    border-radius: 8px;
+    padding: 2px;
+
+    ion-segment-button {
+      --color: #64748b;
+      --color-checked: #3880ff;
+      --indicator-color: #ffffff;
+      font-weight: 600;
+      font-size: 0.8rem;
+      min-height: 30px;
+    }
+  }
+
+  .branch-select-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .branch-select {
+      background: #f1f5f9;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      color: #1e293b;
+      --padding-start: 8px;
+      --padding-end: 8px;
+    }
+  }
+}
