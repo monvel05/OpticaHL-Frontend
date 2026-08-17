@@ -25,9 +25,15 @@ export class CajaService {
     return this.http.get<any>(`${this.api}/orden/${folio.trim()}`);
   }
 
-  // 📄 MÉTODO PARA PETICIÓN CON TOKEN Y RESPUESTA TIPO BLOB (PDF)
   descargarTicketPDF(folio: string): Observable<Blob> {
     return this.http.get(`${this.api}/ticket/${folio.trim()}`, {
+      responseType: 'blob'
+    });
+  }
+
+  // 📄 MÉTODO AGREGADO PARA DESCARGAR EL PDF DEL CORTE DE CAJA
+  descargarTicketCortePDF(): Observable<Blob> {
+    return this.http.get(`${this.api}/corte/pdf`, {
       responseType: 'blob'
     });
   }

@@ -18,66 +18,63 @@ export const routes: Routes = [
   // RUTAS PROTEGIDAS CON CONTROL DE ROLES
   // ==========================================
   {
+    path: 'dashboard', 
+    loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
+    canActivate: [roleGuard],
+    data: { expectedRoles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'OPTOMETRISTA'] }
+  },
+  {
     path: 'inventario',
     loadComponent: () => import('./features/inventario/inventario.page').then(m => m.InventarioPage),
     canActivate: [roleGuard],
-    // 🔒 Administradores y personal de almacén/inventario
     data: { expectedRoles: ['ADMINISTRADOR', 'INVENTARIO'] } 
   },
   {
     path: 'caja',
     loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage),
     canActivate: [roleGuard],
-    // 🔒 Cajeros y administradores
     data: { expectedRoles: ['CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
     path: 'cortecaja',
-    loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CorteCajaPage),
+    loadComponent: () => import('./features/cortecaja/cortecaja.page').then(m => m.CortecajaPage),
     canActivate: [roleGuard],
-    // 🔒 Cajeros y administradores
     data: { expectedRoles: ['CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
     path: 'mostrador',
     loadComponent: () => import('./features/mostrador/mostrador.page').then(m => m.MostradorPage),
     canActivate: [roleGuard],
-    // 🔒 Personal de mostrador y administradores
     data: { expectedRoles: ['MOSTRADOR', 'ADMINISTRADOR'] } 
   },
   {
     path: 'crrito',
     loadComponent: () => import('./features/crrito/crrito.page').then(m => m.CrritoPage),
     canActivate: [roleGuard],
-    // 🔒 Ventas y carrito
     data: { expectedRoles: ['MOSTRADOR', 'ADMINISTRADOR'] } 
   },
   {
     path: 'orden',
     loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage),
     canActivate: [roleGuard],
-    // 🔒 Todos ocupan gestionar órdenes (Mostrador crea, Caja cobra)
     data: { expectedRoles: ['MOSTRADOR', 'CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
   },
   {
     path: 'optometrista', 
     loadComponent: () => import('./features/optometrista/optometrista.page').then(m => m.OptometristaPage),
     canActivate: [roleGuard],
-    // 🔒 Optometristas y Administradores
     data: { expectedRoles: ['OPTOMETRISTA', 'ADMINISTRADOR'] } 
   },
   {
     path: 'operadores', 
     loadComponent: () => import('./features/operadores/operadores.page').then(m => m.OperadoresPage),
     canActivate: [roleGuard],
-    // 🔒 Gestión exclusiva del administrador
     data: { expectedRoles: ['ADMINISTRADOR'] }
   },
   {
     path: 'facturacion',
     loadComponent: () => import('./features/facturacion/facturacion.page').then(m => m.FacturacionPage),
     canActivate: [roleGuard],
-    // 🔒 Administradores, contadores, cajeros y personal de mostrador
     data: { expectedRoles: ['ADMINISTRADOR', 'CONTADOR', 'CAJA', 'CAJER@', 'MOSTRADOR'] }
   },
   {
@@ -87,15 +84,8 @@ export const routes: Routes = [
   },
   
   // ==========================================
-  // RUTA DE PRUEBAS O LIBRES
+  // RUTAS PRUEBAS O REDIRECCIONES
   // ==========================================
-  {
-    path: 'dashboard', 
-    loadComponent: () => import('./features/dashboard/dashboard.page').then(m => m.DashboardPage),
-    canActivate: [roleGuard],
-    // 🔒 Dashboard Ejecutivo
-    data: { expectedRoles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'OPTOMETRISTA'] }
-  },
   {
     path: 'calizdeformulario',
     loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then(m => m.CalizdeformularioPage)
@@ -106,7 +96,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: '**', // 🚨 EL COMODÍN SIEMPRE DEBE IR AL FINAL DE TODO
+    path: '**', // Comodín siempre al final
     redirectTo: 'auth/login' 
   }
 ];

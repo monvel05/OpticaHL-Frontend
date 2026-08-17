@@ -5,7 +5,7 @@
     </ion-buttons>
     <ion-title style="font-weight: bold;">Punto de Cobro - Caja Óptica</ion-title>
     <ion-buttons slot="end">
-      <ion-button routerLink="/corte-caja">
+      <ion-button routerLink="/cortecaja">
         <ion-icon slot="start" name="analytics-outline"></ion-icon>
         Ver Corte
       </ion-button>
@@ -36,7 +36,7 @@
   @if (ordenSeleccionada) {
     <ion-card style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin: 0;">
       
-      <!-- Encabezado con color dinámico según el estado de la orden -->
+      <!-- Encabezado con color dinámico -->
       <ion-card-header [color]="esLiquidada ? 'success' : 'medium'" style="padding: 12px 16px;">
         <ion-card-title style="font-size: 16px; font-weight: bold; color: white; display: flex; justify-content: space-between; align-items: center;">
           <span>Orden de: {{ ordenSeleccionada.paciente || ordenSeleccionada.paciente_nombre || 'Cliente General' }}</span>
@@ -57,7 +57,7 @@
 
         <ion-list lines="none" style="background: transparent;">
           
-          <!-- Lista de artículos si viene el arreglo de la orden -->
+          <!-- Lista de artículos -->
           @if (ordenSeleccionada.articulos && ordenSeleccionada.articulos.length > 0) {
             @for (item of ordenSeleccionada.articulos; track item.id_articulo) {
               <ion-item style="--background: transparent; --min-height: 35px;">
@@ -65,7 +65,7 @@
                   Artículo Cód: {{ item.id_articulo }} (x{{ item.cantidad }})
                 </ion-label>
                 <ion-note slot="end" style="font-weight: 600; color: #2c3e50;">
-                  ${{ item.precio_unitario }}
+                  {{ item.precio_unitario | currency }}
                 </ion-note>
               </ion-item>
             }
@@ -75,25 +75,27 @@
           <!-- Resumen de montos -->
           <ion-item style="--background: transparent; --min-height: 30px;">
             <ion-label style="color: #666;">Total General:</ion-label>
-            <ion-note slot="end" style="font-weight: bold; color: #2c3e50;">${{ ordenSeleccionada.total }}</ion-note>
+            <ion-note slot="end" style="font-weight: bold; color: #2c3e50;">
+              {{ ordenSeleccionada.total | currency }}
+            </ion-note>
           </ion-item>
 
-          @if (ordenSeleccionada.anticipo !== undefined) {
-            <ion-item style="--background: transparent; --min-height: 30px;">
-              <ion-label style="color: #666;">Total Pagado/Anticipo:</ion-label>
-              <ion-note slot="end" color="primary" style="font-weight: bold;">${{ ordenSeleccionada.anticipo }}</ion-note>
-            </ion-item>
-          }
+          <ion-item style="--background: transparent; --min-height: 30px;">
+            <ion-label style="color: #666;">Total Pagado / Anticipos:</ion-label>
+            <ion-note slot="end" color="primary" style="font-weight: bold;">
+              {{ ordenSeleccionada.anticipo | currency }}
+            </ion-note>
+          </ion-item>
 
           <ion-item style="--background: transparent;">
             <ion-label><strong style="font-size: 16px; color: #2c3e50;">SALDO PENDIENTE:</strong></ion-label>
             <ion-note slot="end" [color]="esLiquidada ? 'medium' : 'danger'">
-              <strong style="font-size: 20px;">${{ ordenSeleccionada.saldo !== undefined ? ordenSeleccionada.saldo : ordenSeleccionada.total }}</strong>
+              <strong style="font-size: 20px;">{{ ordenSeleccionada.saldo | currency }}</strong>
             </ion-note>
           </ion-item>
         </ion-list>
 
-        <!-- Selector de método de pago (solo visible si aún hay saldo) -->
+        <!-- Selector de método de pago -->
         @if (!esLiquidada) {
           <div class="metodos-pago ion-margin-top">
             <p style="font-weight: 600; color: #777; margin-bottom: 8px; font-size: 13px;">Seleccione Método de Pago:</p>

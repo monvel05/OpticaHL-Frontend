@@ -34,8 +34,8 @@ export class OrdenService {
   }
 
   /** Obtener el detalle de una orden por su Folio de Óptica */
-  obtenerOrdenPorFolio(folio: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${folio}`);
+  obtenerOrdenPorFolio(folio: string) {
+    return this.http.get(`${this.apiUrl}/caja/orden/${folio}`);
   }
 
   // =====================

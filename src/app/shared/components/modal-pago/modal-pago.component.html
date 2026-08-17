@@ -1,6 +1,6 @@
 <ion-header class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title style="font-weight: bold;">Registrar Cobro</ion-title>
+    <ion-title style="font-weight: bold;">Registrar Cobro / Abono</ion-title>
     <ion-buttons slot="end">
       <ion-button (click)="cerrar()">Cerrar</ion-button>
     </ion-buttons>
@@ -11,10 +11,17 @@
   
   <ion-card style="border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.04); margin: 0 0 16px 0;">
     <ion-card-header class="ion-text-center" style="padding-bottom: 10px;">
-      <ion-card-subtitle style="text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Total a Liquidar</ion-card-subtitle>
+      <ion-card-subtitle style="text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px;">Saldo Actual Pendiente</ion-card-subtitle>
       <ion-card-title color="danger" style="font-size: 32px; font-weight: 800; margin-top: 5px;">
         {{ saldoPendiente() | currency }}
       </ion-card-title>
+      
+      <!-- Aviso del 50% si es primer pago -->
+      @if (pagosPrevios() <= 0) {
+        <span style="font-size: 11px; color: #666; display: block; margin-top: 4px;">
+          (Anticipo mínimo requerido de 50%: <strong>{{ montoMinimoRequerido() | currency }}</strong>)
+        </span>
+      }
     </ion-card-header>
   </ion-card>
 
@@ -29,7 +36,7 @@
 
     <ion-item style="--background: transparent;">
       <ion-input 
-        label="Monto Recibido" 
+        label="Monto a Abonar / Recibido" 
         label-placement="floating" 
         type="number" 
         [ngModel]="montoRecibido()" 
@@ -40,16 +47,39 @@
   </ion-list>
 
   <div class="ion-margin-top ion-padding-horizontal">
+    <!-- Alerta si el monto es menor al 50% inicial -->
+    @if (montoRecibido() > 0 && montoRecibido() < montoMinimoRequerido()) {
+      <div style="background: #ffebee; border-left: 5px solid var(--ion-color-danger); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+        <p style="margin: 0; color: #c62828; font-size: 13px; font-weight: bold;">
+          ⚠️ El anticipo inicial debe ser de al menos un 50% ({{ montoMinimoRequerido() | currency }}).
+        </p>
+      </div>
+    }
+
+    <!-- Alerta si intenta abonar más del saldo con tarjeta/transferencia -->
+    @if (metodoPago() !== 'Efectivo' && montoRecibido() > saldoPendiente()) {
+      <div style="background: #ffebee; border-left: 5px solid var(--ion-color-danger); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
+        <p style="margin: 0; color: #c62828; font-size: 13px; font-weight: bold;">
+          ⚠️ El monto en tarjeta/transferencia no puede ser mayor al saldo pendiente.
+        </p>
+      </div>
+    }
+
+    <!-- Visualización de cambio a entregar (Efectivo) -->
     @if (cambio() > 0 && metodoPago() === 'Efectivo') {
-      <div style="background: #e8f5e9; border-left: 5px solid var(--ion-color-success); padding: 12px; border-radius: 6px;">
+      <div style="background: #e8f5e9; border-left: 5px solid var(--ion-color-success); padding: 12px; border-radius: 6px; margin-bottom: 10px;">
         <p style="margin: 0; color: #2e7d32; font-size: 13px; font-weight: bold; text-transform: uppercase;">Cambio a entregar al Paciente:</p>
         <h2 style="margin: 4px 0 0 0; font-weight: 800; color: #1b5e20; font-size: 22px;">{{ cambio() | currency }}</h2>
       </div>
     }
 
-    @if (montoRecibido() < saldoPendiente() && metodoPago() !== 'Efectivo' && montoRecibido() > 0) {
-      <div style="background: #ffebee; border-left: 5px solid var(--ion-color-danger); padding: 12px; border-radius: 6px;">
-        <p style="margin: 0; color: #c62828; font-size: 13px; font-weight: bold;">⚠️ El monto en tarjeta/transferencia debe ser exacto al total.</p>
+    <!-- Resumen de nuevo saldo tras realizar este pago -->
+    @if (esValido()) {
+      <div style="background: #e3f2fd; border-left: 5px solid var(--ion-color-primary); padding: 10px; border-radius: 6px;">
+        <p style="margin: 0; color: #1565c0; font-size: 12px; font-weight: bold;">
+          Nuevo Saldo Restante después de este pago: 
+          <strong>{{ nuevoSaldoPendiente() | currency }}</strong>
+        </p>
       </div>
     }
   </div>

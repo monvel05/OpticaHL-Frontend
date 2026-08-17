@@ -1,156 +1,99 @@
-import { Component, inject, OnInit, signal, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { 
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
-  IonContent, IonGrid, IonRow, IonCol, IonCard, IonCardContent, IonText, 
-  IonList, IonItem, IonLabel, IonNote, AlertController, ToastController, IonMenuButton
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, 
+  IonIcon, IonContent, IonCard, IonCardHeader, IonCardTitle, 
+  IonCardContent, IonRow, IonCol, IonList, IonItem, IonLabel, IonBackButton 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, cashOutline, cardOutline, receiptOutline, logOutOutline } from 'ionicons/icons';
+import { refreshOutline, documentTextOutline, closeOutline } from 'ionicons/icons';
 import { CajaService } from '../../core/services/caja.service';
-import{ AuthService } from 'src/app/core/services/auth.service';
+
 @Component({
-  selector: 'app-corte-caja',
+  selector: 'app-cortecaja',
   templateUrl: './cortecaja.page.html',
   styleUrls: ['./cortecaja.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
     CommonModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonButtons, 
-    IonButton, 
-    IonIcon, 
-    IonContent, 
-    IonGrid, 
-    IonRow, 
-    IonCol, 
-    IonCard, 
-    IonCardContent, 
-    IonText, 
-    IonList, 
-    IonItem, 
-    IonLabel, 
-    IonNote,
-    IonMenuButton
+    FormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonContent,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonRow,
+    IonCol,
+    IonList,
+    IonItem,
+    IonLabel,
+    IonBackButton
   ]
 })
-export class CorteCajaPage implements OnInit {
-  private alertCtrl = inject(AlertController);
-  private toastCtrl = inject(ToastController);
+export class CortecajaPage implements OnInit {
   private cajaService = inject(CajaService);
-  private authService = inject(AuthService);
-  // Signal reactiva para los movimientos reales
-  movimientos = signal<any[]>([]);
 
-  // Computed Signals para los cálculos automáticos en base a tu backend
-  totalEfectivo = computed(() => {
-    return this.movimientos()
-      .filter(m => m.metodo_pago === 'EFECTIVO' && m.tipo_movimiento === 'INGRESO')
-      .reduce((sum, m) => sum + Number(m.monto), 0);
-  });
-
-  totalBanco = computed(() => {
-    return this.movimientos()
-      .filter(m => (m.metodo_pago === 'TARJETA' || m.metodo_pago === 'TRANSFERENCIA') && m.tipo_movimiento === 'INGRESO')
-      .reduce((sum, m) => sum + Number(m.monto), 0);
-  });
-
-  totalDia = computed(() => this.totalEfectivo() + this.totalBanco());
+  datosCorte: any = null;
 
   constructor() {
-    addIcons({printOutline,logOutOutline,receiptOutline,cashOutline,cardOutline});
+    addIcons({
+      refreshOutline,
+      documentTextOutline,
+      closeOutline
+    });
   }
 
   ngOnInit() {
-    this.cargarMovimientosDelDia();
+    this.cargarCorteCaja();
   }
 
-  /**
-   * CORREGIDO: Llama a tu método real 'getMovimientos()'
-   */
-  cargarMovimientosDelDia() {
-    this.cajaService.getMovimientos().subscribe({
-      next: (res: any[]) => {
-        this.movimientos.set(res || []);
+  ionViewWillEnter() {
+    this.cargarCorteCaja();
+  }
+
+  cargarCorteCaja() {
+    this.cajaService.getCorteCaja().subscribe({
+      next: (res: any) => {
+        this.datosCorte = res;
       },
       error: (err: any) => {
-        console.error('Error al cargar movimientos de caja:', err);
+        console.error('Error al obtener el corte de caja:', err);
+        alert('No se pudo cargar la información del corte de caja.');
       }
     });
   }
 
-  async confirmarCierre() {
-    const alert = await this.alertCtrl.create({
-      header: 'Confirmar Cierre de Turno',
-      message: `¿Estás seguro de cerrar la caja con un total acumulado de ${this.totalDia()}? Se guardará el historial operativo.`,
-      buttons: [
-        { text: 'Volver a revisar', role: 'cancel' },
-        { 
-          text: 'Sí, Cerrar Caja', 
-          handler: () => this.ejecutarCierreDeCaja() 
+  imprimirCortePDF() {
+    const ventanaPDF = window.open('', '_blank');
+    if (ventanaPDF) {
+      ventanaPDF.document.write('Generando Ticket de Corte de Caja...');
+    }
+
+    // Llama al servicio de corte en PDF si cuentas con el endpoint en el backend
+    this.cajaService.descargarTicketCortePDF().subscribe({
+      next: (blob: Blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        if (ventanaPDF) {
+          ventanaPDF.location.href = blobUrl;
+        } else {
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = `Corte_Caja_${new Date().toISOString().slice(0,10)}.pdf`;
+          link.click();
         }
-      ]
-    });
-    await alert.present();
-  }
-
-  /**
-   * CORREGIDO: Usamos 'registrarMovimiento' para guardar el cierre. 
-   * Mandamos un tipo_movimiento: 'CIERRE' para que tu backend sepa diferenciarlo de un ingreso.
-   */
-  ejecutarCierreDeCaja() {
-    const resumenCorte = {
-      id_sucursal: 'HL01',
-      id_operador: 1,
-      tipo_movimiento: 'CIERRE',
-      metodo_pago: 'EFECTIVO', // Campo requerido por tu estructura general
-      monto: this.totalDia(),
-      concepto: `CIERRE DE TURNO: Efct: ${this.totalEfectivo()} - Banco: ${this.totalBanco()}. Total Movs: ${this.movimientos().length}`
-    };
-
-    this.cajaService.registrarMovimiento(resumenCorte).subscribe({
-      next: async () => {
-        const toast = await this.toastCtrl.create({
-          message: '¡Corte de caja guardado con éxito! Turno finalizado de forma correcta.',
-          duration: 3000,
-          color: 'success',
-          position: 'bottom'
-        });
-        await toast.present();
-        
-        // Refrescamos o limpiamos la pantalla tras cerrar la caja
-        this.cargarMovimientosDelDia();
       },
       error: (err: any) => {
-        console.error('Error al guardar el corte de caja:', err);
-        alert('Hubo un problema al intentar guardar el cierre financiero.');
+        if (ventanaPDF) ventanaPDF.close();
+        console.error('Error generando PDF de corte:', err);
+        alert('Error al descargar el PDF del corte de caja.');
       }
     });
-  }
-
-  obtenerIconoPago(metodo: string): string {
-    switch (metodo?.toUpperCase()) {
-      case 'EFECTIVO': return 'cash-outline';
-      case 'TARJETA': return 'card-outline';
-      default: return 'receipt-outline';
-    }
-  }
-
-  obtenerColorIcono(metodo: string): string {
-    switch (metodo?.toUpperCase()) {
-      case 'EFECTIVO': return 'success';
-      case 'TARJETA': return 'primary';
-      default: return 'warning';
-    }
-  }
-
-  imprimirResumen() {
-    window.print();
-  }
-  async logout() {
-    await this.authService.logout();
   }
 }

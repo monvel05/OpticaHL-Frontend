@@ -1,16 +1,17 @@
 import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { 
-  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon, 
-  IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle, 
+import {
+  IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
+  IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle,
   IonCardContent, IonList, IonLabel, IonNote, IonSegment, IonSegmentButton,
   ModalController, IonMenuButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { 
-  searchOutline, cashOutline, cardOutline, receiptOutline, 
-  checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline 
+import {
+  searchOutline, cashOutline, cardOutline, receiptOutline,
+  checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth.service';
 
@@ -18,7 +19,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
 import { OrdenService } from '../../core/services/orden.service';
 import { CajaService } from '../../core/services/caja.service';
 
-// MODAL DE PAGO CON SIGNALS
+// MODAL DE PAGO
 import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pago.component';
 
 @Component({
@@ -28,26 +29,27 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Default,
   imports: [
-    FormsModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
     RouterLink,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonButtons, 
-    IonButton, 
-    IonIcon, 
-    IonContent, 
-    IonItem, 
-    IonInput, 
-    IonCard, 
-    IonCardHeader, 
-    IonCardTitle, 
-    IonCardContent, 
-    IonList, 
-    IonLabel, 
-    IonNote, 
-    IonSegment, 
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonButtons,
+    IonButton,
+    IonIcon,
+    IonContent,
+    IonItem,
+    IonInput,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent,
+    IonList,
+    IonLabel,
+    IonNote,
+    IonSegment,
     IonSegmentButton,
     IonMenuButton
   ]
@@ -59,8 +61,8 @@ export class CajaPage {
   private authService = inject(AuthService);
 
   folioBusqueda = new FormControl('');
-  ordenSeleccionada: any = null; 
-  metodoPago: string = 'efectivo'; 
+  ordenSeleccionada: any = null;
+  metodoPago: string = 'efectivo';
   esLiquidada: boolean = false;
 
   constructor() {
@@ -77,25 +79,46 @@ export class CajaPage {
   }
 
   /**
-   * Busca la orden y evalúa si ya está liquidada
+   * Busca la orden e imprime en consola exactamente qué responde el backend
    */
   buscarOrden() {
     const folio = this.folioBusqueda.value;
     if (!folio || folio.trim() === '') return;
 
     const folioLimpio = folio.trim();
-    console.log('Buscando folio en la óptica:', folioLimpio);
+    console.log('🚀 Buscando folio:', folioLimpio);
 
     this.ordenService.obtenerOrdenPorFolio(folioLimpio).subscribe({
       next: (respuesta: any) => {
+        // --- LOGS DE DEPURACIÓN EN CONSOLA ---
+        console.log('🔍 1. RESPUESTA COMPLETA DEL BACKEND:', respuesta);
+        
         const datos = respuesta?.datos || respuesta;
+        console.log('📦 2. DATOS DE LA ORDEN:', datos);
+        console.log('💰 3. PROPIEDADES CLAVE DE MONTOS:', {
+          total: datos?.total,
+          total_general: datos?.total_general,
+          anticipo: datos?.anticipo,
+          monto_abonado: datos?.monto_abonado,
+          total_pagado: datos?.total_pagado,
+          saldo: datos?.saldo
+        });
+
         if (datos) {
-          this.ordenSeleccionada = datos;
-          
-          // Evalúa si ya fue pagada según el estatus o saldo de la respuesta
-          const saldoPendiente = datos.saldo !== undefined ? datos.saldo : (datos.total - (datos.anticipo || 0));
-          this.esLiquidada = (datos.estatus === 'PAGADO' || saldoPendiente <= 0);
-          
+          // Normalización de números
+          const total = Number(datos.total || datos.total_general || 0);
+          const anticipo = Number(datos.anticipo ?? datos.monto_abonado ?? datos.total_pagado ?? 0);
+          const saldoCalculado = datos.saldo !== undefined ? Number(datos.saldo) : Math.max(0, total - anticipo);
+
+          this.ordenSeleccionada = {
+            ...datos,
+            total: total,
+            anticipo: anticipo,
+            saldo: saldoCalculado
+          };
+
+          this.esLiquidada = (datos.estatus === 'PAGADO' || datos.estatus === 'LIQUIDADO' || saldoCalculado <= 0);
+
           if (this.esLiquidada) {
             alert('Aviso: Esta orden ya se encuentra liquidada completamente.');
           }
@@ -106,7 +129,7 @@ export class CajaPage {
         }
       },
       error: (err: any) => {
-        console.error('Error al buscar la orden:', err);
+        console.error('❌ Error al buscar la orden:', err);
         alert('No se encontró la orden o hubo un problema al conectar con el servidor.');
         this.ordenSeleccionada = null;
         this.esLiquidada = false;
@@ -115,19 +138,21 @@ export class CajaPage {
   }
 
   /**
-   * Abre el Modal de Cobro solo si la orden no está liquidada
+   * Abre el Modal de Cobro enviando los montos actuales
    */
   async registrarPago() {
     if (!this.ordenSeleccionada || this.esLiquidada) return;
 
-    const saldoCalculado = this.ordenSeleccionada.saldo !== undefined 
-      ? this.ordenSeleccionada.saldo 
-      : (this.ordenSeleccionada.total - (this.ordenSeleccionada.anticipo || 0));
+    const totalGeneral = Number(this.ordenSeleccionada.total || 0);
+    const anticipoAcumulado = Number(this.ordenSeleccionada.anticipo || 0);
+    const saldoCalculado = Number(this.ordenSeleccionada.saldo ?? (totalGeneral - anticipoAcumulado));
 
     const modalPago = await this.modalCtrl.create({
       component: ModalPagoComponent,
       componentProps: {
-        saldo: saldoCalculado
+        saldo: saldoCalculado,
+        total: totalGeneral,
+        anticipoPrevio: anticipoAcumulado
       }
     });
 
@@ -137,6 +162,14 @@ export class CajaPage {
 
     if (role === 'confirm' && pagoConfirmado) {
       const folioOrdenPago = this.ordenSeleccionada.folio || this.ordenSeleccionada.folio_orden || this.folioBusqueda.value;
+      const montoAbono = Number(pagoConfirmado.montoAbonado);
+      const nuevoSaldo = Math.max(0, saldoCalculado - montoAbono);
+      const nuevoAnticipo = anticipoAcumulado + montoAbono;
+
+      const esPagoTotal = nuevoSaldo <= 0;
+      const conceptoMovimiento = esPagoTotal
+        ? `Pago Total de Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`
+        : `Abono/Anticipo a Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`;
 
       const movimiento = {
         id_sucursal: 'HL01',
@@ -144,26 +177,29 @@ export class CajaPage {
         folio_orden: folioOrdenPago,
         tipo_movimiento: 'INGRESO',
         metodo_pago: (pagoConfirmado.metodo || this.metodoPago).toUpperCase(),
-        monto: pagoConfirmado.montoAbonado || saldoCalculado,
-        concepto: `Liquidación de Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`
+        monto: montoAbono,
+        concepto: conceptoMovimiento
       };
 
       this.cajaService.registrarMovimiento(movimiento).subscribe({
         next: () => {
           alert('¡Pago registrado con éxito!');
-          
-          // Preguntamos antes de limpiar la pantalla
+
+          // Actualización inmediata en pantalla
+          this.ordenSeleccionada = {
+            ...this.ordenSeleccionada,
+            anticipo: nuevoAnticipo,
+            saldo: nuevoSaldo,
+            estatus: esPagoTotal ? 'PAGADO' : 'PENDIENTE'
+          };
+          this.esLiquidada = esPagoTotal;
+
           if (confirm('¿Deseas descargar e imprimir el Ticket PDF en este momento?')) {
             this.imprimirTicket(folioOrdenPago);
           }
-
-          // Limpiar formulario y resetear estado
-          this.ordenSeleccionada = null;
-          this.folioBusqueda.setValue('');
-          this.esLiquidada = false;
         },
         error: (err: any) => {
-          console.error('Error al registrar dinero en caja:', err);
+          console.error('❌ Error al registrar dinero en caja:', err);
           alert(err.error?.mensaje || 'Error al procesar el pago en el servidor.');
         }
       });
@@ -171,32 +207,28 @@ export class CajaPage {
   }
 
   /**
-   * Genera y abre el Ticket PDF evitando bloqueos de pop-up
+   * Genera y abre el Ticket PDF
    */
   imprimirTicket(folioParam?: string) {
     const folio = folioParam || this.ordenSeleccionada?.folio || this.ordenSeleccionada?.folio_orden;
-    
+
     if (!folio) {
       alert('No hay un folio seleccionado para generar el ticket.');
       return;
     }
 
-    // 1. Abrimos la pestaña INMEDIATAMENTE para evitar el bloqueo de ventanas emergentes del navegador
     const ventanaPDF = window.open('', '_blank');
     if (ventanaPDF) {
       ventanaPDF.document.write('Cargando Ticket PDF...');
     }
 
-    // 2. Solicitamos el Blob al backend
     this.cajaService.descargarTicketPDF(folio).subscribe({
       next: (blob: Blob) => {
         const blobUrl = URL.createObjectURL(blob);
 
         if (ventanaPDF) {
-          // Asignamos la URL del PDF a la ventana pre-abierta
           ventanaPDF.location.href = blobUrl;
         } else {
-          // Respaldo de descarga forzada si la ventana emergente fue bloqueada por completo
           const link = document.createElement('a');
           link.href = blobUrl;
           link.download = `Ticket_${folio}.pdf`;
@@ -207,7 +239,7 @@ export class CajaPage {
       },
       error: (err: any) => {
         if (ventanaPDF) ventanaPDF.close();
-        console.error('Error descargando el ticket PDF:', err);
+        console.error('❌ Error descargando el ticket PDF:', err);
         alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
       }
     });
