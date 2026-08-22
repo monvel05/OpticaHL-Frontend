@@ -14,13 +14,27 @@
 
 <ion-content color="light" class="ion-padding">
 
+  <!-- Botón Registrar Gasto/Salida -->
+  <ion-button 
+    expand="block" 
+    color="danger" 
+    shape="round" 
+    style="margin-bottom: 16px; font-weight: bold;" 
+    (click)="registrarGasto()">
+    <ion-icon name="remove-circle-outline" slot="start"></ion-icon>
+    REGISTRAR GASTO / SALIDA
+  </ion-button>
+
+  <!-- Tarjeta de Saldos y Totales -->
   <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
     <ion-card-header color="secondary">
       <ion-card-title style="font-size: 16px; font-weight: bold; color: white;">
         💰 Dinero en Mostrador / Total Acumulado
       </ion-card-title>
     </ion-card-header>
+
     <ion-card-content style="padding: 16px;">
+      <!-- Desglose por Método -->
       <ion-row>
         <ion-col size="4" class="ion-text-center">
           <p style="margin:0; font-size: 12px; color: #666; font-weight: 600;">EFECTIVO</p>
@@ -41,10 +55,23 @@
           </h3>
         </ion-col>
       </ion-row>
-      
+
       <hr style="border: 0; border-top: 1px dashed #ccc; margin: 12px 0;">
-      
-      <div style="display: flex; justify-content: space-between; align-items: center;">
+
+      <!-- Ingresos y Gastos acumulados -->
+      <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+        <span style="color: #555; font-size: 13px;">Total Entradas / Ventas:</span>
+        <strong style="color: #2e7d32;">+{{ datosCorte?.resumen?.totalIngresos || 0 | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+        <span style="color: #555; font-size: 13px;">Total Gastos / Salidas:</span>
+        <strong style="color: #c62828;">-{{ datosCorte?.resumen?.totalEgresos || 0 | currency:'USD':'symbol':'1.2-2' }}</strong>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #ddd; margin: 8px 0;">
+
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
         <span style="font-weight: bold; font-size: 15px; color: #444;">TOTAL NETO EN CAJA:</span>
         <span style="font-weight: bold; font-size: 20px; color: #2c3e50;">
           {{ datosCorte?.resumen?.saldoNeto || 0 | currency:'USD':'symbol':'1.2-2' }}
@@ -53,6 +80,7 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- Lista de Movimientos -->
   <ion-card style="border-radius: 12px; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
     <ion-card-header color="dark">
       <ion-card-title style="font-size: 15px; font-weight: bold; color: white;">
@@ -60,14 +88,14 @@
       </ion-card-title>
     </ion-card-header>
     <ion-card-content style="padding: 8px 16px;">
-      
+
       @if (datosCorte?.movimientos && datosCorte.movimientos.length > 0) {
         <ion-list lines="inset" style="background: transparent;">
           @for (mov of datosCorte.movimientos; track mov.id_movimiento) {
             <ion-item style="--padding-start: 0; --inner-padding-end: 0;">
               <ion-label>
                 <h3 style="font-weight: bold; font-size: 14px; color: #2c3e50;">
-                  {{ mov.folio_orden || 'VENTA GENERAL' }}
+                  {{ mov.folio_orden || mov.concepto || 'GASTO / SALIDA' }}
                 </h3>
                 <p style="font-size: 12px; color: #555;">{{ mov.concepto }}</p>
                 <p style="font-size: 11px; color: #888;">
@@ -80,10 +108,14 @@
 
               <div slot="end" style="text-align: right;">
                 <span style="font-weight: bold; font-size: 15px;" [style.color]="mov.tipo_movimiento === 'INGRESO' ? '#2e7d32' : '#c62828'">
-                  {{ mov.tipo_movimiento === 'INGRESO' ? '+' : '-' }}{{ mov.monto | currency:'USD':'symbol':'1.2-2' }}
+                  @if (mov.tipo_movimiento === 'INGRESO') {
+                    +{{ mov.monto | currency:'USD':'symbol':'1.2-2' }}
+                  } @else {
+                    -{{ mov.monto | currency:'USD':'symbol':'1.2-2' }}
+                  }
                 </span>
                 <p style="font-size: 11px; color: #999; margin: 2px 0 0 0;">
-                  {{ mov.hora || (mov.fecha | date:'shortTime') }}
+                  {{ mov.hora || (mov.fecha_hora | date:'shortTime') }}
                 </p>
               </div>
             </ion-item>
@@ -98,14 +130,15 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- Botón Generar Corte -->
   <ion-button 
     expand="block" 
     color="primary" 
     shape="round" 
     style="margin-top: 20px; font-weight: bold; height: 48px;" 
-    (click)="imprimirCortePDF()">
+    (click)="confirmarYProcesarCorte()">
     <ion-icon name="document-text-outline" slot="start"></ion-icon>
-    IMPRIMIR TICKET DE CORTE
+    IMPRIMIR TICKET Y CERRAR CORTE
   </ion-button>
 
 </ion-content>
