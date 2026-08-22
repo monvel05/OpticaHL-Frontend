@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -59,6 +59,7 @@ export class CajaPage {
   private cajaService = inject(CajaService);
   private modalCtrl = inject(ModalController);
   private authService = inject(AuthService);
+  private cdr = inject(ChangeDetectorRef); // Inyectamos la detección de cambios
 
   folioBusqueda = new FormControl('');
   ordenSeleccionada: any = null;
@@ -78,34 +79,17 @@ export class CajaPage {
     });
   }
 
-  /**
-   * Busca la orden e imprime en consola exactamente qué responde el backend
-   */
   buscarOrden() {
     const folio = this.folioBusqueda.value;
     if (!folio || folio.trim() === '') return;
 
     const folioLimpio = folio.trim();
-    console.log('🚀 Buscando folio:', folioLimpio);
 
     this.ordenService.obtenerOrdenPorFolio(folioLimpio).subscribe({
       next: (respuesta: any) => {
-        // --- LOGS DE DEPURACIÓN EN CONSOLA ---
-        console.log('🔍 1. RESPUESTA COMPLETA DEL BACKEND:', respuesta);
-        
         const datos = respuesta?.datos || respuesta;
-        console.log('📦 2. DATOS DE LA ORDEN:', datos);
-        console.log('💰 3. PROPIEDADES CLAVE DE MONTOS:', {
-          total: datos?.total,
-          total_general: datos?.total_general,
-          anticipo: datos?.anticipo,
-          monto_abonado: datos?.monto_abonado,
-          total_pagado: datos?.total_pagado,
-          saldo: datos?.saldo
-        });
 
         if (datos) {
-          // Normalización de números
           const total = Number(datos.total || datos.total_general || 0);
           const anticipo = Number(datos.anticipo ?? datos.monto_abonado ?? datos.total_pagado ?? 0);
           const saldoCalculado = datos.saldo !== undefined ? Number(datos.saldo) : Math.max(0, total - anticipo);
@@ -124,22 +108,18 @@ export class CajaPage {
           }
         } else {
           alert('No se encontró ninguna orden con ese folio.');
-          this.ordenSeleccionada = null;
-          this.esLiquidada = false;
+          this.limpiarPantalla();
         }
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('❌ Error al buscar la orden:', err);
         alert('No se encontró la orden o hubo un problema al conectar con el servidor.');
-        this.ordenSeleccionada = null;
-        this.esLiquidada = false;
+        this.limpiarPantalla();
       }
     });
   }
 
-  /**
-   * Abre el Modal de Cobro enviando los montos actuales
-   */
   async registrarPago() {
     if (!this.ordenSeleccionada || this.esLiquidada) return;
 
@@ -164,7 +144,6 @@ export class CajaPage {
       const folioOrdenPago = this.ordenSeleccionada.folio || this.ordenSeleccionada.folio_orden || this.folioBusqueda.value;
       const montoAbono = Number(pagoConfirmado.montoAbonado);
       const nuevoSaldo = Math.max(0, saldoCalculado - montoAbono);
-      const nuevoAnticipo = anticipoAcumulado + montoAbono;
 
       const esPagoTotal = nuevoSaldo <= 0;
       const conceptoMovimiento = esPagoTotal
@@ -185,18 +164,13 @@ export class CajaPage {
         next: () => {
           alert('¡Pago registrado con éxito!');
 
-          // Actualización inmediata en pantalla
-          this.ordenSeleccionada = {
-            ...this.ordenSeleccionada,
-            anticipo: nuevoAnticipo,
-            saldo: nuevoSaldo,
-            estatus: esPagoTotal ? 'PAGADO' : 'PENDIENTE'
-          };
-          this.esLiquidada = esPagoTotal;
-
+          // Preguntar por la impresión del ticket
           if (confirm('¿Deseas descargar e imprimir el Ticket PDF en este momento?')) {
             this.imprimirTicket(folioOrdenPago);
           }
+
+          // LIMPIA LA PANTALLA INMEDIATAMENTE
+          this.limpiarPantalla();
         },
         error: (err: any) => {
           console.error('❌ Error al registrar dinero en caja:', err);
@@ -207,8 +181,15 @@ export class CajaPage {
   }
 
   /**
-   * Genera y abre el Ticket PDF
+   * Resetea el buscador y la orden seleccionada en la vista de caja
    */
+  limpiarPantalla() {
+    this.folioBusqueda.setValue('');
+    this.ordenSeleccionada = null;
+    this.esLiquidada = false;
+    this.cdr.detectChanges(); // Forzar la actualización inmediata de la UI
+  }
+
   imprimirTicket(folioParam?: string) {
     const folio = folioParam || this.ordenSeleccionada?.folio || this.ordenSeleccionada?.folio_orden;
 
