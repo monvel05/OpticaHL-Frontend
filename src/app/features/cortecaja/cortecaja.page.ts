@@ -1,6 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { 
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, 
   IonIcon, IonContent, IonCard, IonCardHeader, IonCardTitle, 
@@ -8,7 +9,10 @@ import {
   AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { refreshOutline, documentTextOutline, closeOutline, removeCircleOutline, checkmarkCircleOutline } from 'ionicons/icons';
+import { 
+  refreshOutline, documentTextOutline, closeOutline, 
+  removeCircleOutline, checkmarkCircleOutline, arrowBackOutline 
+} from 'ionicons/icons';
 import { CajaService } from '../../core/services/caja.service';
 
 @Component({
@@ -19,6 +23,7 @@ import { CajaService } from '../../core/services/caja.service';
   imports: [
     CommonModule,
     FormsModule,
+    RouterLink,
     IonHeader,
     IonToolbar,
     IonTitle,
@@ -41,7 +46,7 @@ import { CajaService } from '../../core/services/caja.service';
 export class CortecajaPage implements OnInit {
   private cajaService = inject(CajaService);
   private alertCtrl = inject(AlertController);
-  private cdr = inject(ChangeDetectorRef); // Inyectamos el detector de cambios
+  private cdr = inject(ChangeDetectorRef);
 
   datosCorte: any = null;
 
@@ -51,7 +56,8 @@ export class CortecajaPage implements OnInit {
       documentTextOutline,
       closeOutline,
       removeCircleOutline,
-      checkmarkCircleOutline
+      checkmarkCircleOutline,
+      arrowBackOutline
     });
   }
 
@@ -67,7 +73,7 @@ export class CortecajaPage implements OnInit {
     this.cajaService.getCorteCaja().subscribe({
       next: (res: any) => {
         this.datosCorte = res;
-        this.cdr.detectChanges(); // Forzar actualización visual
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         console.error('Error al obtener el corte de caja:', err);
@@ -165,7 +171,6 @@ export class CortecajaPage implements OnInit {
           link.click();
         }
 
-        // Limpia la pantalla en segundo plano
         this.limpiarPantallaCorte();
       },
       error: (err: any) => {
@@ -186,6 +191,6 @@ export class CortecajaPage implements OnInit {
       },
       movimientos: []
     };
-    this.cdr.detectChanges(); // Fuerza a la interfaz a ponerse en $0.00 al instante
+    this.cdr.detectChanges();
   }
 }

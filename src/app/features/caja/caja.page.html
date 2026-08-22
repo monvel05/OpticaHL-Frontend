@@ -18,6 +18,7 @@
 
 <ion-content color="light" class="ion-padding">
   
+  <!-- Buscador de Folios -->
   <div class="search-container" style="margin-bottom: 16px;">
     <ion-item lines="outline" style="--background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
       <ion-input 
@@ -33,7 +34,73 @@
     </ion-item>
   </div>
 
+  <!-- Botón de Cobro Rápido (Aparece en la vista principal) -->
+  @if (!ordenSeleccionada) {
+    <ion-button 
+      expand="block" 
+      color="warning" 
+      shape="round" 
+      style="margin-bottom: 16px; font-weight: bold; color: #000; height: 46px;" 
+      (click)="cobroRapido()">
+      <ion-icon name="flash-outline" slot="start"></ion-icon>
+      ⚡ COBRO RÁPIDO / VENTA MOSTRADOR
+    </ion-button>
+  }
+
+  <!-- Lista de Últimas 5 Ventas / Órdenes Recientes (Vista 1) -->
+  @if (!ordenSeleccionada && ultimasOrdenes.length > 0) {
+    <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <ion-card-header color="light" style="padding: 12px 16px;">
+        <ion-card-title style="font-size: 14px; font-weight: bold; color: #444; display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="time-outline" style="font-size: 18px; color: #1565c0;"></ion-icon>
+          Últimas Ventas / Órdenes Recientes
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content style="padding: 0;">
+        <ion-list lines="full" style="padding: 0;">
+          @for (orden of ultimasOrdenes; track orden.folio || orden.folio_orden) {
+            <ion-item button (click)="seleccionarOrdenRapida(orden.folio || orden.folio_orden)" detail="true">
+              <ion-label>
+                <h3 style="font-weight: bold; color: #2c3e50; margin-bottom: 2px;">
+                  {{ orden.folio || orden.folio_orden }}
+                </h3>
+                <p style="font-size: 12px; color: #666;">
+                  Cliente: {{ orden.paciente || orden.paciente_nombre || 'Venta General' }}
+                </p>
+              </ion-label>
+
+              <div slot="end" style="text-align: right;">
+                <span 
+                  [style.background-color]="orden.estatus === 'PAGADO' || orden.estatus === 'LIQUIDADO' ? '#2e7d32' : '#ed6c02'" 
+                  style="color: white; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 12px; display: inline-block; margin-bottom: 4px;">
+                  {{ orden.estatus || 'PENDIENTE' }}
+                </span>
+                <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2e7d32;">
+                  {{ (orden.total || orden.total_general || 0) | currency }}
+                </p>
+              </div>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- Detalle de Orden Seleccionada (Vista 2) -->
   @if (ordenSeleccionada) {
+
+    <!-- Botón para Regresar a la Vista Principal -->
+    <ion-button 
+      fill="clear" 
+      color="dark" 
+      size="small" 
+      style="margin-bottom: 8px; font-weight: bold;" 
+      (click)="limpiarPantalla()">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Volver a la lista
+    </ion-button>
+
     <ion-card style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin: 0;">
       
       <!-- Encabezado con color dinámico -->

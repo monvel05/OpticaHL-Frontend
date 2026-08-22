@@ -1,4 +1,4 @@
-import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, inject, ChangeDetectionStrategy, ChangeDetectorRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -6,12 +6,13 @@ import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle,
   IonCardContent, IonList, IonLabel, IonNote, IonSegment, IonSegmentButton,
-  ModalController, IonMenuButton
+  ModalController, IonMenuButton, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   searchOutline, cashOutline, cardOutline, receiptOutline,
-  checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline
+  checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline, timeOutline,
+  arrowBackOutline, flashOutline
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth.service';
 
@@ -54,15 +55,17 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
     IonMenuButton
   ]
 })
-export class CajaPage {
+export class CajaPage implements OnInit {
   private ordenService = inject(OrdenService);
   private cajaService = inject(CajaService);
   private modalCtrl = inject(ModalController);
   private authService = inject(AuthService);
-  private cdr = inject(ChangeDetectorRef); // Inyectamos la detección de cambios
+  private cdr = inject(ChangeDetectorRef);
+  private alertCtrl = inject(AlertController);
 
   folioBusqueda = new FormControl('');
   ordenSeleccionada: any = null;
+  ultimasOrdenes: any[] = [];
   metodoPago: string = 'efectivo';
   esLiquidada: boolean = false;
 
@@ -75,8 +78,37 @@ export class CajaPage {
       cardOutline,
       receiptOutline,
       checkmarkCircleOutline,
-      documentTextOutline
+      documentTextOutline,
+      timeOutline,
+      arrowBackOutline,
+      flashOutline
     });
+  }
+
+  ngOnInit() {
+    this.cargarUltimasOrdenes();
+  }
+
+  ionViewWillEnter() {
+    this.cargarUltimasOrdenes();
+  }
+
+  cargarUltimasOrdenes() {
+    this.ordenService.obtenerOrdenes().subscribe({
+      next: (res: any) => {
+        const lista = res?.datos || res || [];
+        this.ultimasOrdenes = Array.isArray(lista) ? lista.slice(0, 5) : [];
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => {
+        console.error('Error al cargar órdenes recientes:', err);
+      }
+    });
+  }
+
+  seleccionarOrdenRapida(folio: string) {
+    this.folioBusqueda.setValue(folio);
+    this.buscarOrden();
   }
 
   buscarOrden() {
@@ -164,13 +196,12 @@ export class CajaPage {
         next: () => {
           alert('¡Pago registrado con éxito!');
 
-          // Preguntar por la impresión del ticket
           if (confirm('¿Deseas descargar e imprimir el Ticket PDF en este momento?')) {
             this.imprimirTicket(folioOrdenPago);
           }
 
-          // LIMPIA LA PANTALLA INMEDIATAMENTE
           this.limpiarPantalla();
+          this.cargarUltimasOrdenes();
         },
         error: (err: any) => {
           console.error('❌ Error al registrar dinero en caja:', err);
@@ -180,14 +211,74 @@ export class CajaPage {
     }
   }
 
-  /**
-   * Resetea el buscador y la orden seleccionada en la vista de caja
-   */
+  // --- NUEVA FUNCIÓN: COBRO RÁPIDO ---
+  async cobroRapido() {
+    const alert = await this.alertCtrl.create({
+      header: '⚡ Cobro Rápido / Mostrador',
+      inputs: [
+        {
+          name: 'concepto',
+          type: 'text',
+          placeholder: 'Producto (Ej. Agarrita, Solución)'
+        },
+        {
+          name: 'monto',
+          type: 'number',
+          placeholder: 'Monto ($)',
+          attributes: { min: 1 }
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Efectivo',
+          handler: (data) => this.procesarVentaRapida(data, 'EFECTIVO')
+        },
+        {
+          text: 'Tarjeta',
+          handler: (data) => this.procesarVentaRapida(data, 'TARJETA')
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  private procesarVentaRapida(data: any, metodo: string) {
+    if (!data.concepto || !data.monto || Number(data.monto) <= 0) {
+      alert('Ingresa un concepto y monto válido.');
+      return false;
+    }
+
+    const movimiento = {
+      id_sucursal: 'HL01',
+      id_operador: 1,
+      folio_orden: null,
+      tipo_movimiento: 'INGRESO',
+      metodo_pago: metodo,
+      monto: Number(data.monto),
+      concepto: `COBRO RÁPIDO: ${data.concepto.toUpperCase()}`
+    };
+
+    this.cajaService.registrarMovimiento(movimiento).subscribe({
+      next: () => {
+        alert('¡Venta rápida registrada con éxito!');
+        this.cargarUltimasOrdenes();
+      },
+      error: (err: any) => {
+        console.error('Error en cobro rápido:', err);
+        alert('No se pudo registrar la venta exprés.');
+      }
+    });
+    return true;
+  }
+  // --- FIN COBRO RÁPIDO ---
+
   limpiarPantalla() {
     this.folioBusqueda.setValue('');
     this.ordenSeleccionada = null;
     this.esLiquidada = false;
-    this.cdr.detectChanges(); // Forzar la actualización inmediata de la UI
+    this.cdr.detectChanges();
   }
 
   imprimirTicket(folioParam?: string) {
