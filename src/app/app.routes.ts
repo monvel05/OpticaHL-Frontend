@@ -72,6 +72,12 @@ export const routes: Routes = [
     data: { expectedRoles: ['ADMINISTRADOR'] }
   },
   {
+    path: 'sucursales',
+    loadComponent: () => import('./features/sucursales/sucursales.page').then(m => m.SucursalesPage),
+    canActivate: [roleGuard],
+    data: { expectedRoles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'CAJER@', 'OPTOMETRISTA', 'INVENTARIO', 'CONTADOR'] }
+  },
+  {
     path: 'facturacion',
     loadComponent: () => import('./features/facturacion/facturacion.page').then(m => m.FacturacionPage),
     canActivate: [roleGuard],

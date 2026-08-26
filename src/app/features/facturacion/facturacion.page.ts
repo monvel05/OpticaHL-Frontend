@@ -13,7 +13,7 @@ import {
   closeCircleOutline, searchOutline, refreshOutline, documentTextOutline, 
   checkmarkCircleOutline, alertCircleOutline, eyeOutline, filterOutline,
   personOutline, cardOutline, businessOutline, lockClosedOutline, keyOutline,
-  closeOutline, checkmarkCircle
+  closeOutline, checkmarkCircle, logoWhatsapp
 } from 'ionicons/icons';
 import { FacturacionService, ConceptoFactura } from '../../core/services/facturacion.service';
 
@@ -139,7 +139,8 @@ export class FacturacionPage implements OnInit {
       closeCircleOutline, searchOutline, refreshOutline, documentTextOutline, 
       checkmarkCircleOutline, alertCircleOutline, eyeOutline, filterOutline,
       personOutline, cardOutline, businessOutline, lockClosedOutline, keyOutline,
-      closeOutline, checkmarkCircle,
+      closeOutline, checkmarkCircle, logoWhatsapp,
+      'logo-whatsapp': logoWhatsapp,
       'lock-closed-outline': lockClosedOutline,
       'key-outline': keyOutline,
       'receipt-outline': receiptOutline,
@@ -388,6 +389,46 @@ export class FacturacionPage implements OnInit {
 
   descargarPDFFactura(numFactura: string) {
     this.facturacionService.descargarPDF(numFactura);
+  }
+
+  enviarFacturaWhatsApp(facturaObj?: any) {
+    const f = facturaObj || this.facturaExitoData;
+    if (!f) return;
+
+    const rawTel = f.celular || f.telefono || this.facturaForm.value.celular || this.facturaForm.value.telefono;
+    const email = f.email || this.facturaForm.value.email;
+
+    if ((!rawTel || !String(rawTel).trim()) && (!email || !String(email).trim())) {
+      alert('⚠️ Sin medios de contacto registrados: El receptor de la factura no tiene registrado ningún número de teléfono celular ni correo electrónico.');
+      return;
+    }
+
+    if (!rawTel || !String(rawTel).trim()) {
+      alert(`⚠️ El receptor no cuenta con teléfono celular para WhatsApp registrado. (Su correo registrado es: ${email})`);
+      return;
+    }
+
+    const numLimpio = String(rawTel).replace(/\D/g, '');
+    if (!numLimpio) {
+      alert('⚠️ El número de teléfono registrado no es válido.');
+      return;
+    }
+
+    const numFinal = numLimpio.length === 10 ? `52${numLimpio}` : numLimpio;
+    const clienteNombre = f.cliente || f.razon_social || this.facturaForm.value.razon_social || 'Cliente';
+    const numFactura = f.num_factura || f.folio_factura;
+    const uuid = f.uuid || 'N/A';
+    const total = Number(f.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    const mensaje = `¡Hola ${clienteNombre}! 👓\n\n` +
+      `Te compartimos los datos de tu comprobante fiscal de *Óptica HL*:\n` +
+      `🧾 *Factura:* ${numFactura}\n` +
+      `🔑 *UUID (SAT):* ${uuid}\n` +
+      `💰 *Total:* $${total}\n\n` +
+      `¡Gracias por tu preferencia!`;
+
+    const url = `https://api.whatsapp.com/send?phone=${numFinal}&text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
   }
 
   // Historial y Consultas

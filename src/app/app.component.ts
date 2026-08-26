@@ -16,7 +16,8 @@ import { addIcons } from 'ionicons';
 import { 
   cubeOutline, cashOutline, documentTextOutline, 
   peopleOutline, logOutOutline, cartOutline, eyeOutline, barChartOutline, receiptOutline,
-  lockClosedOutline, keyOutline, checkmarkCircleOutline, alertCircleOutline, closeCircleOutline
+  lockClosedOutline, keyOutline, checkmarkCircleOutline, alertCircleOutline, closeCircleOutline,
+  businessOutline
 } from 'ionicons/icons';
 
 // Interfaz para la configuración de las rutas
@@ -65,6 +66,7 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Inventario', url: '/inventario', icon: 'cube-outline', roles: ['ADMINISTRADOR'] },
     { title: 'Operadores', url: '/operadores', icon: 'people-outline', roles: ['ADMINISTRADOR'] },
+    { title: 'Sucursales', url: '/sucursales', icon: 'business-outline', roles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'CAJER@', 'OPTOMETRISTA', 'INVENTARIO', 'CONTADOR'] },
     { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] },
     { title: 'Dashboard', url: '/dashboard', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] }
   ];
@@ -86,6 +88,7 @@ export class AppComponent implements OnInit, OnDestroy {
       'checkmark-circle-outline': checkmarkCircleOutline,
       'alert-circle-outline': alertCircleOutline,
       'close-circle-outline': closeCircleOutline,
+      'business-outline': businessOutline,
       lockClosedOutline,
       keyOutline
     });

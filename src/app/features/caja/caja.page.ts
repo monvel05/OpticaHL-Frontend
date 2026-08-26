@@ -194,12 +194,7 @@ export class CajaPage implements OnInit {
 
       this.cajaService.registrarMovimiento(movimiento).subscribe({
         next: () => {
-          alert('¡Pago registrado con éxito!');
-
-          if (confirm('¿Deseas descargar e imprimir el Ticket PDF en este momento?')) {
-            this.imprimirTicket(folioOrdenPago);
-          }
-
+          this.ofrecerOpcionesComprobante(folioOrdenPago, this.ordenSeleccionada);
           this.limpiarPantalla();
           this.cargarUltimasOrdenes();
         },
@@ -209,6 +204,85 @@ export class CajaPage implements OnInit {
         }
       });
     }
+  }
+
+  /**
+   * Muestra las opciones de envío e impresión de comprobante según los contactos registrados del cliente
+   */
+  async ofrecerOpcionesComprobante(folio: string, orden: any) {
+    const celular = orden?.celular || orden?.telefono;
+    const email = orden?.email;
+    const tieneContactos = Boolean((celular && celular.trim()) || (email && email.trim()));
+
+    const alertOptions = await this.alertCtrl.create({
+      header: '¡Pago Registrado con Éxito!',
+      subHeader: `Folio: ${folio}`,
+      message: tieneContactos 
+        ? 'Elige cómo deseas enviar o entregar el comprobante al cliente:' 
+        : '⚠️ Aviso: El cliente no tiene ningún medio de contacto (teléfono celular o correo) registrado.',
+      buttons: [
+        {
+          text: '📱 Enviar por WhatsApp',
+          handler: () => {
+            if (!celular || !celular.trim()) {
+              this.alertCtrl.create({
+                header: '⚠️ Sin teléfono registrado',
+                message: 'El cliente no tiene registrado ningún número de teléfono celular para WhatsApp.',
+                buttons: ['Entendido']
+              }).then(a => a.present());
+              return false;
+            }
+            this.enviarWhatsAppTicket(folio, orden);
+            return true;
+          }
+        },
+        {
+          text: '🖨️ Descargar / Imprimir PDF',
+          handler: () => {
+            this.imprimirTicket(folio);
+            return true;
+          }
+        },
+        {
+          text: 'Cerrar',
+          role: 'cancel'
+        }
+      ]
+    });
+
+    await alertOptions.present();
+  }
+
+  /**
+   * Abre WhatsApp con el resumen formateado del comprobante
+   */
+  enviarWhatsAppTicket(folio: string, orden: any) {
+    const rawTel = orden?.celular || orden?.telefono;
+    if (!rawTel) {
+      alert('⚠️ El cliente no tiene registrado ningún medio de contacto telefónico.');
+      return;
+    }
+
+    const numLimpio = String(rawTel).replace(/\D/g, '');
+    if (!numLimpio) {
+      alert('⚠️ El número de teléfono registrado no es válido.');
+      return;
+    }
+
+    const numFinal = numLimpio.length === 10 ? `52${numLimpio}` : numLimpio;
+    const nombreCliente = orden?.paciente || orden?.paciente_nombre || 'Cliente';
+    const total = Number(orden?.total || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+    const saldo = Number(orden?.saldo || 0).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+
+    const mensaje = `¡Hola ${nombreCliente}! 👓\n\n` +
+      `Gracias por tu pago en *Óptica HL*.\n` +
+      `📄 *Comprobante / Orden:* ${folio}\n` +
+      `💰 *Total:* $${total}\n` +
+      `💳 *Saldo Restante:* $${saldo}\n\n` +
+      `¡Quedamos a tus órdenes!`;
+
+    const url = `https://api.whatsapp.com/send?phone=${numFinal}&text=${encodeURIComponent(mensaje)}`;
+    window.open(url, '_blank');
   }
 
   // --- NUEVA FUNCIÓN: COBRO RÁPIDO ---

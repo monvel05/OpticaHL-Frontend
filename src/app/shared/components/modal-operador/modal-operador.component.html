@@ -51,6 +51,27 @@
       </div>
     </ion-item>
 
+    @if (isRolSelected('OPTOMETRISTA')) {
+      <ion-item-divider color="light" style="margin-top: 15px;">
+        <ion-label color="secondary" style="font-weight: bold;">🎓 Datos Académicos y Profesionales (Optometrista)</ion-label>
+      </ion-item-divider>
+
+      <ion-item>
+        <ion-label position="stacked">Especialidad</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.especialidad" placeholder="Ej. Contactología, Refracción Clínica, Pediátrica"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Cédula Profesional</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.cedula" placeholder="Ej. 12345678"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Universidad / Institución de Egreso</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.universidad" placeholder="Ej. Universidad Nacional Autónoma de México (UNAM)"></ion-input>
+      </ion-item>
+    }
+
     <ion-item>
       <ion-label position="stacked">Descripción / Nota Operativa</ion-label>
       <ion-textarea [(ngModel)]="formData.descripcion" placeholder="Ej. Vendedor Senior especializado en Armazones"></ion-textarea>

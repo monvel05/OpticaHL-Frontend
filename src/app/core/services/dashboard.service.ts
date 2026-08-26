@@ -332,7 +332,12 @@ export class DashboardService {
   // 1. Distribución Comercial Multisucursal desde DB
   getDistribucionMultisucursal(filtros: FiltrosDashboard): Observable<SucursalVenta[]> {
     return this.http.get<{ exito: boolean; datos: any[] }>(`${this.apiUrl}/dashboard-multisucursal`, {
-      params: { id_sucursal: filtros.idSucursal.toString(), rangoTiempo: filtros.rangoTiempo }
+      params: { 
+        id_sucursal: filtros.idSucursal.toString(), 
+        rangoTiempo: filtros.rangoTiempo,
+        fechaInicio: filtros.fechaInicio || '',
+        fechaFin: filtros.fechaFin || ''
+      }
     }).pipe(
       map(res => {
         if (res.exito && res.datos && res.datos.length > 0) {
@@ -346,16 +351,21 @@ export class DashboardService {
             color: this.colorPalette[idx % this.colorPalette.length]
           }));
         }
-        return this.getFallbackDistribucion(filtros);
+        return [];
       }),
-      catchError(() => of(this.getFallbackDistribucion(filtros)))
+      catchError(() => of([]))
     );
   }
 
   // 2. Top 10 Productos desde DB
   getTopProductosRotacion(filtros: FiltrosDashboard): Observable<ProductoRotacion[]> {
     return this.http.get<{ exito: boolean; datos: any[] }>(`${this.apiUrl}/dashboard-top-productos`, {
-      params: { id_sucursal: filtros.idSucursal.toString(), rangoTiempo: filtros.rangoTiempo }
+      params: { 
+        id_sucursal: filtros.idSucursal.toString(), 
+        rangoTiempo: filtros.rangoTiempo,
+        fechaInicio: filtros.fechaInicio || '',
+        fechaFin: filtros.fechaFin || ''
+      }
     }).pipe(
       map(res => {
         if (res.exito && res.datos && res.datos.length > 0) {
@@ -369,9 +379,9 @@ export class DashboardService {
             stockActual: Number(p.stockActual || 0)
           }));
         }
-        return this.getFallbackTopProductos(filtros);
+        return [];
       }),
-      catchError(() => of(this.getFallbackTopProductos(filtros)))
+      catchError(() => of([]))
     );
   }
 
@@ -398,28 +408,51 @@ export class DashboardService {
             accionSugerida: p.accionSugerida || 'Exhibir en mostrador'
           }));
         }
-        return this.getFallbackBajaRotacion(filtros);
+        return [];
       }),
-      catchError(() => of(this.getFallbackBajaRotacion(filtros)))
+      catchError(() => of([]))
     );
   }
 
   // 4. Métricas Financieras desde DB
   getMetricasFinancieras(filtros: FiltrosDashboard): Observable<MetricasFinancieras> {
     return this.http.get<{ exito: boolean; datos: MetricasFinancieras }>(`${this.apiUrl}/dashboard-metricas-financieras`, {
-      params: { id_sucursal: filtros.idSucursal.toString(), rangoTiempo: filtros.rangoTiempo }
+      params: { 
+        id_sucursal: filtros.idSucursal.toString(), 
+        rangoTiempo: filtros.rangoTiempo,
+        fechaInicio: filtros.fechaInicio || '',
+        fechaFin: filtros.fechaFin || ''
+      }
     }).pipe(
       map(res => {
-        if (res.exito && res.datos && res.datos.ingresoReal > 0) {
-          const fallback = this.getFallbackMetricas(filtros);
-          return {
-            ...res.datos,
-            historico: res.datos.historico && res.datos.historico.length > 0 ? res.datos.historico : fallback.historico
-          };
+        if (res.exito && res.datos) {
+          return res.datos;
         }
-        return this.getFallbackMetricas(filtros);
+        return {
+          periodo: filtros.rangoTiempo,
+          ingresoReal: 0,
+          ingresoProyectado: 0,
+          gananciaBruta: 0,
+          margenBrutoPorcentaje: 0,
+          gananciaNeta: 0,
+          margenNetoPorcentaje: 0,
+          gastosOperativos: 0,
+          cumplimientoMetaPorcentaje: 0,
+          historico: []
+        };
       }),
-      catchError(() => of(this.getFallbackMetricas(filtros)))
+      catchError(() => of({
+        periodo: filtros.rangoTiempo,
+        ingresoReal: 0,
+        ingresoProyectado: 0,
+        gananciaBruta: 0,
+        margenBrutoPorcentaje: 0,
+        gananciaNeta: 0,
+        margenNetoPorcentaje: 0,
+        gastosOperativos: 0,
+        cumplimientoMetaPorcentaje: 0,
+        historico: []
+      }))
     );
   }
 
@@ -429,12 +462,17 @@ export class DashboardService {
     optometristas: ProductividadOperador[];
   }> {
     return this.http.get<{ exito: boolean; datos: { mostrador: any[]; optometristas: any[] } }>(`${this.apiUrl}/dashboard-productividad-personal`, {
-      params: { id_sucursal: filtros.idSucursal.toString(), rangoTiempo: filtros.rangoTiempo }
+      params: { 
+        id_sucursal: filtros.idSucursal.toString(), 
+        rangoTiempo: filtros.rangoTiempo,
+        fechaInicio: filtros.fechaInicio || '',
+        fechaFin: filtros.fechaFin || ''
+      }
     }).pipe(
       map(res => {
-        if (res.exito && res.datos && (res.datos.mostrador.length > 0 || res.datos.optometristas.length > 0)) {
+        if (res.exito && res.datos) {
           return {
-            mostrador: res.datos.mostrador.map(m => ({
+            mostrador: (res.datos.mostrador || []).map(m => ({
               idOperador: m.idOperador,
               nombre: m.nombre,
               sucursal: m.sucursal || 'Matriz',
@@ -445,7 +483,7 @@ export class DashboardService {
               ticketPromedio: Number(m.ticketPromedio || 0),
               refraccionesCompletadas: 0
             })),
-            optometristas: res.datos.optometristas.map(o => ({
+            optometristas: (res.datos.optometristas || []).map(o => ({
               idOperador: o.idOperador,
               nombre: o.nombre,
               sucursal: o.sucursal || 'Matriz',
@@ -458,9 +496,9 @@ export class DashboardService {
             }))
           };
         }
-        return this.getFallbackProductividad(filtros);
+        return { mostrador: [], optometristas: [] };
       }),
-      catchError(() => of(this.getFallbackProductividad(filtros)))
+      catchError(() => of({ mostrador: [], optometristas: [] }))
     );
   }
 
@@ -472,8 +510,8 @@ export class DashboardService {
       params.fechaFin = fechaFin;
     }
     return this.http.get<{ exito: boolean; datos: VentaReporte[] }>(`${this.apiUrl}/ventas-completo`, { params }).pipe(
-      map(res => res.exito && res.datos ? res.datos : this.getFallbackVentasReporte()),
-      catchError(() => of(this.getFallbackVentasReporte()))
+      map(res => res.exito && res.datos ? res.datos : []),
+      catchError(() => of([]))
     );
   }
 
@@ -485,164 +523,8 @@ export class DashboardService {
       anio: (anio || hoy.getFullYear()).toString()
     };
     return this.http.get<{ exito: boolean; datos: DescuentoReporte[] }>(`${this.apiUrl}/descuentos-mensuales`, { params }).pipe(
-      map(res => res.exito && res.datos ? res.datos : this.getFallbackDescuentosReporte()),
-      catchError(() => of(this.getFallbackDescuentosReporte()))
+      map(res => res.exito && res.datos ? res.datos : []),
+      catchError(() => of([]))
     );
-  }
-
-  private getFallbackVentasReporte(): VentaReporte[] {
-    return [
-      { folio: 'ORD-001', fecha_emision: new Date(), cliente: 'Juan Pérez', estatus: 'PAGADO', total_orden: 1500, total_pagado: 1500 },
-      { folio: 'ORD-002', fecha_emision: new Date(), cliente: 'María López', estatus: 'COMPLETADO', total_orden: 2800, total_pagado: 2800 },
-      { folio: 'ORD-003', fecha_emision: new Date(), cliente: 'Carlos Mendoza', estatus: 'PENDIENTE', total_orden: 3400, total_pagado: 1700 },
-      { folio: 'ORD-004', fecha_emision: new Date(), cliente: 'Sofía Ramírez', estatus: 'COMPLETADO', total_orden: 1950, total_pagado: 1950 }
-    ];
-  }
-
-  private getFallbackDescuentosReporte(): DescuentoReporte[] {
-    return [
-      { folio_orden: 'ORD-001', fecha: new Date(), cliente: 'Juan Pérez', subtotal: 1700, descuento: 200, total: 1500 },
-      { folio_orden: 'ORD-003', fecha: new Date(), cliente: 'Carlos Mendoza', subtotal: 3900, descuento: 500, total: 3400 }
-    ];
-  }
-
-  // FALLBACKS
-  private getFallbackDistribucion(filtros: FiltrosDashboard): SucursalVenta[] {
-    let factor = 1.0;
-    if (filtros.rangoTiempo === 'DIARIO') factor = 0.035;
-    else if (filtros.rangoTiempo === 'SEMANAL') factor = 0.23;
-    else if (filtros.rangoTiempo === 'ANUAL') factor = 11.5;
-
-    let datos = this.distribucionSucursalesBase.map(item => ({
-      ...item,
-      montoTotal: Math.round(item.montoTotal * factor),
-      numTransacciones: Math.max(1, Math.round(item.numTransacciones * factor))
-    }));
-
-    if (filtros.idSucursal > 0) {
-      datos = datos.filter(d => d.idSucursal === filtros.idSucursal);
-    }
-    const totalGral = datos.reduce((sum, d) => sum + d.montoTotal, 0);
-    datos.forEach(d => {
-      d.porcentaje = totalGral > 0 ? Number(((d.montoTotal / totalGral) * 100).toFixed(1)) : 0;
-    });
-    return datos;
-  }
-
-  private getFallbackTopProductos(filtros: FiltrosDashboard): ProductoRotacion[] {
-    let factor = 1.0;
-    if (filtros.rangoTiempo === 'DIARIO') factor = 0.04;
-    else if (filtros.rangoTiempo === 'SEMANAL') factor = 0.22;
-    else if (filtros.rangoTiempo === 'ANUAL') factor = 12.0;
-
-    let lista = [...this.productosTopBase];
-    if (filtros.idSucursal > 0) {
-      lista = lista.map((p, idx) => ({
-        ...p,
-        unidadesVendidas: Math.max(2, Math.round((p.unidadesVendidas * factor) * ((idx % 3 === 0) ? 1.4 : 0.8))),
-        totalVentas: Math.max(500, Math.round((p.totalVentas * factor) * ((idx % 3 === 0) ? 1.4 : 0.8)))
-      }));
-    } else {
-      lista = lista.map(p => ({
-        ...p,
-        unidadesVendidas: Math.max(3, Math.round(p.unidadesVendidas * factor)),
-        totalVentas: Math.max(1000, Math.round(p.totalVentas * factor))
-      }));
-    }
-    lista.sort((a, b) => b.unidadesVendidas - a.unidadesVendidas);
-    return lista.slice(0, 10);
-  }
-
-  private getFallbackBajaRotacion(filtros: FiltrosDashboard): ProductoBajaRotacion[] {
-    let lista = [...this.productosBajaRotacionBase];
-    if (filtros.idSucursal > 0) {
-      lista = lista.filter(p => p.sucursalId === filtros.idSucursal);
-      if (lista.length === 0) {
-        lista = this.productosBajaRotacionBase.slice(0, 3).map(p => ({ ...p, sucursalId: filtros.idSucursal }));
-      }
-    }
-    return lista;
-  }
-
-  private getFallbackMetricas(filtros: FiltrosDashboard): MetricasFinancieras {
-    let factor = 1.0;
-    if (filtros.rangoTiempo === 'DIARIO') factor = 0.033;
-    else if (filtros.rangoTiempo === 'SEMANAL') factor = 0.23;
-    else if (filtros.rangoTiempo === 'ANUAL') factor = 12.0;
-
-    const ingresoReal = Math.round(1262000 * factor);
-    const ingresoProyectado = Math.round(1350000 * factor);
-    const gananciaBruta = Math.round(757200 * factor);
-    const gastosOperativos = Math.round(315500 * factor);
-    const gananciaNeta = Math.round(gananciaBruta - gastosOperativos);
-
-    const labels = filtros.rangoTiempo === 'DIARIO'
-      ? ['09:00', '11:00', '13:00', '15:00', '17:00', '19:00']
-      : filtros.rangoTiempo === 'SEMANAL'
-      ? ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
-      : filtros.rangoTiempo === 'ANUAL'
-      ? ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-      : ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'];
-
-    const historico: HistoricoFinanciero[] = labels.map((l, idx) => {
-      const varFactor = 0.8 + (idx % 4) * 0.12;
-      const hProyectado = Math.round((ingresoProyectado / labels.length) * varFactor);
-      const hReal = Math.round((ingresoReal / labels.length) * (varFactor * (idx % 2 === 0 ? 1.05 : 0.93)));
-      const hBruta = Math.round(hReal * 0.6);
-      const hNeta = Math.round(hBruta - (gastosOperativos / labels.length));
-      return { periodoEtiqueta: l, proyectado: hProyectado, real: hReal, gananciaBruta: hBruta, gananciaNeta: hNeta };
-    });
-
-    return {
-      periodo: filtros.rangoTiempo,
-      ingresoReal,
-      ingresoProyectado,
-      gananciaBruta,
-      margenBrutoPorcentaje: Number(((gananciaBruta / ingresoReal) * 100).toFixed(1)),
-      gananciaNeta,
-      margenNetoPorcentaje: Number(((gananciaNeta / ingresoReal) * 100).toFixed(1)),
-      gastosOperativos,
-      cumplimientoMetaPorcentaje: Number(((ingresoReal / ingresoProyectado) * 100).toFixed(1)),
-      historico
-    };
-  }
-
-  private getFallbackProductividad(filtros: FiltrosDashboard): {
-    mostrador: ProductividadOperador[];
-    optometristas: ProductividadOperador[];
-  } {
-    let factor = 1.0;
-    if (filtros.rangoTiempo === 'DIARIO') factor = 0.04;
-    else if (filtros.rangoTiempo === 'SEMANAL') factor = 0.24;
-    else if (filtros.rangoTiempo === 'ANUAL') factor = 12.0;
-
-    let operadores = [...this.operadoresBase];
-    if (filtros.idSucursal > 0) {
-      operadores = operadores.filter(o => o.sucursalId === filtros.idSucursal);
-    }
-
-    const mostrador = operadores
-      .filter(o => o.rol === 'MOSTRADOR')
-      .map(o => {
-        const monto = Math.round(o.ventasCerradasMonto * factor);
-        const cant = Math.max(1, Math.round(o.ventasCerradasCantidad * factor));
-        return {
-          ...o,
-          ventasCerradasMonto: monto,
-          ventasCerradasCantidad: cant,
-          ticketPromedio: cant > 0 ? Math.round(monto / cant) : 0
-        };
-      })
-      .sort((a, b) => b.ventasCerradasMonto - a.ventasCerradasMonto);
-
-    const optometristas = operadores
-      .filter(o => o.rol === 'OPTOMETRISTA')
-      .map(o => ({
-        ...o,
-        refraccionesCompletadas: Math.max(1, Math.round(o.refraccionesCompletadas * factor))
-      }))
-      .sort((a, b) => b.refraccionesCompletadas - a.refraccionesCompletadas);
-
-    return { mostrador, optometristas };
   }
 }

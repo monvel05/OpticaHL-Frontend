@@ -5,7 +5,7 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonButton, 
   IonButtons, IonItem, IonLabel, IonInput, IonSelect, 
   IonSelectOption, IonToggle, IonTextarea, IonChip, IonIcon,
-  ModalController, ToastController, IonList
+  ModalController, ToastController, IonList, IonItemDivider
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { checkmarkCircle, checkmarkOutline, shieldCheckmarkOutline } from 'ionicons/icons';
@@ -18,7 +18,7 @@ import { OperadoresService, Operador, CatalogosOperador } from '../../../core/se
     CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, 
     IonContent, IonButton, IonButtons, IonItem, IonLabel, 
     IonInput, IonSelect, IonSelectOption, IonToggle, IonTextarea,
-    IonChip, IonIcon, IonList
+    IonChip, IonIcon, IonList, IonItemDivider
   ],
   templateUrl: './modal-operador.component.html',
   styles: [`
@@ -66,7 +66,10 @@ export class ModalOperadorComponent implements OnInit {
     id_sucursal: 1,
     activo: true,
     descripcion: '',
-    roles: ['MOSTRADOR']
+    roles: ['MOSTRADOR'],
+    especialidad: '',
+    cedula: '',
+    universidad: ''
   };
 
   esEdicion = false;

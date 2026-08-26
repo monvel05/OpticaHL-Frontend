@@ -57,4 +57,11 @@ actualizarCliente(idCliente: number, datos: any): Observable<any> {
   // Si tu 'this.apiUrl' ya incluye la palabra '/clientes' (ej. http://localhost:3000/api/clientes):
   return this.http.put(`${this.apiUrl}/${idCliente}`, datos);
 }
+
+  /**
+   * 8. Eliminar un cliente de SQL
+   */
+  eliminarCliente(idCliente: number | string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${idCliente}`);
+  }
 }

@@ -14,6 +14,9 @@ export interface Operador {
   activo: boolean;
   descripcion?: string;
   roles?: string[];
+  especialidad?: string;
+  cedula?: string;
+  universidad?: string;
 }
 
 export interface FiltrosOperador {

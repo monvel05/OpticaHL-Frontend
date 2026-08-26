@@ -1,0 +1,71 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      {{ esEdicion ? 'Editar Sucursal' : 'Nueva Sucursal' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding modal-content-container">
+  <ion-list lines="full">
+    <ion-item-divider color="light">
+      <ion-label>Datos de la Sucursal</ion-label>
+    </ion-item-divider>
+
+    <!-- CÓDIGO DE SUCURSAL -->
+    <ion-item>
+      <ion-label position="stacked">Código de Sucursal *</ion-label>
+      <ion-input 
+        [(ngModel)]="formData.id_sucursal" 
+        [readonly]="esEdicion"
+        placeholder="Ej. HL03"
+        maxlength="10"
+        style="text-transform: uppercase;">
+      </ion-input>
+    </ion-item>
+    <div class="field-hint" style="padding-left: 16px;">
+      {{ esEdicion ? 'El identificador único de sucursal no se puede cambiar.' : 'Identificador alfanumérico único (máx. 10 caracteres, ej: HL03).' }}
+    </div>
+
+    <!-- NOMBRE DE SUCURSAL -->
+    <ion-item>
+      <ion-label position="stacked">Nombre de Sucursal *</ion-label>
+      <ion-input 
+        [(ngModel)]="formData.nombre" 
+        placeholder="Ej. Sucursal Plaza Sur"
+        maxlength="100">
+      </ion-input>
+    </ion-item>
+
+    <!-- DIRECCIÓN DE SUCURSAL -->
+    <ion-item>
+      <ion-label position="stacked">Dirección / Ubicación</ion-label>
+      <ion-textarea 
+        [(ngModel)]="formData.direccion" 
+        placeholder="Ej. Av. Hidalgo #123, Col. Centro, Calvillo"
+        rows="3">
+      </ion-textarea>
+    </ion-item>
+
+    <!-- ESTADO ACTIVO/INACTIVO -->
+    <ion-item>
+      <ion-label>Sucursal Activa</ion-label>
+      <ion-toggle slot="end" [(ngModel)]="formData.activo" color="success"></ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+    <ion-button fill="outline" color="medium" (click)="cerrarModal()" [disabled]="cargandoGuardado">
+      Cancelar
+    </ion-button>
+    <ion-button color="primary" (click)="guardar()" [disabled]="cargandoGuardado">
+      <ion-icon name="checkmark-circle" slot="start"></ion-icon>
+      {{ esEdicion ? 'Guardar Cambios' : 'Registrar Sucursal' }}
+    </ion-button>
+  </div>
+</ion-content>

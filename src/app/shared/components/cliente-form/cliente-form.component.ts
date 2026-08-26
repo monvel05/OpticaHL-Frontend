@@ -3,14 +3,14 @@ import { Component, OnInit, Input, inject, ChangeDetectionStrategy } from '@angu
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonContent, IonListHeader, IonLabel, IonList, IonItem, IonInput, 
-  IonGrid, IonRow, IonCol, ModalController 
+  IonGrid, IonRow, IonCol, ModalController, AlertController 
 } from '@ionic/angular/standalone';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ClienteService } from '../../../core/services/cliente.service'; 
 import { addIcons } from 'ionicons';
 import { 
-  personOutline, callOutline, mailOutline, cardOutline, 
-  locationOutline, save, closeOutline 
+  personOutline, callOutline, phonePortraitOutline, mailOutline, cardOutline, 
+  locationOutline, save, closeOutline, trashOutline 
 } from 'ionicons/icons';
 
 @Component({
@@ -44,6 +44,7 @@ export class ClienteFormComponent implements OnInit {
   private fb = inject(FormBuilder);
   private clientesService = inject(ClienteService);
   private modalCtrl = inject(ModalController);
+  private alertCtrl = inject(AlertController);
 
   clienteForm!: FormGroup;
 
@@ -51,11 +52,13 @@ export class ClienteFormComponent implements OnInit {
     addIcons({
       personOutline,
       callOutline,
+      phonePortraitOutline,
       mailOutline,
       cardOutline,
       locationOutline,
       save,
-      closeOutline
+      closeOutline,
+      trashOutline
     });
     this.initForm();
   }
@@ -71,11 +74,12 @@ export class ClienteFormComponent implements OnInit {
     this.clienteForm = this.fb.group({
       nombre_completo: ['', [Validators.required]],
       rfc: ['', [Validators.pattern('^[a-zA-Z0-9]{12,13}$')]], 
-      telefono: ['', [Validators.required, Validators.pattern('^[0-9]{10,20}$')]],
-      email: ['', [Validators.required, Validators.email]],
+      telefono: [''],
+      celular: [''],
+      email: ['', [Validators.email]],
       domicilio: [''],
       colonia: [''],
-      cp: ['', [Validators.pattern('^[0-9]{5}$')]],
+      cp: [''],
       localidad: [''],
       estado: ['']
     });
@@ -89,6 +93,7 @@ export class ClienteFormComponent implements OnInit {
       nombre_completo: data.nombre_completo || '',
       rfc: data.rfc || '',
       telefono: data.telefono || '',
+      celular: data.celular || '',
       email: data.email || '',
       domicilio: data.domicilio || '',
       colonia: data.colonia || '',
@@ -103,6 +108,44 @@ export class ClienteFormComponent implements OnInit {
    */
   cancelar() {
     this.modalCtrl.dismiss(null, 'cancel');
+  }
+
+  /**
+   * Elimina el cliente tras confirmación del usuario
+   */
+  async eliminarCliente() {
+    const idCliente = this.cliente?.id_cliente || this.cliente?.id;
+    if (!idCliente) return;
+
+    const alert = await this.alertCtrl.create({
+      header: '⚠️ Eliminar Paciente',
+      message: `¿Estás seguro de que deseas eliminar a "${this.cliente.nombre_completo}"? Esta acción no se puede deshacer.`,
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Sí, Eliminar',
+          role: 'destructive',
+          handler: () => {
+            this.clientesService.eliminarCliente(idCliente).subscribe({
+              next: (res) => {
+                this.modalCtrl.dismiss({ deleted: true, id_cliente: idCliente }, 'deleted');
+              },
+              error: (err) => {
+                console.error('Error al eliminar cliente:', err);
+                const mensaje = err.error?.message || err.error?.error || 'No se pudo eliminar el cliente.';
+                this.alertCtrl.create({
+                  header: 'Error al eliminar',
+                  message: mensaje,
+                  buttons: ['Aceptar']
+                }).then(a => a.present());
+              }
+            });
+          }
+        }
+      ]
+    });
+
+    await alert.present();
   }
 
   submitForm() {

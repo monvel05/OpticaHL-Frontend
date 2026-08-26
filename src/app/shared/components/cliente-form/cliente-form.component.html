@@ -5,7 +5,7 @@
         <ion-icon slot="icon-only" name="close-outline"></ion-icon>
       </ion-button>
     </ion-buttons>
-    <ion-title style="font-weight: bold;">Nuevo Paciente</ion-title>
+    <ion-title style="font-weight: bold;">{{ cliente ? 'Editar Paciente' : 'Nuevo Paciente' }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -23,13 +23,18 @@
       </ion-item>
 
       <ion-item>
+        <ion-icon name="phone-portrait-outline" slot="start" color="medium"></ion-icon>
+        <ion-input formControlName="celular" type="tel" label="Teléfono Celular / WhatsApp (Opcional)" labelPlacement="floating" placeholder="Ej. 4491234567"></ion-input>
+      </ion-item>
+
+      <ion-item>
         <ion-icon name="call-outline" slot="start" color="medium"></ion-icon>
-        <ion-input formControlName="telefono" type="tel" label="Teléfono *" labelPlacement="floating" placeholder="10 dígitos"></ion-input>
+        <ion-input formControlName="telefono" type="tel" label="Teléfono Fijo (Opcional)" labelPlacement="floating" placeholder="Ej. 4499876543"></ion-input>
       </ion-item>
 
       <ion-item>
         <ion-icon name="mail-outline" slot="start" color="medium"></ion-icon>
-        <ion-input formControlName="email" type="email" label="Correo Electrónico *" labelPlacement="floating" placeholder="usuario@correo.com"></ion-input>
+        <ion-input formControlName="email" type="email" label="Correo Electrónico (Opcional)" labelPlacement="floating" placeholder="usuario@correo.com"></ion-input>
       </ion-item>
 
       <ion-item>
@@ -80,8 +85,15 @@
     <div class="ion-padding">
       <ion-button expand="block" type="submit" [disabled]="clienteForm.invalid" shape="round" color="success" style="font-weight: bold; height: 46px;">
         <ion-icon name="save" slot="start"></ion-icon>
-        Registrar Paciente
+        {{ cliente ? 'Guardar Cambios' : 'Registrar Paciente' }}
       </ion-button>
+
+      @if (cliente) {
+        <ion-button expand="block" type="button" (click)="eliminarCliente()" shape="round" color="danger" fill="outline" style="font-weight: bold; height: 44px; margin-top: 12px;">
+          <ion-icon name="trash-outline" slot="start"></ion-icon>
+          Eliminar Paciente
+        </ion-button>
+      }
       
       <p class="ion-text-center" style="font-size: 0.8em; color: gray; margin-top: 12px;">
         * Campos obligatorios

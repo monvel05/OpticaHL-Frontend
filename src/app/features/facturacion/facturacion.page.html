@@ -501,6 +501,9 @@
                         }
                       </td>
                       <td class="text-center action-buttons-cell">
+                        <ion-button size="small" fill="clear" color="success" (click)="enviarFacturaWhatsApp(f)" title="Enviar por WhatsApp">
+                          <ion-icon name="logo-whatsapp" slot="start"></ion-icon> WhatsApp
+                        </ion-button>
                         <ion-button size="small" fill="clear" color="primary" (click)="descargarPDFFactura(f.num_factura)" title="Ver/Descargar PDF">
                           <ion-icon name="download-outline" slot="start"></ion-icon> PDF
                         </ion-button>
@@ -553,6 +556,10 @@
         </div>
 
         <div class="modal-buttons-row">
+          <ion-button color="success" (click)="enviarFacturaWhatsApp()">
+            <ion-icon name="logo-whatsapp" slot="start"></ion-icon>
+            Enviar por WhatsApp
+          </ion-button>
           <ion-button color="primary" (click)="descargarPDFFactura(facturaExitoData.num_factura)">
             <ion-icon name="download-outline" slot="start"></ion-icon>
             Descargar PDF
