@@ -1,33 +1,36 @@
-/* Estilos para el nuevo diseño */
+/* Estilos para el login - Modern Retro */
 .modern-bg {
-  --background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+  --background: #FFF9EF;
+  background-color: #FFF9EF;
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
 }
 
 .login-container {
-  max-width: 400px;
+  max-width: 420px;
   margin: 0 auto;
   width: 100%;
-  padding: 20px 0;
+  padding: 32px 16px;
 }
 
 .brand-section {
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 }
 
 .logo-wrapper {
-  width: 100px;
-  height: 100px;
-  margin: 0 auto 20px;
-  background: white;
-  border-radius: 30px;
+  width: 90px;
+  height: 90px;
+  margin: 0 auto 16px;
+  background: #FFFFFF;
+  border-radius: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(30, 28, 26, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
 }
 
 .logo-image {
@@ -37,24 +40,26 @@
 }
 
 .main-title {
-  font-size: 28px;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 8px 0;
-  letter-spacing: -0.5px;
+  font-size: 26px;
+  font-weight: 400 !important; /* Regular 400 para título */
+  color: #1E1C1A;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.3px;
 }
 
 .welcome-text {
-  font-size: 16px;
-  color: #64748b;
+  font-size: 15px;
+  color: #6E675F;
+  font-weight: 300 !important; /* Light para cuerpo */
   margin: 0;
 }
 
 .login-form {
-  background: white;
-  border-radius: 24px;
-  padding: 24px;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+  background: #FFFFFF;
+  border-radius: 16px; /* Redondeado de tarjeta */
+  padding: 28px 24px;
+  border: 1px solid rgba(30, 28, 26, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
 }
 
 .form-field {
@@ -62,117 +67,114 @@
 }
 
 .custom-input-item {
-  --background: #f8fafc;
-  --border-radius: 16px;
-  --padding-start: 16px;
-  --padding-end: 16px;
+  --background: #FFF9EF;
+  --border-radius: 10px;
+  --padding-start: 14px;
+  --padding-end: 14px;
   --inner-padding-end: 0;
   margin: 0;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  transition: all 0.3s ease;
+  border: 1.5px solid #E5DFD3;
+  border-radius: 10px;
+  transition: all 0.2s ease;
 }
 
 .custom-input-item.item-has-focus {
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  border-color: #930500;
+  box-shadow: 0 0 0 3px rgba(147, 5, 0, 0.1);
 }
 
 .field-icon {
-  color: #94a3b8;
+  color: #6E675F;
   font-size: 20px;
-  margin-right: 12px;
+  margin-right: 10px;
 }
 
 .custom-input {
-  --color: #1e293b;
-  --placeholder-color: #94a3b8;
-  --placeholder-opacity: 0.8;
-  font-size: 16px;
+  --color: #1E1C1A;
+  --placeholder-color: #9E968D;
+  --placeholder-opacity: 1;
+  font-size: 15px;
+  font-weight: 300 !important;
 }
 
 .options-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 28px;
+  margin-bottom: 24px;
   font-size: 14px;
 }
 
 .remember-check {
-  --checkbox-background-checked: #3b82f6;
-  --border-color: #cbd5e1;
+  --checkbox-background-checked: #930500;
+  --border-color: #E5DFD3;
   --border-radius: 6px;
-  color: #475569;
+  color: #1E1C1A;
+  font-weight: 300;
 }
 
 .forgot-link {
-  color: #3b82f6;
+  color: #930500;
   text-decoration: none;
-  font-weight: 500;
+  font-weight: 400;
   transition: color 0.2s ease;
 }
 
 .forgot-link:hover {
-  color: #2563eb;
+  color: #7A0400;
   text-decoration: underline;
 }
 
 .login-button {
-  --background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  --background-hover: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-  --border-radius: 16px;
-  --padding-top: 24px;
-  --padding-bottom: 24px;
-  font-size: 16px;
-  font-weight: 600;
+  --background: #930500 !important;
+  --background-hover: #7A0400 !important;
+  --color: #FFFFFF !important;
+  --border-radius: 12px !important; /* Redondeado 12px para botón */
+  --padding-top: 20px;
+  --padding-bottom: 20px;
+  font-size: 15px;
+  font-weight: 400 !important;
   text-transform: none;
   letter-spacing: 0.3px;
   margin: 0;
-  box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 14px rgba(147, 5, 0, 0.22);
 }
 
 .login-button[disabled] {
-  --background: #cbd5e1;
+  --background: #E5DFD3 !important;
+  --color: #9E968D !important;
   --box-shadow: none;
   opacity: 0.7;
 }
 
 .register-prompt {
   text-align: center;
-  margin-top: 24px;
-  color: #64748b;
+  margin-top: 20px;
+  color: #6E675F;
   font-size: 14px;
+  font-weight: 300;
 }
 
 .register-link {
-  color: #3b82f6;
+  color: #930500;
   text-decoration: none;
-  font-weight: 600;
-  transition: color 0.2s ease;
+  font-weight: 400;
 }
 
 .register-link:hover {
-  color: #2563eb;
   text-decoration: underline;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
   .login-container {
-    padding: 16px 0;
+    padding: 20px 12px;
   }
   
   .login-form {
-    padding: 20px;
+    padding: 20px 16px;
   }
   
   .main-title {
-    font-size: 24px;
-  }
-  
-  .logo-wrapper {
-    width: 80px;
-    height: 80px;
+    font-size: 22px;
   }
 }

@@ -1,18 +1,24 @@
 :host {
-  display: block;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --ion-background-color: #f4f6f9;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  --ion-background-color: #FFF9EF;
+}
+
+ion-content {
+  --overflow: auto !important;
+  --padding-bottom: 80px !important;
 }
 
 .header-title-container {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-weight: 700;
+  font-weight: 400 !important;
 
   .title-icon {
     font-size: 1.5rem;
-    color: #ffc409;
+    color: #930500;
   }
 }
 
@@ -21,11 +27,10 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  padding: 10px 20px;
-  border-bottom: 1px solid #e2e8f0;
+  background: #FFF9EF;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(30, 28, 26, 0.08);
   gap: 15px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .filter-group {
@@ -35,38 +40,40 @@
 
   .filter-icon {
     font-size: 1.2rem;
-    color: #3880ff;
+    color: #930500;
   }
 
   .filter-label {
-    font-weight: 600;
+    font-weight: 400 !important;
     font-size: 0.9rem;
-    color: #4a5568;
+    color: #1E1C1A;
   }
 }
 
 .custom-select {
   --padding-start: 10px;
   --padding-end: 10px;
-  background: #f1f5f9;
-  border-radius: 8px;
-  font-weight: 600;
-  color: #1e293b;
+  background: #FFFFFF;
+  border: 1.5px solid #E5DFD3;
+  border-radius: 10px;
+  font-weight: 300 !important;
+  color: #1E1C1A;
   min-width: 200px;
 }
 
 .custom-segment {
-  background: #f1f5f9;
-  border-radius: 8px;
+  background: #F5EFE0;
+  border-radius: 10px;
   padding: 3px;
 
   ion-segment-button {
-    --color: #64748b;
-    --color-checked: #3880ff;
-    --indicator-color: #ffffff;
-    font-weight: 600;
+    --color: #6E675F;
+    --color-checked: #1E1C1A;
+    --indicator-color: #95BBEA;
+    font-weight: 300 !important;
     font-size: 0.85rem;
     min-height: 34px;
+    border-radius: 8px;
   }
 }
 
@@ -76,15 +83,16 @@
   align-items: center;
   justify-content: center;
   padding: 15px;
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: 12px;
+  background: #FFFFFF;
+  border-radius: 16px;
   margin-bottom: 15px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(30, 28, 26, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
 
   p {
     margin-top: 8px;
-    font-weight: 600;
-    color: #475569;
+    font-weight: 300 !important;
+    color: #6E675F;
   }
 }
 
@@ -98,50 +106,50 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  background: #ffffff;
+  background: #FFFFFF;
   padding: 18px 20px;
-  border-radius: 14px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  border: 1px solid rgba(30, 28, 26, 0.08);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 
   &:hover {
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 24px rgba(30, 28, 26, 0.08);
   }
 }
 
 .kpi-icon-wrapper {
-  width: 52px;
-  height: 52px;
+  width: 50px;
+  height: 50px;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
 
   ion-icon {
-    font-size: 1.7rem;
+    font-size: 1.6rem;
   }
 }
 
 .kpi-income .kpi-icon-wrapper {
-  background: rgba(45, 211, 111, 0.12);
-  color: #2dd36f;
+  background: rgba(170, 204, 177, 0.3);
+  color: #1E1C1A;
 }
 
 .kpi-profit .kpi-icon-wrapper {
-  background: rgba(56, 128, 255, 0.12);
-  color: #3880ff;
+  background: rgba(149, 187, 234, 0.3);
+  color: #930500;
 }
 
 .kpi-transactions .kpi-icon-wrapper {
-  background: rgba(112, 68, 255, 0.12);
-  color: #7044ff;
+  background: rgba(147, 5, 0, 0.1);
+  color: #930500;
 }
 
 .kpi-stagnant .kpi-icon-wrapper {
-  background: rgba(255, 196, 9, 0.15);
-  color: #b78103;
+  background: rgba(230, 161, 92, 0.2);
+  color: #1E1C1A;
 }
 
 .kpi-info {
@@ -152,49 +160,49 @@
     font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    font-weight: 700;
-    color: #64748b;
+    font-weight: 400 !important;
+    color: #6E675F;
   }
 
   .kpi-value {
     margin: 4px 0;
-    font-size: 1.45rem;
-    font-weight: 800;
-    color: #0f172a;
+    font-size: 1.4rem;
+    font-weight: 400 !important;
+    color: #1E1C1A;
   }
 
   .kpi-subtext {
     font-size: 0.78rem;
-    font-weight: 600;
-    color: #64748b;
+    font-weight: 300 !important;
+    color: #6E675F;
     display: flex;
     align-items: center;
     gap: 4px;
 
     &.positive {
-      color: #16a34a;
+      color: #2D6A4F;
     }
 
     &.highlight {
-      color: #2563eb;
+      color: #930500;
     }
 
     &.warning {
-      color: #d97706;
+      color: #D97706;
     }
   }
 }
 
 /* DASHBOARD CARDS */
 .dashboard-card {
-  margin: 8px 0;
+  margin: 12px 0;
   border-radius: 16px;
-  background: #ffffff;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  background: #FFFFFF;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  border: 1px solid rgba(30, 28, 26, 0.08);
 
   &.border-warning {
-    border-top: 4px solid #ffc409;
+    border-top: 4px solid #E6A15C;
   }
 }
 
@@ -211,31 +219,27 @@
   align-items: center;
   gap: 8px;
   font-size: 1.15rem;
-  font-weight: 700;
-  color: #1e293b;
+  font-weight: 400 !important;
+  color: #1E1C1A;
 
   .title-accent {
     font-size: 1.3rem;
-    color: #3880ff;
+    color: #930500;
 
     &.color-warning {
-      color: #ffc409;
+      color: #E6A15C;
     }
 
     &.color-success {
-      color: #2dd36f;
+      color: #AACCB1;
     }
   }
 }
 
 /* CHARTS CONTAINERS */
-.chart-container-pie {
-  position: relative;
-  height: 260px;
-  width: 100%;
-}
-
-.chart-container-bar {
+.chart-container-pie,
+.chart-container-bar,
+.chart-container-prod {
   position: relative;
   height: 260px;
   width: 100%;
@@ -244,12 +248,6 @@
 .chart-container-financial {
   position: relative;
   height: 320px;
-  width: 100%;
-}
-
-.chart-container-prod {
-  position: relative;
-  height: 280px;
   width: 100%;
 }
 
@@ -269,26 +267,27 @@
   font-size: 0.88rem;
 
   th {
-    background: #f8fafc;
-    color: #475569;
-    font-weight: 700;
+    background: #F5EFE0;
+    color: #1E1C1A;
+    font-weight: 400 !important;
     padding: 10px 12px;
     text-align: left;
-    border-bottom: 2px solid #e2e8f0;
+    border-bottom: 1px solid #E5DFD3;
 
-    &:first-child { border-top-left-radius: 8px; }
-    &:last-child { border-top-right-radius: 8px; }
+    &:first-child { border-top-left-radius: 10px; }
+    &:last-child { border-top-right-radius: 10px; }
   }
 
   td {
     padding: 10px 12px;
-    border-bottom: 1px solid #f1f5f9;
-    color: #334155;
+    border-bottom: 1px solid rgba(30, 28, 26, 0.05);
+    color: #1E1C1A;
+    font-weight: 300 !important;
     vertical-align: middle;
   }
 
   &.table-hover tbody tr:hover {
-    background-color: #f8fafc;
+    background-color: #FFF9EF;
   }
 }
 
@@ -304,12 +303,12 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  font-weight: 600;
+  font-weight: 300 !important;
 
   .bar-outer {
     flex: 1;
     height: 8px;
-    background: #e2e8f0;
+    background: #F5EFE0;
     border-radius: 4px;
     overflow: hidden;
   }
@@ -331,25 +330,26 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  background: #f8fafc;
+  background: #FFF9EF;
   padding: 10px 14px;
-  border-radius: 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(30, 28, 26, 0.05);
 
   .rank-badge {
     width: 28px;
     height: 28px;
     border-radius: 50%;
-    background: #cbd5e1;
-    color: #334155;
-    font-weight: 800;
+    background: #F5EFE0;
+    color: #1E1C1A;
+    font-weight: 400 !important;
     font-size: 0.82rem;
     display: flex;
     align-items: center;
     justify-content: center;
 
-    &.rank-1 { background: #ffc409; color: #785200; }
-    &.rank-2 { background: #94a3b8; color: #ffffff; }
-    &.rank-3 { background: #d97706; color: #ffffff; }
+    &.rank-1 { background: #95BBEA; color: #1E1C1A; }
+    &.rank-2 { background: #AACCB1; color: #1E1C1A; }
+    &.rank-3 { background: #F5EFE0; color: #1E1C1A; }
   }
 
   .product-details {
@@ -358,14 +358,15 @@
     flex-direction: column;
 
     .product-name {
-      font-weight: 700;
+      font-weight: 400 !important;
       font-size: 0.88rem;
-      color: #1e293b;
+      color: #1E1C1A;
     }
 
     .product-meta {
       font-size: 0.76rem;
-      color: #64748b;
+      font-weight: 300 !important;
+      color: #6E675F;
     }
   }
 
@@ -375,13 +376,15 @@
     align-items: flex-end;
 
     .sales-count {
-      color: #3880ff;
+      color: #930500;
       font-size: 0.95rem;
+      font-weight: 400 !important;
     }
 
     .sales-amount {
       font-size: 0.78rem;
-      color: #64748b;
+      font-weight: 300 !important;
+      color: #6E675F;
     }
   }
 }
@@ -394,21 +397,21 @@
 }
 
 .days-badge {
-  padding: 4px 8px;
-  border-radius: 6px;
-  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-weight: 300 !important;
   font-size: 0.78rem;
-  background: #e2e8f0;
-  color: #475569;
+  background: #F5EFE0;
+  color: #1E1C1A;
 
   &.badge-danger {
-    background: #fee2e2;
-    color: #dc2626;
+    background: rgba(147, 5, 0, 0.15);
+    color: #930500;
   }
 
   &.badge-warning {
-    background: #fef3c7;
-    color: #d97706;
+    background: rgba(230, 161, 92, 0.25);
+    color: #1E1C1A;
   }
 }
 
@@ -420,31 +423,31 @@
     padding: 6px 12px;
     border-radius: 20px;
     font-size: 0.82rem;
-    font-weight: 700;
+    font-weight: 300 !important;
 
     &.pill-success {
-      background: #dcfce7;
-      color: #15803d;
+      background: #AACCB1;
+      color: #1E1C1A;
     }
 
     &.pill-primary {
-      background: #dbeafe;
-      color: #1d4ed8;
+      background: #95BBEA;
+      color: #1E1C1A;
     }
   }
 }
 
 /* PRODUCTIVITY LIST */
 .productivity-list {
-  background: #f8fafc;
+  background: #FFF9EF;
   padding: 16px;
   border-radius: 12px;
 
   h4 {
     margin: 0 0 12px 0;
     font-size: 0.95rem;
-    font-weight: 700;
-    color: #334155;
+    font-weight: 400 !important;
+    color: #1E1C1A;
   }
 }
 
@@ -453,7 +456,7 @@
   align-items: center;
   gap: 12px;
   padding: 10px 0;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid #E5DFD3;
 
   &:last-child {
     border-bottom: none;
@@ -463,15 +466,15 @@
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: #3880ff;
-    color: #ffffff;
-    font-weight: 700;
+    background: #95BBEA;
+    color: #1E1C1A;
+    font-weight: 400 !important;
     display: flex;
     align-items: center;
     justify-content: center;
 
     &.op-avatar {
-      background: #2dd36f;
+      background: #AACCB1;
     }
   }
 
@@ -482,12 +485,14 @@
 
     strong {
       font-size: 0.88rem;
-      color: #1e293b;
+      font-weight: 400 !important;
+      color: #1E1C1A;
     }
 
     .text-subtle {
       font-size: 0.76rem;
-      color: #64748b;
+      font-weight: 300 !important;
+      color: #6E675F;
     }
   }
 
@@ -497,27 +502,28 @@
     align-items: flex-end;
 
     .metric-primary {
-      font-weight: 700;
-      color: #3880ff;
+      font-weight: 400 !important;
+      color: #930500;
       font-size: 0.9rem;
     }
 
     .metric-success {
-      font-weight: 700;
-      color: #2dd36f;
+      font-weight: 400 !important;
+      color: #1E1C1A;
       font-size: 0.9rem;
     }
 
     .metric-subtle {
       font-size: 0.75rem;
-      color: #64748b;
+      font-weight: 300 !important;
+      color: #6E675F;
     }
   }
 }
 
-.text-subtle { color: #64748b; font-size: 0.78rem; }
-.text-danger { color: #dc2626; }
-.text-warning { color: #d97706; }
+.text-subtle { color: #6E675F; font-size: 0.78rem; font-weight: 300 !important; }
+.text-danger { color: #930500; }
+.text-warning { color: #D97706; }
 .padding-20 { padding: 20px; }
 
 .dates-group {
@@ -526,18 +532,18 @@
   gap: 6px;
 
   .date-input {
-    padding: 5px 8px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
+    padding: 6px 10px;
+    border: 1.5px solid #E5DFD3;
+    border-radius: 10px;
     font-size: 0.85rem;
-    color: #1e293b;
-    background: #f8fafc;
+    font-weight: 300 !important;
+    color: #1E1C1A;
+    background: #FFFFFF;
   }
 }
 
 .btn-export {
-  font-weight: 600;
+  font-weight: 400 !important;
   font-size: 0.82rem;
   margin-left: 6px;
 }
-

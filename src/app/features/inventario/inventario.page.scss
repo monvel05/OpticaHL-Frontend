@@ -1,15 +1,21 @@
 :host {
-  display: block;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  --ion-background-color: #f4f6f9;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  --ion-background-color: #FFF9EF;
+}
+
+ion-content {
+  --overflow: auto !important;
+  --padding-bottom: 80px !important;
 }
 
 .custom-searchbar {
-  --background: rgba(255, 255, 255, 0.15);
-  --color: #ffffff;
-  --placeholder-color: rgba(255, 255, 255, 0.7);
-  --icon-color: #ffffff;
-  --clear-button-color: #ffffff;
+  --background: rgba(255, 255, 255, 0.2);
+  --color: #FFFFFF;
+  --placeholder-color: rgba(255, 255, 255, 0.8);
+  --icon-color: #FFFFFF;
+  --clear-button-color: #FFFFFF;
   --box-shadow: none;
   padding: 0 8px;
 }
@@ -23,11 +29,11 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  background: #ffffff;
+  background: #FFFFFF;
   padding: 14px 16px;
-  border-radius: 14px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  border: 1px solid rgba(30, 28, 26, 0.08);
   transition: transform 0.2s ease;
 
   &:hover {
@@ -37,7 +43,7 @@
   .stat-icon {
     width: 44px;
     height: 44px;
-    border-radius: 10px;
+    border-radius: 12px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -53,42 +59,42 @@
 
     .stat-value {
       font-size: 1.25rem;
-      font-weight: 800;
-      color: #0f172a;
+      font-weight: 400 !important;
+      color: #1E1C1A;
     }
 
     .stat-title {
       font-size: 0.75rem;
-      font-weight: 600;
-      color: #64748b;
+      font-weight: 400 !important;
+      color: #6E675F;
       text-transform: uppercase;
       letter-spacing: 0.3px;
     }
   }
 
   &.card-total .stat-icon {
-    background: rgba(56, 128, 255, 0.12);
-    color: #3880ff;
+    background: rgba(149, 187, 234, 0.3);
+    color: #930500;
   }
 
   &.card-value .stat-icon {
-    background: rgba(45, 211, 111, 0.12);
-    color: #2dd36f;
+    background: rgba(170, 204, 177, 0.3);
+    color: #1E1C1A;
   }
 
   &.card-alert .stat-icon {
-    background: rgba(148, 163, 184, 0.15);
-    color: #64748b;
+    background: #F5EFE0;
+    color: #6E675F;
   }
 
   &.card-alert.active-alert {
-    border-color: #f87171;
+    border-color: #930500;
     .stat-icon {
-      background: rgba(239, 68, 68, 0.12);
-      color: #ef4444;
+      background: rgba(147, 5, 0, 0.15);
+      color: #930500;
     }
     .stat-value {
-      color: #dc2626;
+      color: #930500;
     }
   }
 }
@@ -98,36 +104,36 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  border-radius: 14px;
-  padding: 12px 14px;
-  margin: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  border: 1px solid #e2e8f0;
+  background: #FFFFFF;
+  border-radius: 16px;
+  padding: 14px 16px;
+  margin: 0 0 12px 0;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  border: 1px solid rgba(30, 28, 26, 0.08);
   transition: all 0.2s ease;
   gap: 10px;
 
   &:hover {
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 6px 24px rgba(30, 28, 26, 0.08);
   }
 
   &.critical-stock {
-    border-left: 4px solid #ef4444;
+    border-left: 4px solid #930500;
   }
 
   .card-left {
     .category-icon-box {
       width: 44px;
       height: 44px;
-      border-radius: 10px;
-      background: #f1f5f9;
+      border-radius: 12px;
+      background: #F5EFE0;
       display: flex;
       align-items: center;
       justify-content: center;
 
       ion-icon {
         font-size: 1.4rem;
-        color: #3880ff;
+        color: #930500;
       }
     }
   }
@@ -140,14 +146,15 @@
 
     .prod-title {
       font-size: 0.92rem;
-      font-weight: 700;
-      color: #1e293b;
+      font-weight: 400 !important;
+      color: #1E1C1A;
       margin: 0;
     }
 
     .prod-subtitle {
       font-size: 0.78rem;
-      color: #64748b;
+      font-weight: 300 !important;
+      color: #6E675F;
     }
 
     .prod-code-price {
@@ -157,18 +164,18 @@
       margin-top: 2px;
 
       code {
-        background: #f1f5f9;
-        color: #ef4444;
+        background: #F5EFE0;
+        color: #930500;
         padding: 2px 6px;
-        border-radius: 4px;
+        border-radius: 6px;
         font-size: 0.75rem;
         font-family: monospace;
-        font-weight: 600;
+        font-weight: 400;
       }
 
       .prod-price {
-        font-weight: 800;
-        color: #16a34a;
+        font-weight: 400 !important;
+        color: #1E1C1A;
         font-size: 0.95rem;
       }
     }
@@ -183,7 +190,7 @@
     .btn-edit {
       --padding-start: 4px;
       --padding-end: 4px;
-      height: 24px;
+      height: 28px;
       margin: 0;
     }
   }
@@ -193,10 +200,10 @@
 .stock-control-stepper {
   display: flex;
   align-items: center;
-  background: #f8fafc;
-  border-radius: 8px;
+  background: #FFF9EF;
+  border-radius: 10px;
   padding: 2px;
-  border: 1px solid #e2e8f0;
+  border: 1.5px solid #E5DFD3;
 
   .stepper-btn {
     margin: 0;
@@ -208,28 +215,30 @@
   .stock-num {
     min-width: 28px;
     text-align: center;
-    font-weight: 800;
+    font-weight: 400 !important;
     font-size: 0.88rem;
-    color: #1e293b;
+    color: #1E1C1A;
 
     &.low-stock-num {
-      color: #dc2626;
+      color: #930500;
     }
   }
 }
 
 .badge-service {
   font-size: 0.75rem;
-  padding: 5px 8px;
-  border-radius: 6px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: 400 !important;
 }
 
 .sucursales-list-container {
-  border-radius: 14px;
+  border-radius: 16px;
   overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
-  background: #ffffff;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  background: #FFFFFF;
   margin-top: 5px;
+  border: 1px solid rgba(30, 28, 26, 0.08);
 }
 
 /* FILTRO SUCURSAL BAR */
@@ -238,20 +247,20 @@
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
-  background: #ffffff;
-  padding: 8px 16px;
-  border-bottom: 1px solid #e2e8f0;
+  background: #FFF9EF;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(30, 28, 26, 0.08);
   gap: 12px;
 
   .bar-icon {
     font-size: 1.1rem;
-    color: #3880ff;
+    color: #930500;
   }
 
   .bar-label {
-    font-weight: 600;
+    font-weight: 400 !important;
     font-size: 0.85rem;
-    color: #475569;
+    color: #1E1C1A;
   }
 
   .filter-toggle-group {
@@ -262,15 +271,15 @@
   }
 
   .branch-segment {
-    background: #f1f5f9;
-    border-radius: 8px;
+    background: #F5EFE0;
+    border-radius: 10px;
     padding: 2px;
 
     ion-segment-button {
-      --color: #64748b;
-      --color-checked: #3880ff;
-      --indicator-color: #ffffff;
-      font-weight: 600;
+      --color: #6E675F;
+      --color-checked: #1E1C1A;
+      --indicator-color: #95BBEA;
+      font-weight: 300 !important;
       font-size: 0.8rem;
       min-height: 30px;
     }
@@ -282,11 +291,12 @@
     gap: 6px;
 
     .branch-select {
-      background: #f1f5f9;
-      border-radius: 6px;
-      font-weight: 600;
+      background: #FFFFFF;
+      border: 1.5px solid #E5DFD3;
+      border-radius: 10px;
+      font-weight: 300 !important;
       font-size: 0.85rem;
-      color: #1e293b;
+      color: #1E1C1A;
       --padding-start: 8px;
       --padding-end: 8px;
     }

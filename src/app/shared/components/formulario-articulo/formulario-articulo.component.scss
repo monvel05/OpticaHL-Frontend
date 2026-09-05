@@ -1,14 +1,15 @@
 .form-wrapper {
-  max-width: 600px; // Evita que se estire horrible en tablets o PC
+  max-width: 600px;
   margin: 0 auto;
   padding-top: 10px;
 }
 
 .form-card {
   margin: 10px 16px 20px 16px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-  background: #ffffff;
+  border-radius: 16px !important;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05) !important;
+  border: 1px solid rgba(30, 28, 26, 0.08) !important;
+  background: #FFFFFF !important;
 }
 
 .custom-item {
@@ -17,10 +18,10 @@
   margin-bottom: 10px;
   
   ion-label {
-    font-weight: 600 !important;
+    font-weight: 400 !important;
     font-size: 0.85rem !important;
     margin-bottom: 8px !important;
-    color: var(--ion-color-step-700) !important;
+    color: #1E1C1A !important;
   }
 }
 
@@ -29,21 +30,24 @@
   
   .fake-label {
     font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--ion-color-step-700);
+    font-weight: 400 !important;
+    color: #1E1C1A;
     display: block;
     margin-bottom: 8px;
   }
 }
 
 .btn-guardar {
-  --border-radius: 8px;
-  font-weight: 700;
-  letter-spacing: 1px;
+  --border-radius: 12px;
+  --background: #930500 !important;
+  --color: #FFFFFF !important;
+  font-weight: 400 !important;
+  letter-spacing: 0.3px;
+  box-shadow: 0 4px 14px rgba(147, 5, 0, 0.22);
 }
 
-// Estilo para los iconos dentro de los items
 ion-icon {
   font-size: 1.4rem;
   margin-right: 12px;
+  color: #930500;
 }

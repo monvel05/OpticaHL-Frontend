@@ -1,29 +1,40 @@
-/* src/app/pages/corte-caja/corte-caja.page.scss */
-
-
 .resumen-card {
   text-align: center;
-  border-radius: 15px;
+  border-radius: 16px !important;
   border-left: 5px solid;
-  
+  background: #FFFFFF !important;
+  border-top: 1px solid rgba(30, 28, 26, 0.08);
+  border-right: 1px solid rgba(30, 28, 26, 0.08);
+  border-bottom: 1px solid rgba(30, 28, 26, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+
   h2 {
     font-size: 1.8rem;
-    font-weight: bold;
+    font-weight: 400 !important;
+    color: #1E1C1A;
     margin: 10px 0 0 0;
   }
 
-  &.efectivo { border-color: #2dd36f; }
-  &.tarjeta { border-color: #3880ff; }
-  &.total-dia { border-color: #ffd534; }
+  p {
+    font-weight: 300 !important;
+    color: #6E675F;
+  }
+
+  &.efectivo { border-left-color: #AACCB1; }
+  &.tarjeta { border-left-color: #95BBEA; }
+  &.total-dia { border-left-color: #930500; }
 }
 
 ion-list {
   background: transparent;
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 ion-item {
   --padding-start: 16px;
   --inner-padding-end: 16px;
-  margin-bottom: 5px;
+  --background: #FFFFFF;
+  --border-radius: 10px;
+  margin-bottom: 8px;
+  font-weight: 300 !important;
 }

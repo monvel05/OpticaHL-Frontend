@@ -1,10 +1,10 @@
 /*
- * App Global CSS
+ * App Global CSS - OpticaHL Modern Retro Theme
  * ----------------------------------------------------------------------------
- * Estilos globales para toda la aplicación.
+ * Paleta: Crema Vainilla (#FFF9EF), Rojo Sangría (#930500), Azul Aciano (#95BBEA), Menta (#AACCB1)
+ * Tipografía: Plus Jakarta Sans (Regular 400 para títulos, Extra Light 200 / Light 300 para resto)
  */
 
-/* Core CSS requerido para que los componentes de Ionic funcionen */
 @use "theme/variables";
 @import "@ionic/angular/css/core.css";
 
@@ -14,25 +14,284 @@
 @import "@ionic/angular/css/typography.css";
 @import "@ionic/angular/css/display.css";
 
-/* Utilidades opcionales (puedes comentar las que no uses) */
+/* Utilidades opcionales */
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
 @import "@ionic/angular/css/text-transformation.css";
 @import "@ionic/angular/css/flex-utils.css";
 
-/**
- * Ionic Dark Mode (Modo Oscuro)
- */
-@import '@ionic/angular/css/palettes/dark.system.css';
+/* Google Fonts: Plus Jakarta Sans */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@200;300;400;500;600&display=swap');
 
-/**
- * Fuentes personalizadas
- */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap');
+/* Reset e Integración de Fuente Global */
+* {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  box-sizing: border-box;
+}
 
-/**
- * Variables de tema personalizadas (Colores, fuentes de la app, etc.)
- * Usamos "./theme/variables" para asegurar que la ruta relativa sea correcta.
- */
+html, body {
+  background-color: #FFF9EF !important;
+  color: #1E1C1A !important;
+  font-weight: 300; /* Light para el cuerpo de texto */
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto !important;
+}
 
+/* ==========================================================================
+   ESTILOS DE BARRA DE DESPLAZAMIENTO GLOBAL (SCROLLBAR VISIBLE Y ESTILIZADA)
+   ========================================================================== */
+
+/* Webkit (Chrome, Safari, Edge, Opera) */
+::-webkit-scrollbar {
+  width: 10px !important;
+  height: 10px !important;
+  display: block !important;
+}
+
+::-webkit-scrollbar-track {
+  background: #F5EFE0 !important;
+  border-radius: 6px !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #930500 !important;
+  border-radius: 6px !important;
+  border: 2px solid #F5EFE0 !important;
+
+  &:hover {
+    background: #7A0400 !important;
+  }
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin !important;
+  scrollbar-color: #930500 #F5EFE0 !important;
+}
+
+/* Ionic Component Base Background & Scroll Overrides */
+ion-app, ion-page, .ion-page {
+  --background: #FFF9EF !important;
+  background: #FFF9EF !important;
+  color: #1E1C1A;
+  height: 100%;
+}
+
+ion-content {
+  --background: #FFF9EF !important;
+  --overflow: auto !important;
+  --padding-bottom: 60px !important;
+  --padding-top: 10px !important;
+  overflow-y: auto !important;
+  height: 100%;
+}
+
+/* Permitir scroll en la parte interna del Shadow DOM de Ionic */
+ion-content::part(scroll) {
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+ion-header, ion-toolbar {
+  --background: #FFF9EF !important;
+  --color: #1E1C1A !important;
+  --border-color: rgba(30, 28, 26, 0.08) !important;
+  border-bottom: 1px solid rgba(30, 28, 26, 0.08);
+}
+
+/* Reglas Tipográficas: Títulos vs Cuerpo */
+h1, h2, h3, h4, h5, h6,
+.h1, .h2, .h3, .h4, .h5, .h6,
+ion-title, .ion-title,
+.title, .card-title, .page-title,
+.modal-title, .header-title {
+  font-weight: 400 !important; /* Regular 400 para títulos según requerimiento */
+  color: #1E1C1A !important;
+  letter-spacing: -0.2px;
+}
+
+p, span, div, td, th, li, a, label,
+ion-label, ion-card-content, ion-text,
+.body-text, .description, .subtitle {
+  font-weight: 200 !important; /* Extra Light 200 / Light 300 para el resto */
+}
+
+/* Ajuste específico para cuando se requiere ligeramente más cuerpo en textos */
+b, strong, .font-medium {
+  font-weight: 400 !important;
+}
+
+/* Estilos de Botones (Redondeados 12px) */
+ion-button, button, .btn {
+  --border-radius: 12px !important;
+  border-radius: 12px !important;
+  font-weight: 400 !important; /* Regular */
+  letter-spacing: 0.2px;
+  text-transform: none !important;
+  box-shadow: none;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Botón Primario (Rojo Sangría) */
+ion-button[color="primary"], .btn-primary {
+  --background: #930500 !important;
+  --color: #FFFFFF !important;
+  --background-hover: #7A0400 !important;
+  --background-activated: #6B0300 !important;
+  --box-shadow: 0 4px 14px rgba(147, 5, 0, 0.2) !important;
+}
+
+/* Botón Secundario (Azul Aciano) */
+ion-button[color="secondary"], .btn-secondary {
+  --background: #95BBEA !important;
+  --color: #1E1C1A !important;
+  --background-hover: #83A4CE !important;
+  --background-activated: #7496C0 !important;
+}
+
+/* Botón Terciario / Warm Light */
+ion-button[fill="clear"], ion-button[fill="outline"] {
+  --color: #930500 !important;
+  --border-color: #E5DFD3 !important;
+  --border-radius: 12px !important;
+}
+
+/* Estilos de Tarjetas (Cards - Redondeados 16px) */
+ion-card, .card, .optica-card {
+  --background: #FFFFFF !important;
+  background: #FFFFFF !important;
+  --border-radius: 16px !important;
+  border-radius: 16px !important;
+  border: 1px solid rgba(30, 28, 26, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05) !important;
+  margin: 12px 8px;
+  padding: 8px;
+}
+
+ion-card-header {
+  padding: 16px 16px 8px 16px;
+}
+
+ion-card-title {
+  font-size: 1.15rem;
+  font-weight: 400 !important;
+  color: #1E1C1A !important;
+}
+
+ion-card-subtitle {
+  font-weight: 300 !important;
+  color: #6E675F !important;
+}
+
+ion-card-content {
+  font-weight: 300 !important;
+  color: #1E1C1A;
+  padding: 16px;
+}
+
+/* Estilos de Entradas e Inputs (Redondeados 10px) */
+ion-input, ion-select, ion-textarea, ion-searchbar, input, select, textarea {
+  --background: #FFFFFF !important;
+  --border-radius: 10px !important;
+  --border-color: #E5DFD3 !important;
+  --border-width: 1.5px !important;
+  --padding-start: 12px !important;
+  --padding-end: 12px !important;
+  --placeholder-color: #A09A92 !important;
+  --placeholder-opacity: 1 !important;
+  border-radius: 10px !important;
+  font-weight: 300 !important;
+}
+
+ion-item {
+  --background: #FFFFFF !important;
+  --border-color: #E5DFD3 !important;
+  --border-radius: 10px !important;
+  --inner-border-width: 0 0 1px 0 !important;
+  margin-bottom: 8px;
+}
+
+/* Tablas con diseño limpio y ligero */
+table, .table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid rgba(30, 28, 26, 0.08);
+
+  th {
+    background: #F5EFE0;
+    color: #1E1C1A;
+    font-weight: 400 !important;
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #E5DFD3;
+  }
+
+  td {
+    padding: 12px 16px;
+    font-weight: 300 !important;
+    border-bottom: 1px solid rgba(30, 28, 26, 0.05);
+    color: #1E1C1A;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+/* Badges y Acentos Especiales (Detalles en Menta y Azul) */
+ion-badge, .badge {
+  --border-radius: 20px !important;
+  border-radius: 20px !important;
+  padding: 4px 10px;
+  font-weight: 400 !important;
+  font-size: 0.75rem;
+}
+
+/* Acento Verde Menta (Estrictamente para pequeños detalles/estados positivos) */
+ion-badge[color="success"], .badge-mint, .accent-mint {
+  --background: #AACCB1 !important;
+  --color: #1E1C1A !important;
+  background-color: #AACCB1 !important;
+  color: #1E1C1A !important;
+}
+
+/* Acento Azul Aciano (Secundario) */
+ion-badge[color="secondary"], .badge-cornflower, .accent-cornflower {
+  --background: #95BBEA !important;
+  --color: #1E1C1A !important;
+  background-color: #95BBEA !important;
+  color: #1E1C1A !important;
+}
+
+/* Badge Rojo Sangría */
+ion-badge[color="primary"], .badge-sangria {
+  --background: #930500 !important;
+  --color: #FFFFFF !important;
+  background-color: #930500 !important;
+  color: #FFFFFF !important;
+}
+
+/* Pestañas y Navegación (Tab Bar) */
+ion-tab-bar {
+  --background: #FFFFFF !important;
+  --border-color: rgba(30, 28, 26, 0.08) !important;
+  border-top: 1px solid rgba(30, 28, 26, 0.08);
+}
+
+ion-tab-button {
+  --color: #6E675F !important;
+  --color-selected: #930500 !important;
+  font-weight: 300 !important;
+}
+
+ion-tab-button.tab-selected {
+  font-weight: 400 !important;
+}
