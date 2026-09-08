@@ -31,7 +31,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
     IonBadge, IonButton, IonIcon, 
     IonSkeletonText, IonButtons, IonMenuButton, IonSearchbar, IonSelect, 
     IonSelectOption, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, 
-    IonCardContent, IonChip, IonToggle, 
+    IonCardContent, 
     IonRefresher, IonRefresherContent
   ]
 })

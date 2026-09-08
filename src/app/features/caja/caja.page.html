@@ -162,28 +162,7 @@
           </ion-item>
         </ion-list>
 
-        <!-- Selector de método de pago -->
-        @if (!esLiquidada) {
-          <div class="metodos-pago ion-margin-top">
-            <p style="font-weight: 600; color: #777; margin-bottom: 8px; font-size: 13px;">Seleccione Método de Pago:</p>
-            <ion-segment [(ngModel)]="metodoPago" color="primary" style="background: #f4f5f8; border-radius: 8px;">
-              <ion-segment-button value="efectivo">
-                <ion-icon name="cash-outline"></ion-icon>
-                <ion-label>Efectivo</ion-label>
-              </ion-segment-button>
-              <ion-segment-button value="tarjeta">
-                <ion-icon name="card-outline"></ion-icon>
-                <ion-label>Tarjeta</ion-label>
-              </ion-segment-button>
-              <ion-segment-button value="transferencia">
-                <ion-icon name="receipt-outline"></ion-icon>
-                <ion-label>Transf.</ion-label>
-              </ion-segment-button>
-            </ion-segment>
-          </div>
-        }
-
-        <!-- Botón de Registro de Pago -->
+        <!-- Botón de Registro de Pago (Abre directamente el modal de cobro) -->
         <ion-button 
           expand="block" 
           [color]="esLiquidada ? 'medium' : 'success'" 

@@ -11,16 +11,16 @@ export class ClienteService {
   private apiUrl = 'http://localhost:3000/api/clientes';
 
   /**
-   * 1. Buscar clientes por término (Mostrador y Gabinete)
+   * 1. Buscar clientes por término (Nombre, Teléfono, etc.)
    */
   buscarClientes(termino: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/buscar?q=${termino}`);
+    return this.http.get<any>(`${this.apiUrl}/buscar?q=${encodeURIComponent(termino)}`);
   }
 
   /**
-   * 2. Registrar un nuevo cliente en SQL (Formulario de alta)
+   * 2. Registrar un nuevo cliente
    */
-  crearCliente(cliente: any): Observable<any> {
+  crearCliente(cliente: Partial<Cliente> | any): Observable<any> {
     return this.http.post<any>(this.apiUrl, cliente);
   }
 
@@ -32,36 +32,37 @@ export class ClienteService {
   }
 
   /**
-   * 4. Obtener historial completo (Clínico + Materiales) del paciente
-   * 🎯 ACTUALIZADO: Devuelve { success: true, data: { clinico: [...], materiales: [...] } }
+   * 4. Actualizar los datos de un cliente existente
+   */
+  actualizarCliente(idCliente: number | string, datos: Partial<Cliente> | any): Observable<any> {
+    return this.http.put<any>(`${this.apiUrl}/${idCliente}`, datos);
+  }
+
+  /**
+   * 5. Eliminar un cliente por su ID
+   */
+  eliminarCliente(idCliente: number | string): Observable<any> {
+    return this.http.delete<any>(`${this.apiUrl}/${idCliente}`);
+  }
+
+  /**
+   * 6. Obtener el historial completo (Clínico + Materiales) de un paciente
    */
   obtenerHistorial(idCliente: number | string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${idCliente}/historial`);
   }
 
   /**
-   * 5. Guardar una nueva refracción / receta clínica
+   * 7. Guardar una nueva refracción / receta clínica
    */
   guardarNuevaRX(idCliente: number | string, datosRx: any): Observable<any> {
     return this.http.post<any>(`${this.apiUrl}/${idCliente}/rx`, datosRx);
   }
 
   /**
-   * 6. Obtener la última receta de un paciente para clonar/editar
+   * 8. Obtener la última receta de un paciente para clonar/editar
    */
-  obtenerUltimaRX(clienteId: number | string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${clienteId}/ultima-rx`);
-  }
-  // ✅ CORRECTO
-actualizarCliente(idCliente: number, datos: any): Observable<any> {
-  // Si tu 'this.apiUrl' ya incluye la palabra '/clientes' (ej. http://localhost:3000/api/clientes):
-  return this.http.put(`${this.apiUrl}/${idCliente}`, datos);
-}
-
-  /**
-   * 8. Eliminar un cliente de SQL
-   */
-  eliminarCliente(idCliente: number | string): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/${idCliente}`);
+  obtenerUltimaRX(idCliente: number | string): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/${idCliente}/ultima-rx`);
   }
 }

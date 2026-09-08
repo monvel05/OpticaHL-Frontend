@@ -50,8 +50,6 @@ import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pag
     IonList,
     IonLabel,
     IonNote,
-    IonSegment,
-    IonSegmentButton,
     IonMenuButton
   ]
 })
@@ -93,11 +91,31 @@ export class CajaPage implements OnInit {
     this.cargarUltimasOrdenes();
   }
 
+  /**
+   * Carga y ordena las últimas órdenes registrándolas de la más reciente a la más antigua
+   */
   cargarUltimasOrdenes() {
     this.ordenService.obtenerOrdenes().subscribe({
       next: (res: any) => {
-        const lista = res?.datos || res || [];
-        this.ultimasOrdenes = Array.isArray(lista) ? lista.slice(0, 5) : [];
+        const lista: any[] = res?.datos || res || [];
+
+        if (Array.isArray(lista)) {
+          const listaOrdenada = [...lista].sort((a, b) => {
+            const fechaA = new Date(a.fecha_emision || a.fecha_creacion || a.created_at || 0).getTime();
+            const fechaB = new Date(b.fecha_emision || b.fecha_creacion || b.created_at || 0).getTime();
+
+            if (fechaA !== fechaB) return fechaB - fechaA;
+
+            const folioA = String(a.folio_orden || a.folio || '');
+            const folioB = String(b.folio_orden || b.folio || '');
+            return folioB.localeCompare(folioA, undefined, { numeric: true, sensitivity: 'base' });
+          });
+
+          this.ultimasOrdenes = listaOrdenada.slice(0, 5);
+        } else {
+          this.ultimasOrdenes = [];
+        }
+
         this.cdr.detectChanges();
       },
       error: (err: any) => {
@@ -111,42 +129,79 @@ export class CajaPage implements OnInit {
     this.buscarOrden();
   }
 
+  /**
+   * Realiza la búsqueda de orden por folio o por nombre de cliente/paciente
+   */
   buscarOrden() {
-    const folio = this.folioBusqueda.value;
-    if (!folio || folio.trim() === '') return;
+    const termino = this.folioBusqueda.value;
+    if (!termino || termino.trim() === '') return;
 
-    const folioLimpio = folio.trim();
+    const terminoLimpio = termino.trim();
 
-    this.ordenService.obtenerOrdenPorFolio(folioLimpio).subscribe({
+    this.ordenService.obtenerOrdenPorFolio(terminoLimpio).subscribe({
       next: (respuesta: any) => {
         const datos = respuesta?.datos || respuesta;
 
-        if (datos) {
-          const total = Number(datos.total || datos.total_general || 0);
-          const anticipo = Number(datos.anticipo ?? datos.monto_abonado ?? datos.total_pagado ?? 0);
-          const saldoCalculado = datos.saldo !== undefined ? Number(datos.saldo) : Math.max(0, total - anticipo);
-
-          this.ordenSeleccionada = {
-            ...datos,
-            total: total,
-            anticipo: anticipo,
-            saldo: saldoCalculado
-          };
-
-          this.esLiquidada = (datos.estatus === 'PAGADO' || datos.estatus === 'LIQUIDADO' || saldoCalculado <= 0);
-
-          if (this.esLiquidada) {
-            alert('Aviso: Esta orden ya se encuentra liquidada completamente.');
-          }
+        if (datos && (datos.folio_orden || datos.folio)) {
+          this.procesarOrdenSeleccionada(datos);
         } else {
-          alert('No se encontró ninguna orden con ese folio.');
+          this.buscarPorNombreOTexto(terminoLimpio);
+        }
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.buscarPorNombreOTexto(terminoLimpio);
+      }
+    });
+  }
+
+  private procesarOrdenSeleccionada(datos: any) {
+    const total = Number(datos.total || datos.total_general || 0);
+    const anticipo = Number(datos.anticipo ?? datos.monto_abonado ?? datos.total_pagado ?? 0);
+    const saldoCalculado = datos.saldo !== undefined ? Number(datos.saldo) : Math.max(0, total - anticipo);
+
+    this.ordenSeleccionada = {
+      ...datos,
+      total: total,
+      anticipo: anticipo,
+      saldo: saldoCalculado
+    };
+
+    this.esLiquidada = (datos.estatus === 'PAGADO' || datos.estatus === 'LIQUIDADO' || saldoCalculado <= 0);
+
+    if (this.esLiquidada) {
+      window.alert('Aviso: Esta orden ya se encuentra liquidada completamente.');
+    }
+  }
+
+  private buscarPorNombreOTexto(termino: string) {
+    const terminoLower = termino.toLowerCase();
+
+    this.ordenService.obtenerOrdenes().subscribe({
+      next: (res: any) => {
+        const lista: any[] = res?.datos || res || [];
+
+        const coincidencia = lista.find((ord: any) => {
+          const nombre = String(ord.paciente || ord.paciente_nombre || ord.cliente || '').toLowerCase();
+          const folio = String(ord.folio_orden || ord.folio || '').toLowerCase();
+          return nombre.includes(terminoLower) || folio.includes(terminoLower);
+        });
+
+        if (coincidencia) {
+          const folioCoincidente = coincidencia.folio_orden || coincidencia.folio;
+          this.ordenService.obtenerOrdenPorFolio(folioCoincidente).subscribe({
+            next: (resp: any) => this.procesarOrdenSeleccionada(resp?.datos || resp),
+            error: () => this.procesarOrdenSeleccionada(coincidencia)
+          });
+        } else {
+          window.alert('No se encontró ninguna orden por folio o nombre de paciente.');
           this.limpiarPantalla();
         }
         this.cdr.detectChanges();
       },
       error: (err: any) => {
-        console.error('❌ Error al buscar la orden:', err);
-        alert('No se encontró la orden o hubo un problema al conectar con el servidor.');
+        console.error('❌ Error en búsqueda secundaria:', err);
+        window.alert('No se encontró la orden o hubo un problema de conexión.');
         this.limpiarPantalla();
       }
     });
@@ -173,14 +228,15 @@ export class CajaPage implements OnInit {
     const { data: pagoConfirmado, role } = await modalPago.onDidDismiss();
 
     if (role === 'confirm' && pagoConfirmado) {
-      const folioOrdenPago = this.ordenSeleccionada.folio || this.ordenSeleccionada.folio_orden || this.folioBusqueda.value;
+      const folioOrdenPago = this.ordenSeleccionada.folio_orden || this.ordenSeleccionada.folio || this.folioBusqueda.value;
       const montoAbono = Number(pagoConfirmado.montoAbonado);
       const nuevoSaldo = Math.max(0, saldoCalculado - montoAbono);
 
       const esPagoTotal = nuevoSaldo <= 0;
+      const clienteNombre = this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General';
       const conceptoMovimiento = esPagoTotal
-        ? `Pago Total de Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`
-        : `Abono/Anticipo a Orden - Cliente: ${this.ordenSeleccionada.paciente || this.ordenSeleccionada.paciente_nombre || 'Venta General'}`;
+        ? `Pago Total de Orden - Cliente: ${clienteNombre}`
+        : `Abono/Anticipo a Orden - Cliente: ${clienteNombre}`;
 
       const movimiento = {
         id_sucursal: 'HL01',
@@ -200,15 +256,12 @@ export class CajaPage implements OnInit {
         },
         error: (err: any) => {
           console.error('❌ Error al registrar dinero en caja:', err);
-          alert(err.error?.mensaje || 'Error al procesar el pago en el servidor.');
+          window.alert(err.error?.mensaje || 'Error al procesar el pago en el servidor.');
         }
       });
     }
   }
 
-  /**
-   * Muestra las opciones de envío e impresión de comprobante según los contactos registrados del cliente
-   */
   async ofrecerOpcionesComprobante(folio: string, orden: any) {
     const celular = orden?.celular || orden?.telefono;
     const email = orden?.email;
@@ -217,8 +270,8 @@ export class CajaPage implements OnInit {
     const alertOptions = await this.alertCtrl.create({
       header: '¡Pago Registrado con Éxito!',
       subHeader: `Folio: ${folio}`,
-      message: tieneContactos 
-        ? 'Elige cómo deseas enviar o entregar el comprobante al cliente:' 
+      message: tieneContactos
+        ? 'Elige cómo deseas enviar o entregar el comprobante al cliente:'
         : '⚠️ Aviso: El cliente no tiene ningún medio de contacto (teléfono celular o correo) registrado.',
       buttons: [
         {
@@ -253,19 +306,16 @@ export class CajaPage implements OnInit {
     await alertOptions.present();
   }
 
-  /**
-   * Abre WhatsApp con el resumen formateado del comprobante
-   */
   enviarWhatsAppTicket(folio: string, orden: any) {
     const rawTel = orden?.celular || orden?.telefono;
     if (!rawTel) {
-      alert('⚠️ El cliente no tiene registrado ningún medio de contacto telefónico.');
+      window.alert('⚠️ El cliente no tiene registrado ningún medio de contacto telefónico.');
       return;
     }
 
     const numLimpio = String(rawTel).replace(/\D/g, '');
     if (!numLimpio) {
-      alert('⚠️ El número de teléfono registrado no es válido.');
+      window.alert('⚠️ El número de teléfono registrado no es válido.');
       return;
     }
 
@@ -285,25 +335,40 @@ export class CajaPage implements OnInit {
     window.open(url, '_blank');
   }
 
-  // --- NUEVA FUNCIÓN: COBRO RÁPIDO ---
-  async cobroRapido() {
-    const alert = await this.alertCtrl.create({
+  /**
+   * Muestra la alerta de Cobro Rápido / Mostrador
+   */
+  async cobroRapido(conceptoInicial: string = '', montoInicial: string = '') {
+    const alertModal = await this.alertCtrl.create({
       header: '⚡ Cobro Rápido / Mostrador',
       inputs: [
         {
           name: 'concepto',
           type: 'text',
-          placeholder: 'Producto (Ej. Agarrita, Solución)'
+          value: conceptoInicial,
+          placeholder: 'Producto (Ej. Agarrida, Solución, Cód. Barras)'
         },
         {
           name: 'monto',
           type: 'number',
+          value: montoInicial,
           placeholder: 'Monto ($)',
           attributes: { min: 1 }
         }
       ],
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
+        {
+          text: '🔍 Buscar',
+          handler: (data) => {
+            if (!data.concepto || !data.concepto.trim()) {
+              window.alert('Ingresa el código o nombre del producto para buscar.');
+              return false;
+            }
+            this.buscarProductoInventario(data.concepto.trim());
+            return true;
+          }
+        },
         {
           text: 'Efectivo',
           handler: (data) => this.procesarVentaRapida(data, 'EFECTIVO')
@@ -315,39 +380,107 @@ export class CajaPage implements OnInit {
       ]
     });
 
-    await alert.present();
+    await alertModal.present();
+  }
+
+  /**
+   * Consulta el catálogo de inventario para desplegar opciones o autocompletar el monto
+   */
+  private buscarProductoInventario(termino: string) {
+    this.cajaService.buscarProductosInventario(termino).subscribe({
+      next: async (productos: any[]) => {
+        if (!productos || productos.length === 0) {
+          window.alert('No se encontró ningún producto en inventario.');
+          this.cobroRapido(termino, '');
+          return;
+        }
+
+        // Caso 1: Solo hay 1 coincidencia directa (o escaneo de código de barras)
+        if (productos.length === 1) {
+          const prod = productos[0];
+          this.cobroRapido(prod.nombre || prod.descripcion, prod.precio);
+          return;
+        }
+
+        // Caso 2: Existen múltiples coincidencias, se despliega una lista de selección
+        const opcionesRadio = productos.map((prod) => ({
+          type: 'radio' as const,
+          label: `${prod.nombre || prod.descripcion} — $${prod.precio}`,
+          value: prod
+        }));
+
+        const alertLista = await this.alertCtrl.create({
+          header: 'Selecciona el Producto',
+          inputs: opcionesRadio,
+          buttons: [
+            { text: 'Cancelar', role: 'cancel' },
+            {
+              text: 'Seleccionar',
+              handler: (prodSeleccionado) => {
+                if (prodSeleccionado) {
+                  this.cobroRapido(
+                    prodSeleccionado.nombre || prodSeleccionado.descripcion,
+                    prodSeleccionado.precio
+                  );
+                }
+              }
+            }
+          ]
+        });
+
+        await alertLista.present();
+      },
+      error: (err: any) => {
+        console.error('Error al buscar en inventario:', err);
+        window.alert('Ocurrió un error al consultar el catálogo de inventario.');
+      }
+    });
   }
 
   private procesarVentaRapida(data: any, metodo: string) {
-    if (!data.concepto || !data.monto || Number(data.monto) <= 0) {
-      alert('Ingresa un concepto y monto válido.');
+    if (!data || !data.concepto || !data.monto || Number(data.monto) <= 0) {
+      window.alert('Ingresa un concepto y monto válido.');
       return false;
     }
+
+    const conceptoLimpio = data.concepto.toUpperCase().trim();
+    const montoLimpio = Number(data.monto);
 
     const movimiento = {
       id_sucursal: 'HL01',
       id_operador: 1,
       folio_orden: null,
       tipo_movimiento: 'INGRESO',
-      metodo_pago: metodo,
-      monto: Number(data.monto),
-      concepto: `COBRO RÁPIDO: ${data.concepto.toUpperCase()}`
+      metodo_pago: metodo.toUpperCase(),
+      monto: montoLimpio,
+      concepto: `COBRO RÁPIDO: ${conceptoLimpio}`
     };
 
     this.cajaService.registrarMovimiento(movimiento).subscribe({
       next: () => {
-        alert('¡Venta rápida registrada con éxito!');
+        window.alert('¡Venta rápida registrada con éxito!');
+
+        // 🖨️ Descargar e Imprimir Ticket PDF con Token en los headers
+        this.cajaService.descargarTicketVentaExpresPDF(conceptoLimpio, montoLimpio, metodo).subscribe({
+          next: (blob: Blob) => {
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+          },
+          error: (err: any) => {
+            console.error('Error al generar PDF de Venta Exprés:', err);
+          }
+        });
+
         this.cargarUltimasOrdenes();
       },
       error: (err: any) => {
-        console.error('Error en cobro rápido:', err);
-        alert('No se pudo registrar la venta exprés.');
+        console.error('❌ Error en cobro rápido (Respuesta backend):', err.error || err);
+        const msjError = err.error?.mensaje || err.error?.message || 'No se pudo registrar la venta exprés.';
+        window.alert(msjError);
       }
     });
     return true;
   }
-  // --- FIN COBRO RÁPIDO ---
-
   limpiarPantalla() {
     this.folioBusqueda.setValue('');
     this.ordenSeleccionada = null;
@@ -356,10 +489,10 @@ export class CajaPage implements OnInit {
   }
 
   imprimirTicket(folioParam?: string) {
-    const folio = folioParam || this.ordenSeleccionada?.folio || this.ordenSeleccionada?.folio_orden;
+    const folio = folioParam || this.ordenSeleccionada?.folio_orden || this.ordenSeleccionada?.folio;
 
     if (!folio) {
-      alert('No hay un folio seleccionado para generar el ticket.');
+      window.alert('No hay un folio seleccionado para generar el ticket.');
       return;
     }
 
@@ -386,7 +519,7 @@ export class CajaPage implements OnInit {
       error: (err: any) => {
         if (ventanaPDF) ventanaPDF.close();
         console.error('❌ Error descargando el ticket PDF:', err);
-        alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
+        window.alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
       }
     });
   }
