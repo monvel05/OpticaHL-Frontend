@@ -5,8 +5,7 @@ import { RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle,
-  IonCardContent, IonList, IonLabel, IonNote, IonSegment, IonSegmentButton,
-  ModalController, IonMenuButton, AlertController
+  IonCardContent, IonList, IonLabel, IonNote, ModalController, IonMenuButton, AlertController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -20,8 +19,9 @@ import { AuthService } from 'src/app/core/services/auth.service';
 import { OrdenService } from '../../core/services/orden.service';
 import { CajaService } from '../../core/services/caja.service';
 
-// MODAL DE PAGO
+// MODALES
 import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pago.component';
+import { ModalCobroRapidoComponent } from '../../shared/components/modalcobrorapido/modalcobrorapido.component';
 
 @Component({
   selector: 'app-caja',
@@ -336,151 +336,56 @@ export class CajaPage implements OnInit {
   }
 
   /**
-   * Muestra la alerta de Cobro Rápido / Mostrador
+   * Abre el Modal de Cobro Rápido / Mostrador
    */
-  async cobroRapido(conceptoInicial: string = '', montoInicial: string = '') {
-    const alertModal = await this.alertCtrl.create({
-      header: '⚡ Cobro Rápido / Mostrador',
-      inputs: [
-        {
-          name: 'concepto',
-          type: 'text',
-          value: conceptoInicial,
-          placeholder: 'Producto (Ej. Agarrida, Solución, Cód. Barras)'
-        },
-        {
-          name: 'monto',
-          type: 'number',
-          value: montoInicial,
-          placeholder: 'Monto ($)',
-          attributes: { min: 1 }
-        }
-      ],
-      buttons: [
-        { text: 'Cancelar', role: 'cancel' },
-        {
-          text: '🔍 Buscar',
-          handler: (data) => {
-            if (!data.concepto || !data.concepto.trim()) {
-              window.alert('Ingresa el código o nombre del producto para buscar.');
-              return false;
-            }
-            this.buscarProductoInventario(data.concepto.trim());
-            return true;
+  async cobroRapido() {
+    const modal = await this.modalCtrl.create({
+      component: ModalCobroRapidoComponent
+    });
+
+    await modal.present();
+
+    const { data, role } = await modal.onDidDismiss();
+
+    if (role === 'confirm' && data) {
+      const movimiento = {
+        id_sucursal: 'HL01',
+        id_operador: 1,
+        folio_orden: null,
+        tipo_movimiento: 'INGRESO',
+        metodo_pago: data.metodoPago,
+        monto: data.monto,
+        concepto: `COBRO RÁPIDO: ${data.concepto}`
+      };
+
+      this.cajaService.registrarMovimiento(movimiento).subscribe({
+        next: () => {
+          let mensajeExito = '¡Venta rápida registrada con éxito!';
+          if (data.metodoPago === 'EFECTIVO' && data.cambio > 0) {
+            mensajeExito += `\n\n💰 CAMBIO A ENTREGAR: $${data.cambio.toFixed(2)}`;
           }
+          window.alert(mensajeExito);
+
+          // 🖨️ Descargar e Imprimir Ticket PDF
+          this.cajaService.descargarTicketVentaExpresPDF(data.concepto, data.monto, data.metodoPago).subscribe({
+            next: (blob: Blob) => {
+              const blobUrl = URL.createObjectURL(blob);
+              window.open(blobUrl, '_blank');
+            },
+            error: (err: any) => console.error('Error al generar PDF de Venta Exprés:', err)
+          });
+
+          this.cargarUltimasOrdenes();
         },
-        {
-          text: 'Efectivo',
-          handler: (data) => this.procesarVentaRapida(data, 'EFECTIVO')
-        },
-        {
-          text: 'Tarjeta',
-          handler: (data) => this.procesarVentaRapida(data, 'TARJETA')
+        error: (err: any) => {
+          console.error('❌ Error en cobro rápido:', err);
+          const msjError = err.error?.mensaje || err.error?.message || 'No se pudo registrar la venta exprés.';
+          window.alert(msjError);
         }
-      ]
-    });
-
-    await alertModal.present();
-  }
-
-  /**
-   * Consulta el catálogo de inventario para desplegar opciones o autocompletar el monto
-   */
-  private buscarProductoInventario(termino: string) {
-    this.cajaService.buscarProductosInventario(termino).subscribe({
-      next: async (productos: any[]) => {
-        if (!productos || productos.length === 0) {
-          window.alert('No se encontró ningún producto en inventario.');
-          this.cobroRapido(termino, '');
-          return;
-        }
-
-        // Caso 1: Solo hay 1 coincidencia directa (o escaneo de código de barras)
-        if (productos.length === 1) {
-          const prod = productos[0];
-          this.cobroRapido(prod.nombre || prod.descripcion, prod.precio);
-          return;
-        }
-
-        // Caso 2: Existen múltiples coincidencias, se despliega una lista de selección
-        const opcionesRadio = productos.map((prod) => ({
-          type: 'radio' as const,
-          label: `${prod.nombre || prod.descripcion} — $${prod.precio}`,
-          value: prod
-        }));
-
-        const alertLista = await this.alertCtrl.create({
-          header: 'Selecciona el Producto',
-          inputs: opcionesRadio,
-          buttons: [
-            { text: 'Cancelar', role: 'cancel' },
-            {
-              text: 'Seleccionar',
-              handler: (prodSeleccionado) => {
-                if (prodSeleccionado) {
-                  this.cobroRapido(
-                    prodSeleccionado.nombre || prodSeleccionado.descripcion,
-                    prodSeleccionado.precio
-                  );
-                }
-              }
-            }
-          ]
-        });
-
-        await alertLista.present();
-      },
-      error: (err: any) => {
-        console.error('Error al buscar en inventario:', err);
-        window.alert('Ocurrió un error al consultar el catálogo de inventario.');
-      }
-    });
-  }
-
-  private procesarVentaRapida(data: any, metodo: string) {
-    if (!data || !data.concepto || !data.monto || Number(data.monto) <= 0) {
-      window.alert('Ingresa un concepto y monto válido.');
-      return false;
+      });
     }
-
-    const conceptoLimpio = data.concepto.toUpperCase().trim();
-    const montoLimpio = Number(data.monto);
-
-    const movimiento = {
-      id_sucursal: 'HL01',
-      id_operador: 1,
-      folio_orden: null,
-      tipo_movimiento: 'INGRESO',
-      metodo_pago: metodo.toUpperCase(),
-      monto: montoLimpio,
-      concepto: `COBRO RÁPIDO: ${conceptoLimpio}`
-    };
-
-    this.cajaService.registrarMovimiento(movimiento).subscribe({
-      next: () => {
-        window.alert('¡Venta rápida registrada con éxito!');
-
-        // 🖨️ Descargar e Imprimir Ticket PDF con Token en los headers
-        this.cajaService.descargarTicketVentaExpresPDF(conceptoLimpio, montoLimpio, metodo).subscribe({
-          next: (blob: Blob) => {
-            const blobUrl = URL.createObjectURL(blob);
-            window.open(blobUrl, '_blank');
-          },
-          error: (err: any) => {
-            console.error('Error al generar PDF de Venta Exprés:', err);
-          }
-        });
-
-        this.cargarUltimasOrdenes();
-      },
-      error: (err: any) => {
-        console.error('❌ Error en cobro rápido (Respuesta backend):', err.error || err);
-        const msjError = err.error?.mensaje || err.error?.message || 'No se pudo registrar la venta exprés.';
-        window.alert(msjError);
-      }
-    });
-    return true;
   }
+
   limpiarPantalla() {
     this.folioBusqueda.setValue('');
     this.ordenSeleccionada = null;

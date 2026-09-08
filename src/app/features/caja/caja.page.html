@@ -34,7 +34,7 @@
     </ion-item>
   </div>
 
-  <!-- Botón de Cobro Rápido (Aparece en la vista principal) -->
+  <!-- Botón de Cobro Rápido -->
   @if (!ordenSeleccionada) {
     <ion-button 
       expand="block" 
@@ -47,7 +47,7 @@
     </ion-button>
   }
 
-  <!-- Lista de Últimas 5 Ventas / Órdenes Recientes (Vista 1) -->
+  <!-- Lista de Últimas Ventas / Órdenes Recientes -->
   @if (!ordenSeleccionada && ultimasOrdenes.length > 0) {
     <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
       <ion-card-header color="light" style="padding: 12px 16px;">
@@ -87,10 +87,10 @@
     </ion-card>
   }
 
-  <!-- Detalle de Orden Seleccionada (Vista 2) -->
+  <!-- Detalle de Orden Seleccionada -->
   @if (ordenSeleccionada) {
 
-    <!-- Botón para Regresar a la Vista Principal -->
+    <!-- Botón para Regresar -->
     <ion-button 
       fill="clear" 
       color="dark" 
@@ -162,7 +162,7 @@
           </ion-item>
         </ion-list>
 
-        <!-- Botón de Registro de Pago (Abre directamente el modal de cobro) -->
+        <!-- Botón de Registro de Pago -->
         <ion-button 
           expand="block" 
           [color]="esLiquidada ? 'medium' : 'success'" 
