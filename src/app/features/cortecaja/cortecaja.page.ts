@@ -40,7 +40,6 @@ import { CajaService } from '../../core/services/caja.service';
     IonList,
     IonItem,
     IonLabel,
-    IonBackButton
   ]
 })
 export class CortecajaPage implements OnInit {

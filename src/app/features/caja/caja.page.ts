@@ -5,14 +5,12 @@ import { RouterLink } from '@angular/router';
 import {
   IonHeader, IonToolbar, IonTitle, IonButtons, IonButton, IonIcon,
   IonContent, IonItem, IonInput, IonCard, IonCardHeader, IonCardTitle,
-  IonCardContent, IonList, IonLabel, IonNote, ModalController, IonMenuButton, AlertController
-} from '@ionic/angular/standalone';
+  IonCardContent, IonList, IonLabel, IonNote, ModalController, IonMenuButton, AlertController, IonSegment, IonSegmentButton } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   searchOutline, cashOutline, cardOutline, receiptOutline,
   checkmarkCircleOutline, analyticsOutline, logOutOutline, documentTextOutline, timeOutline,
-  arrowBackOutline, flashOutline
-} from 'ionicons/icons';
+  arrowBackOutline, flashOutline, closeOutline, removeCircleOutline, addCircleOutline, trashOutline, swapHorizontalOutline } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth.service';
 
 // SERVICIOS REALES
@@ -29,7 +27,7 @@ import { ModalCobroRapidoComponent } from '../../shared/components/modalcobrorap
   styleUrls: ['./caja.page.scss'],
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Default,
-  imports: [
+  imports: [ 
     CommonModule,
     FormsModule,
     ReactiveFormsModule,
@@ -68,19 +66,7 @@ export class CajaPage implements OnInit {
   esLiquidada: boolean = false;
 
   constructor() {
-    addIcons({
-      analyticsOutline,
-      logOutOutline,
-      searchOutline,
-      cashOutline,
-      cardOutline,
-      receiptOutline,
-      checkmarkCircleOutline,
-      documentTextOutline,
-      timeOutline,
-      arrowBackOutline,
-      flashOutline
-    });
+    addIcons({closeOutline,searchOutline,removeCircleOutline,addCircleOutline,trashOutline,cashOutline,cardOutline,swapHorizontalOutline,checkmarkCircleOutline,analyticsOutline,logOutOutline,receiptOutline,documentTextOutline,timeOutline,arrowBackOutline,flashOutline});
   }
 
   ngOnInit() {
@@ -335,57 +321,60 @@ export class CajaPage implements OnInit {
     window.open(url, '_blank');
   }
 
-  /**
-   * Abre el Modal de Cobro Rápido / Mostrador
-   */
-  async cobroRapido() {
-    const modal = await this.modalCtrl.create({
-      component: ModalCobroRapidoComponent
-    });
+/**
+ * Abre el Modal de Cobro Rápido / Mostrador
+ */
+async cobroRapido() {
+  const modal = await this.modalCtrl.create({
+    component: ModalCobroRapidoComponent
+  });
 
-    await modal.present();
+  await modal.present();
 
-    const { data, role } = await modal.onDidDismiss();
+  const { data, role } = await modal.onDidDismiss();
 
-    if (role === 'confirm' && data) {
-      const movimiento = {
-        id_sucursal: 'HL01',
-        id_operador: 1,
-        folio_orden: null,
-        tipo_movimiento: 'INGRESO',
-        metodo_pago: data.metodoPago,
-        monto: data.monto,
-        concepto: `COBRO RÁPIDO: ${data.concepto}`
-      };
+  if (role === 'confirm' && data) {
+    // 💡 AHORA SÍ ENVIAMOS LOS ITEMS Y EL FORMATO CORRECTO DE MÉTODO DE PAGO
+    const movimiento = {
+      id_sucursal: 'HL01',
+      id_operador: 1,
+      folio_orden: null,
+      tipo_movimiento: 'INGRESO',
+      metodo_pago: data.metodo_pago || data.metodoPago, 
+      monto: data.monto,
+      concepto: data.concepto,
+      items: data.items // <--- ESTO ES LO QUE FALTABA PARA QUE EL BACKEND DESCUENTE EL STOCK
+    };
 
-      this.cajaService.registrarMovimiento(movimiento).subscribe({
-        next: () => {
-          let mensajeExito = '¡Venta rápida registrada con éxito!';
-          if (data.metodoPago === 'EFECTIVO' && data.cambio > 0) {
-            mensajeExito += `\n\n💰 CAMBIO A ENTREGAR: $${data.cambio.toFixed(2)}`;
-          }
-          window.alert(mensajeExito);
-
-          // 🖨️ Descargar e Imprimir Ticket PDF
-          this.cajaService.descargarTicketVentaExpresPDF(data.concepto, data.monto, data.metodoPago).subscribe({
-            next: (blob: Blob) => {
-              const blobUrl = URL.createObjectURL(blob);
-              window.open(blobUrl, '_blank');
-            },
-            error: (err: any) => console.error('Error al generar PDF de Venta Exprés:', err)
-          });
-
-          this.cargarUltimasOrdenes();
-        },
-        error: (err: any) => {
-          console.error('❌ Error en cobro rápido:', err);
-          const msjError = err.error?.mensaje || err.error?.message || 'No se pudo registrar la venta exprés.';
-          window.alert(msjError);
+    this.cajaService.registrarMovimiento(movimiento).subscribe({
+      next: () => {
+        let mensajeExito = '¡Venta rápida registrada con éxito y stock actualizado!';
+        const metodoUsado = data.metodo_pago || data.metodoPago;
+        
+        if (metodoUsado === 'EFECTIVO' && data.cambio > 0) {
+          mensajeExito += `\n\n💰 CAMBIO A ENTREGAR: $${data.cambio.toFixed(2)}`;
         }
-      });
-    }
-  }
+        window.alert(mensajeExito);
 
+        // 🖨️ Descargar e Imprimir Ticket PDF
+        this.cajaService.descargarTicketVentaExpresPDF(data.concepto, data.monto, metodoUsado).subscribe({
+          next: (blob: Blob) => {
+            const blobUrl = URL.createObjectURL(blob);
+            window.open(blobUrl, '_blank');
+          },
+          error: (err: any) => console.error('Error al generar PDF de Venta Exprés:', err)
+        });
+
+        this.cargarUltimasOrdenes();
+      },
+      error: (err: any) => {
+        console.error('❌ Error en cobro rápido:', err);
+        const msjError = err.error?.mensaje || err.error?.message || 'No se pudo registrar la venta exprés.';
+        window.alert(msjError);
+      }
+    });
+  }
+}
   limpiarPantalla() {
     this.folioBusqueda.setValue('');
     this.ordenSeleccionada = null;

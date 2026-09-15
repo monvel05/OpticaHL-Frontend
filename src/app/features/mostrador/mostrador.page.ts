@@ -1,36 +1,40 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, AlertController } from '@ionic/angular/standalone';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonFab, IonIcon,
   IonButtons, IonSearchbar, IonButton, IonGrid, IonRow, IonCol,
-  IonCard, IonItem, IonAvatar, IonLabel, IonFabButton, IonMenuButton
+  IonCard, IonItem, IonAvatar, IonLabel, IonFabButton, IonMenuButton,
+  IonModal, IonList, IonCardContent, IonInput
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
+import jsPDF from 'jspdf';
 
 // Servicios
 import { AuthService } from 'src/app/core/services/auth.service';
-import { ClienteService } from '../../core/services/cliente.service';
+import { ClienteService } from 'src/app/core/services/cliente.service';
+import { ArticulosService } from '../../core/services/articulos.service';
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 
-// Componentes de Modales
+// Modales
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component';
 import { CrritoPage } from '../crrito/crrito.page';
 
-// Iconos requeridos
+// Iconos
 import {
-  refreshOutline,
-  searchOutline,
-  callOutline,
-  folderOpenOutline,
-  documentTextOutline,
-  personAdd,
-  closeOutline,
-  checkmarkCircleOutline,
-  logOutOutline
+  refreshOutline, searchOutline, callOutline, folderOpenOutline,
+  documentTextOutline, personAdd, closeOutline, checkmarkCircleOutline,
+  logOutOutline, calculatorOutline, addCircleOutline, trashOutline, cartOutline,
+  barcodeOutline, printOutline, removeCircleOutline
 } from 'ionicons/icons';
+
+interface ItemCotizacion {
+  id_articulo?: number;
+  descripcion: string;
+  precio: number;
+  cantidad: number;
+}
 
 @Component({
   selector: 'app-mostrador',
@@ -42,96 +46,299 @@ import {
     IonFabButton, IonLabel, IonAvatar, IonItem, IonCard, IonCol,
     IonRow, IonGrid, IonButton, IonSearchbar, IonButtons, IonIcon,
     IonFab, IonContent, IonHeader, IonTitle, IonToolbar, IonMenuButton,
-    CommonModule, FormsModule
+    IonModal, IonList, IonCardContent, IonInput,
+    CommonModule
   ]
 })
 export class MostradorPage implements OnInit {
-  // Inyección de dependencias
   private clienteService = inject(ClienteService);
+  private articulosService = inject(ArticulosService);
   private authService = inject(AuthService);
   private modalCtrl = inject(ModalController);
+  private alertCtrl = inject(AlertController);
 
   searchTerm: string = '';
   clientesFiltrados: Cliente[] = [];
 
+  // 🧮 Cotizador State
+  isCotizadorOpen: boolean = false;
+  busquedaProductoTexto: string = '';
+  mostrarSugerencias: boolean = false;
+  
+  todosLosProductos: any[] = [];
+  productosFiltrados: any[] = [];
+  productoSeleccionado: { id_articulo?: number; codigo?: string; nombre: string; precio_venta: number } | null = null;
+  itemsCotizacion: ItemCotizacion[] = [];
+
   constructor() {
     addIcons({
-      refreshOutline,
-      logOutOutline,
-      searchOutline,
-      callOutline,
-      folderOpenOutline,
-      documentTextOutline,
-      personAdd,
-      closeOutline,
-      checkmarkCircleOutline
+      calculatorOutline, refreshOutline, logOutOutline, searchOutline, callOutline,
+      folderOpenOutline, documentTextOutline, personAdd, closeOutline, addCircleOutline,
+      trashOutline, cartOutline, checkmarkCircleOutline, barcodeOutline, printOutline,
+      removeCircleOutline
     });
   }
 
   ngOnInit() {
     this.clientesFiltrados = [];
+
+    this.articulosService.getArticulosStream().subscribe({
+      next: (articulos: any[]) => {
+        this.todosLosProductos = articulos.map((item: any) => ({
+          id_articulo: item.id_articulo,
+          codigo: item.codigo || item.codigo_barras || item.sku || '',
+          nombre: item.nombre || item.descripcion || 'Sin nombre',
+          precio_venta: Number(item.precio_venta || item.precio || 0)
+        }));
+      },
+      error: (err: any) => console.error('Error al cargar artículos:', err)
+    });
   }
 
-  /**
-   * Cierra la sesión activa del usuario
-   */
   async logout() {
     await this.authService.logout();
   }
 
-  /**
-   * Escucha el buscador del mostrador y solicita coincidencias al Backend en tiempo real.
-   */
   onSearchChange(event: any) {
-    this.searchTerm = event.detail.value || '';
+    const valor = event?.detail?.value || event?.target?.value || '';
+    this.searchTerm = valor.toString().trim().toLowerCase();
 
-    if (this.searchTerm.trim() === '') {
+    if (this.searchTerm === '') {
       this.clientesFiltrados = [];
       return;
     }
 
     this.clienteService.buscarClientes(this.searchTerm).subscribe({
       next: (data: any) => {
-        if (Array.isArray(data)) {
-          this.clientesFiltrados = data;
-        } else if (data && Array.isArray(data.clientes)) {
-          this.clientesFiltrados = data.clientes;
-        } else if (data && Array.isArray(data.data)) {
-          this.clientesFiltrados = data.data;
-        } else {
-          this.clientesFiltrados = [];
-        }
+        this.clientesFiltrados = this.normalizarRespuestaClientes(data);
       },
-      error: (err: any) => console.error('Error al realizar búsqueda en el mostrador:', err)
+      error: (err: any) => {
+        console.error('Error en búsqueda de clientes:', err);
+        this.clientesFiltrados = [];
+      }
     });
   }
 
-  /**
-   * Refresca la cuadrícula del mostrador con el término de búsqueda actual
-   */
+  private normalizarRespuestaClientes(data: any): Cliente[] {
+    if (Array.isArray(data)) return data;
+    if (data?.clientes && Array.isArray(data.clientes)) return data.clientes;
+    if (data?.data && Array.isArray(data.data)) return data.data;
+    if (data?.result && Array.isArray(data.result)) return data.result;
+    return [];
+  }
+
   cargarClientes() {
-    if (this.searchTerm.trim() !== '') {
+    if (this.searchTerm !== '') {
       this.onSearchChange({ detail: { value: this.searchTerm } });
     }
   }
 
-  /**
-   * Helper para extraer la inicial estética del cliente en la lista
-   */
   obtenerInicial(nombreCompleto: string): string {
     if (!nombreCompleto) return 'C';
     return nombreCompleto.trim().charAt(0).toUpperCase();
   }
 
-  /**
-   * 🎯 VER HISTORIAL: Abre el modal pasando las listas separadas de clínico y materiales
-   */
+  // 🧮 LÓGICA COTIZADOR
+  abrirCotizador() {
+    this.isCotizadorOpen = true;
+    this.busquedaProductoTexto = '';
+    this.mostrarSugerencias = false;
+    this.productosFiltrados = [];
+    this.articulosService.cargarArticulos(1, 50, '');
+  }
+
+  cerrarCotizador() {
+    this.isCotizadorOpen = false;
+    this.mostrarSugerencias = false;
+    this.busquedaProductoTexto = '';
+  }
+
+  buscarProductoInventario(event: any) {
+    const query = (event?.detail?.value || event?.target?.value || '').toString().toLowerCase().trim();
+    this.busquedaProductoTexto = query;
+
+    if (!query) {
+      this.mostrarSugerencias = false;
+      this.productosFiltrados = [];
+      return;
+    }
+
+    this.productosFiltrados = this.todosLosProductos.filter(prod => {
+      const nombreMatch = prod.nombre.toLowerCase().includes(query);
+      const codigoMatch = prod.codigo.toLowerCase().includes(query);
+      return nombreMatch || codigoMatch;
+    });
+
+    this.mostrarSugerencias = true;
+    this.articulosService.cargarArticulos(1, 20, query);
+  }
+
+  seleccionarProducto(producto: any) {
+    this.productoSeleccionado = {
+      id_articulo: producto.id_articulo,
+      codigo: producto.codigo,
+      nombre: producto.nombre,
+      precio_venta: producto.precio_venta
+    };
+    
+    this.mostrarSugerencias = false;
+    this.busquedaProductoTexto = '';
+    this.productosFiltrados = [];
+  }
+
+  // Agregar al desglose o incrementar si ya existía
+  agregarItemCotizacion() {
+    if (this.productoSeleccionado) {
+      const etiquetaProd = this.productoSeleccionado.codigo 
+        ? `[${this.productoSeleccionado.codigo}] ${this.productoSeleccionado.nombre}`
+        : this.productoSeleccionado.nombre;
+
+      const itemExistente = this.itemsCotizacion.find(
+        item => item.id_articulo === this.productoSeleccionado?.id_articulo && item.descripcion === etiquetaProd
+      );
+
+      if (itemExistente) {
+        itemExistente.cantidad += 1;
+      } else {
+        this.itemsCotizacion.push({
+          id_articulo: this.productoSeleccionado.id_articulo,
+          descripcion: etiquetaProd,
+          precio: Number(this.productoSeleccionado.precio_venta),
+          cantidad: 1
+        });
+      }
+
+      this.productoSeleccionado = null;
+    }
+  }
+
+  // Manejadores de Cantidad
+  incrementarCantidad(item: ItemCotizacion) {
+    item.cantidad = (item.cantidad || 0) + 1;
+  }
+
+  decrementarCantidad(item: ItemCotizacion) {
+    if (item.cantidad > 1) {
+      item.cantidad -= 1;
+    }
+  }
+
+  onCantidadChange(event: any, item: ItemCotizacion) {
+    const valorRaw = event?.detail?.value || event?.target?.value;
+    const num = parseInt(valorRaw, 10);
+    item.cantidad = isNaN(num) || num < 1 ? 1 : num;
+  }
+
+  eliminarItemCotizacion(index: number) {
+    this.itemsCotizacion.splice(index, 1);
+  }
+
+  calcularTotalCotizacion(): number {
+    return this.itemsCotizacion.reduce((acc, item) => acc + (item.precio * item.cantidad), 0);
+  }
+
+  limpiarCotizacion() {
+    this.itemsCotizacion = [];
+    this.productoSeleccionado = null;
+    this.productosFiltrados = [];
+    this.mostrarSugerencias = false;
+    this.busquedaProductoTexto = '';
+  }
+
+  // 📄 CONFIRMAR E IMPRIMIR
+  async confirmarEImprimirCotizacion() {
+    if (this.itemsCotizacion.length === 0) {
+      this.cerrarCotizador();
+      return;
+    }
+
+    const alert = await this.alertCtrl.create({
+      header: 'Imprimir Cotización',
+      message: '¿Deseas imprimir el ticket / comprobante de esta cotización?',
+      buttons: [
+        {
+          text: 'No',
+          role: 'cancel',
+          handler: () => {
+            this.limpiarCotizacion();
+            this.cerrarCotizador();
+          }
+        },
+        {
+          text: 'Sí, Imprimir',
+          handler: () => {
+            this.imprimirPDF();
+            this.limpiarCotizacion();
+            this.cerrarCotizador();
+          }
+        }
+      ]
+    });
+
+    await alert.present();
+  }
+
+  imprimirPDF() {
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [80, 160]
+    });
+
+    const fechaHora = new Date().toLocaleString();
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(12);
+    doc.text('ÓPTICA - COTIZACIÓN', 40, 10, { align: 'center' });
+
+    doc.setFont('Helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.text(`Fecha: ${fechaHora}`, 5, 16);
+    doc.text('-----------------------------------------------------------', 5, 20);
+
+    doc.setFont('Helvetica', 'bold');
+    doc.text('Cant. Descrip.', 5, 25);
+    doc.text('P.Unit', 55, 25, { align: 'right' });
+    doc.text('Importe', 75, 25, { align: 'right' });
+    doc.text('-----------------------------------------------------------', 5, 28);
+
+    doc.setFont('Helvetica', 'normal');
+    let y = 33;
+
+    this.itemsCotizacion.forEach((item) => {
+      const desc = item.descripcion.length > 20 ? item.descripcion.substring(0, 18) + '..' : item.descripcion;
+      const subtotal = item.precio * item.cantidad;
+
+      doc.text(`${item.cantidad}x ${desc}`, 5, y);
+      doc.text(`$${item.precio.toFixed(2)}`, 55, y, { align: 'right' });
+      doc.text(`$${subtotal.toFixed(2)}`, 75, y, { align: 'right' });
+      y += 6;
+    });
+
+    doc.text('-----------------------------------------------------------', 5, y);
+    y += 5;
+
+    doc.setFont('Helvetica', 'bold');
+    doc.setFontSize(10);
+    doc.text('TOTAL:', 5, y);
+    doc.text(`$${this.calcularTotalCotizacion().toFixed(2)}`, 75, y, { align: 'right' });
+
+    y += 10;
+    doc.setFont('Helvetica', 'italic');
+    doc.setFontSize(8);
+    doc.text('Precios sujetos a cambios sin previo aviso.', 40, y, { align: 'center' });
+    doc.text('¡Gracias por su preferencia!', 40, y + 5, { align: 'center' });
+
+    doc.autoPrint();
+    window.open(doc.output('bloburl'), '_blank');
+  }
+
+  // MÉTODOS DE CLIENTES E HISTORIAL
   verHistorial(cliente: Cliente) {
     if (!cliente.id_cliente) return;
 
     this.clienteService.obtenerHistorial(cliente.id_cliente).subscribe({
       next: async (res: any) => {
-        // Extraemos clinico y materiales del objeto `data` de la respuesta
         const clinico = res?.data?.clinico || (Array.isArray(res) ? res : []);
         const materiales = res?.data?.materiales || [];
 
@@ -146,32 +353,23 @@ export class MostradorPage implements OnInit {
 
         await modal.present();
       },
-      error: (err: any) => console.error('Error al obtener el historial del cliente:', err)
+      error: (err: any) => console.error('Error al obtener el historial:', err)
     });
   }
 
-  /**
-   * 🔥 CREAR ORDEN COMMERCIAL: Extrae la última graduación y la envía al carrito.
-   */
   async crearOrden(cliente: Cliente) {
     if (!cliente.id_cliente) return;
 
-    console.log('Mostrador: Solicitando última receta para:', cliente.nombre_completo);
-
     this.clienteService.obtenerHistorial(cliente.id_cliente).subscribe({
       next: async (res: any) => {
-        // Extraemos las recetas clínicas de la respuesta estructurada
         const listaClinica = res?.data?.clinico || (Array.isArray(res) ? res : []);
 
-        // ⚠️ Si el cliente no tiene refracciones hechas por el optometrista, lo bloqueamos
         if (!listaClinica || listaClinica.length === 0) {
-          alert(`El cliente ${cliente.nombre_completo} no tiene ninguna graduación registrada por el Optometrista. Por favor, solicite primero su consulta clínica en Gabinete.`);
+          alert(`El cliente ${cliente.nombre_completo} no tiene ninguna graduación registrada.`);
           return;
         }
 
-        // 🥇 Tomamos la receta más reciente
         const ultimaReceta = listaClinica[0];
-        console.log('✅ Receta recuperada con éxito para enlazar:', ultimaReceta);
 
         const modalCarrito = await this.modalCtrl.create({
           component: CrritoPage,
@@ -187,7 +385,7 @@ export class MostradorPage implements OnInit {
               oi_cilindro: ultimaReceta.oi_cilindro,
               oi_eje: ultimaReceta.oi_eje,
               oi_adicion: ultimaReceta.oi_adicion,
-              observaciones: ultimaReceta.observaciones || 'Sin notas adicionales.'
+              observaciones: ultimaReceta.observaciones || 'Sin notas.'
             }
           }
         });
@@ -201,15 +399,12 @@ export class MostradorPage implements OnInit {
         }
       },
       error: (err: any) => {
-        console.error('Error crítico al enlazar la orden comercial:', err);
-        alert('Hubo un inconveniente al conectar con el servidor para obtener la receta.');
+        console.error('Error al conectar con la receta:', err);
+        alert('Hubo un inconveniente al conectar con el servidor.');
       }
     });
   }
 
-  /**
-   * ACCIÓN: REGISTRAR NUEVO CLIENTE (Alta rápida desde el mostrador)
-   */
   async registrarNuevoCliente() {
     const modal = await this.modalCtrl.create({
       component: ClienteFormComponent,
@@ -222,7 +417,7 @@ export class MostradorPage implements OnInit {
 
     if (role === 'confirm' && data) {
       this.clientesFiltrados = [data];
-      this.searchTerm = data.nombre_completo;
+      this.searchTerm = data.nombre_completo || '';
     }
   }
 }

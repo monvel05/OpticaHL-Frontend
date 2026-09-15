@@ -5,8 +5,12 @@
     </ion-buttons>
     <ion-title style="font-weight: bold;">Mostrador Óptica</ion-title>
     
-    <!-- ACCIONES EN EL ENCABEZADO -->
     <ion-buttons slot="end">
+      <!-- Botón Cotizador / Cobro Rápido -->
+      <ion-button (click)="abrirCotizador()" title="Cotizador Rápido">
+        <ion-icon slot="icon-only" name="calculator-outline"></ion-icon>
+      </ion-button>
+
       <!-- Botón Refrescar -->
       <ion-button (click)="cargarClientes()" title="Recargar lista">
         <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
@@ -48,10 +52,8 @@
       <ion-row>
         @for (cliente of clientesFiltrados; track cliente.id_cliente) {
           <ion-col size="12" size-md="6" style="padding: 6px;">
-            
             <ion-card style="border-radius: 16px; margin: 0; box-shadow: 0 4px 14px rgba(0,0,0,0.04); background: #fff;">
               <ion-item lines="none" style="--padding-start: 12px; padding-top: 8px;">
-                
                 <ion-avatar slot="start" style="background: var(--ion-color-primary-tint); display: flex; align-items: center; justify-content: center; color: var(--ion-color-primary); font-weight: bold; font-size: 18px; width: 44px; height: 44px;">
                   {{ obtenerInicial(cliente.nombre_completo) }}
                 </ion-avatar>
@@ -72,7 +74,6 @@
               </ion-item>
 
               <div style="display: flex; justify-content: flex-end; padding: 8px 12px 12px 12px; gap: 8px; border-top: 1px solid #f4f5f8; margin-top: 8px;">
-                
                 <ion-button fill="clear" size="small" color="medium" (click)="verHistorial(cliente)" style="font-weight: 600;">
                   <ion-icon slot="start" name="folder-open-outline"></ion-icon>
                   Historial
@@ -82,10 +83,8 @@
                   <ion-icon slot="start" name="document-text-outline"></ion-icon>
                   NUEVA ORDEN
                 </ion-button>
-
               </div>
             </ion-card>
-
           </ion-col>
         }
       </ion-row>
@@ -98,4 +97,142 @@
     </ion-fab-button>
   </ion-fab>
 
+  <ion-modal [isOpen]="isCotizadorOpen" (didDismiss)="cerrarCotizador()">
+  <ng-template>
+    <ion-header>
+      <ion-toolbar color="primary">
+        <ion-title>Cotizador Rápido</ion-title>
+        <ion-buttons slot="end">
+          <ion-button (click)="cerrarCotizador()">
+            <ion-icon name="close-outline"></ion-icon>
+          </ion-button>
+        </ion-buttons>
+      </ion-toolbar>
+    </ion-header>
+
+    <ion-content class="ion-padding" style="position: relative;">
+      
+      <div style="position: relative; z-index: 10;">
+        <ion-searchbar 
+          [value]="busquedaProductoTexto"
+          placeholder="Buscar por código o nombre..." 
+          [debounce]="200"
+          (ionInput)="buscarProductoInventario($event)">
+        </ion-searchbar>
+
+        @if (mostrarSugerencias && productosFiltrados.length > 0) {
+          <ion-list style="position: absolute; top: 100%; left: 0; right: 0; max-height: 220px; overflow-y: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-radius: 0 0 12px 12px; z-index: 99; background: #fff; margin: 0 8px;">
+            @for (prod of productosFiltrados; track prod.id_articulo) {
+              <ion-item button (click)="seleccionarProducto(prod)" lines="full">
+                <ion-label>
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    @if (prod.codigo) {
+                      <span style="background: #e2e8f0; color: #334155; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; letter-spacing: 0.5px;">
+                        {{ prod.codigo }}
+                      </span>
+                    }
+                    <h3 style="font-weight: 600; color: #2c3e50; margin: 0;">{{ prod.nombre }}</h3>
+                  </div>
+                  <p style="color: var(--ion-color-primary); font-weight: bold; margin-top: 4px;">
+                    ${{ prod.precio_venta | number:'1.2-2' }}
+                  </p>
+                </ion-label>
+              </ion-item>
+            }
+          </ion-list>
+        } @else if (mostrarSugerencias && busquedaProductoTexto.trim().length > 0 && productosFiltrados.length === 0) {
+          <ion-card style="position: absolute; top: 100%; left: 0; right: 0; z-index: 99; margin: 0 8px; padding: 12px; text-align: center; color: var(--ion-color-medium);">
+            Sin coincidencias en el inventario
+          </ion-card>
+        }
+      </div>
+
+      @if (productoSeleccionado) {
+        <ion-card style="margin: 16px 0; border: 2px solid var(--ion-color-primary-tint); background: #f0f7ff; border-radius: 12px;">
+          <ion-card-content style="padding: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                @if (productoSeleccionado.codigo) {
+                  <span style="background: var(--ion-color-primary-tint); color: var(--ion-color-primary); padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold;">
+                    {{ productoSeleccionado.codigo }}
+                  </span>
+                }
+                <h3 style="margin: 4px 0 0 0; font-weight: 700; color: #1e293b;">{{ productoSeleccionado.nombre }}</h3>
+                <p style="margin: 4px 0 0 0; font-size: 16px; color: var(--ion-color-primary); font-weight: 800;">
+                  ${{ productoSeleccionado.precio_venta | number:'1.2-2' }}
+                </p>
+              </div>
+              <ion-button fill="solid" color="primary" (click)="agregarItemCotizacion()" style="--border-radius: 8px;">
+                <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+                Agregar a la Lista
+              </ion-button>
+            </div>
+          </ion-card-content>
+        </ion-card>
+      }
+
+      <h5 style="margin-top: 20px; font-weight: bold; color: #334155;">Desglose de Cotización</h5>
+      <ion-list style="border-radius: 12px; overflow: hidden; background: #fff;">
+        @for (item of itemsCotizacion; track $index) {
+          <ion-item lines="full">
+            <ion-label style="flex: 1;">
+              <h2 style="font-weight: 600; font-size: 14px;">{{ item.descripcion }}</h2>
+              <p style="color: #059669; font-weight: bold; margin-top: 2px;">
+                ${{ item.precio | number:'1.2-2' }} c/u
+                <span style="color: #64748b; font-weight: normal; margin-left: 6px;">
+                  (Subtotal: ${{ (item.precio * item.cantidad) | number:'1.2-2' }})
+                </span>
+              </p>
+            </ion-label>
+
+            <div style="display: flex; align-items: center; gap: 4px; margin-right: 8px;">
+              <ion-button fill="clear" size="small" color="medium" (click)="decrementarCantidad(item)" style="--padding-start: 4px; --padding-end: 4px; height: 32px;">
+                <ion-icon slot="icon-only" name="remove-circle-outline" style="font-size: 20px;"></ion-icon>
+              </ion-button>
+
+              <ion-input 
+                type="number" 
+                min="1" 
+                [value]="item.cantidad"
+                (ionInput)="onCantidadChange($event, item)"
+                style="width: 45px; text-align: center; --padding-start: 0; --padding-end: 0; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; height: 32px; background: #f8fafc;">
+              </ion-input>
+
+              <ion-button fill="clear" size="small" color="primary" (click)="incrementarCantidad(item)" style="--padding-start: 4px; --padding-end: 4px; height: 32px;">
+                <ion-icon slot="icon-only" name="add-circle-outline" style="font-size: 20px;"></ion-icon>
+              </ion-button>
+            </div>
+
+            <ion-button slot="end" fill="clear" color="danger" (click)="eliminarItemCotizacion($index)">
+              <ion-icon name="trash-outline"></ion-icon>
+            </ion-button>
+          </ion-item>
+        } @empty {
+          <div class="ion-text-center ion-padding" style="color: #94a3b8;">
+            <ion-icon name="cart-outline" style="font-size: 48px; display: block; margin: 0 auto 8px auto;"></ion-icon>
+            <p style="margin: 0;">No hay productos en la cotización actual.</p>
+          </div>
+        }
+      </ion-list>
+
+      <div style="margin-top: 20px; padding: 16px; background: #ecfdf5; border-radius: 12px; text-align: right; border: 1px solid #a7f3d0;">
+        <h2 style="margin: 0; color: #047857; font-weight: 800; font-size: 22px;">
+          TOTAL: ${{ calcularTotalCotizacion() | number:'1.2-2' }}
+        </h2>
+      </div>
+
+      <div style="margin-top: 20px; display: flex; gap: 10px;">
+        <ion-button expand="block" color="medium" fill="outline" (click)="limpiarCotizacion()" style="flex: 1; --border-radius: 10px;">
+          Limpiar
+        </ion-button>
+        
+        <ion-button expand="block" color="success" (click)="confirmarEImprimirCotizacion()" style="flex: 1; --border-radius: 10px; font-weight: bold;">
+          <ion-icon slot="start" name="print-outline"></ion-icon>
+          Aceptar
+        </ion-button>
+      </div>
+
+    </ion-content>
+  </ng-template>
+</ion-modal>
 </ion-content>

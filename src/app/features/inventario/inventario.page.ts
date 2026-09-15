@@ -201,6 +201,14 @@ export class InventarioPage implements OnInit {
     this.cargarDatos();
   }
 
+  /**
+   * ⚡ Ciclo de vida de Ionic: Se ejecuta automáticamente cada vez
+   * que el usuario entra o regresa a la pestaña de Inventario.
+   */
+  ionViewWillEnter() {
+    this.cargarDatos();
+  }
+
   async cargarDatos() {
     this.page = 1;
     this.hayMasDatos = true;
