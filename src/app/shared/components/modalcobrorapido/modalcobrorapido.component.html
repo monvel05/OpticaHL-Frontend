@@ -30,13 +30,26 @@
     <!-- SUGERENCIAS FLOTANTES -->
     @if (mostrarSugerencias && productosFiltrados.length > 0) {
       <ion-list style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-radius: 0 0 12px 12px; z-index: 99; background: #fff; margin-top: 4px;">
-        @for (prod of productosFiltrados; track prod.id) {
+        @for (prod of productosFiltrados; track prod.id_articulo) {
           <ion-item button (click)="seleccionarYAgregar(prod)" lines="full">
             <ion-label>
               <h3 style="font-weight: 600; color: #1e293b; margin: 0;">{{ prod.nombre }}</h3>
-              <p style="color: var(--ion-color-primary); font-weight: bold; margin-top: 2px;">
-                ${{ prod.precio | number:'1.2-2' }}
-              </p>
+              
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                @if (prod.porcentajeDescuento > 0) {
+                  <span style="color: #94a3b8; text-decoration: line-through; font-size: 13px;">
+                    ${{ prod.precioOriginal | number:'1.2-2' }}
+                  </span>
+                  <span style="color: #059669; font-weight: bold; font-size: 15px;">
+                    ${{ prod.precioFinal | number:'1.2-2' }}
+                  </span>
+                  <ion-badge color="danger" style="font-size: 10px;">-{{ prod.porcentajeDescuento }}%</ion-badge>
+                } @else {
+                  <p style="color: var(--ion-color-primary); font-weight: bold; margin: 0;">
+                    ${{ prod.precioFinal | number:'1.2-2' }}
+                  </p>
+                }
+              </div>
             </ion-label>
           </ion-item>
         }
@@ -51,12 +64,26 @@
       <ion-item lines="full">
         <ion-label style="flex: 1;">
           <h2 style="font-weight: 600; font-size: 14px; margin: 0;">{{ item.concepto }}</h2>
-          <p style="color: #059669; font-weight: bold; margin-top: 2px;">
-            ${{ item.precioUnitario | number:'1.2-2' }} c/u
-            <span style="color: #64748b; font-weight: normal; margin-left: 6px;">
+          
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+            @if (item.porcentajeDescuento > 0) {
+              <span style="color: #94a3b8; text-decoration: line-through; font-size: 12px;">
+                ${{ item.precioOriginal | number:'1.2-2' }}
+              </span>
+              <span style="color: #059669; font-weight: bold;">
+                ${{ item.precioUnitario | number:'1.2-2' }} c/u
+              </span>
+              <ion-badge color="danger" style="font-size: 9px;">-{{ item.porcentajeDescuento }}%</ion-badge>
+            } @else {
+              <span style="color: #059669; font-weight: bold;">
+                ${{ item.precioUnitario | number:'1.2-2' }} c/u
+              </span>
+            }
+
+            <span style="color: #64748b; font-weight: normal; margin-left: 4px; font-size: 12px;">
               (Subtotal: ${{ (item.precioUnitario * item.cantidad) | number:'1.2-2' }})
             </span>
-          </p>
+          </div>
         </ion-label>
 
         <div style="display: flex; align-items: center; gap: 4px; margin-right: 8px;">

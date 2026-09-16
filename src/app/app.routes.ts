@@ -30,6 +30,12 @@ export const routes: Routes = [
     data: { expectedRoles: ['ADMINISTRADOR', 'INVENTARIO'] } 
   },
   {
+    path: 'descuento',
+    loadComponent: () => import('./features/descuento/descuento.page').then(m => m.DescuentoPage),
+    canActivate: [roleGuard],
+    data: { expectedRoles: ['ADMINISTRADOR'] }
+  },
+  {
     path: 'caja',
     loadComponent: () => import('./features/caja/caja.page').then(m => m.CajaPage),
     canActivate: [roleGuard],
@@ -102,7 +108,7 @@ export const routes: Routes = [
     pathMatch: 'full',
   },
   {
-    path: '**', // Comodín siempre al final
+    path: '**', // Ahora sí este comodín queda al final de todo
     redirectTo: 'auth/login' 
   }
 ];

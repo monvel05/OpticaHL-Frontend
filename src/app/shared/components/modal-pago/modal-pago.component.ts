@@ -60,7 +60,7 @@ export class ModalPagoComponent {
   pagosPrevios = signal<number>(0);
   
   montoRecibido = signal<number>(0);
-  metodoPago = signal<string>('Efectivo');
+  metodoPago = signal<string>('EFECTIVO');
 
   // Determina el monto mínimo que debe pagar el cliente
   montoMinimoRequerido = computed(() => {
@@ -74,7 +74,7 @@ export class ModalPagoComponent {
 
   // Calcula si el pago ingresado genera cambio en efectivo
   cambio = computed(() => {
-    if (this.metodoPago() !== 'Efectivo') return 0;
+    if (this.metodoPago() !== 'EFECTIVO') return 0;
     return Math.max(0, this.montoRecibido() - this.saldoPendiente());
   });
 
@@ -93,13 +93,13 @@ export class ModalPagoComponent {
 
     if (!metodo || monto <= 0) return false;
 
-    // Validación de tope mínimo y tope máximo (no abonar más del saldo pendiente)
+    // Validación de tope mínimo
     if (monto < minimo) return false;
 
-    if (metodo === 'Efectivo') {
+    if (metodo === 'EFECTIVO') {
       return true; // En efectivo puede pagar de más y el sistema le da cambio
     } else {
-      // En Tarjeta o Transferencia no hay cambio, el monto digitado no puede exceder el saldo pendiente
+      // En Tarjetas o Transferencia no hay cambio, no puede exceder el saldo pendiente
       return monto <= saldo;
     }
   });

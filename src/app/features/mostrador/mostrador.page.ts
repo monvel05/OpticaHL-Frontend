@@ -1,11 +1,11 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ModalController, AlertController } from '@ionic/angular/standalone';
 import {
   IonContent, IonHeader, IonTitle, IonToolbar, IonFab, IonIcon,
   IonButtons, IonSearchbar, IonButton, IonGrid, IonRow, IonCol,
   IonCard, IonItem, IonAvatar, IonLabel, IonFabButton, IonMenuButton,
-  IonModal, IonList, IonCardContent, IonInput
+  IonModal, IonList, IonCardContent, IonInput, IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import jsPDF from 'jspdf';
@@ -14,6 +14,7 @@ import jsPDF from 'jspdf';
 import { AuthService } from 'src/app/core/services/auth.service';
 import { ClienteService } from 'src/app/core/services/cliente.service';
 import { ArticulosService } from '../../core/services/articulos.service';
+import { DescuentoService, Promocion } from '../../core/services/descuento.service';
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 
 // Modales
@@ -26,13 +27,15 @@ import {
   refreshOutline, searchOutline, callOutline, folderOpenOutline,
   documentTextOutline, personAdd, closeOutline, checkmarkCircleOutline,
   logOutOutline, calculatorOutline, addCircleOutline, trashOutline, cartOutline,
-  barcodeOutline, printOutline, removeCircleOutline
+  barcodeOutline, printOutline, removeCircleOutline, pricetagOutline
 } from 'ionicons/icons';
 
 interface ItemCotizacion {
   id_articulo?: number;
   descripcion: string;
+  precioOriginal: number;
   precio: number;
+  porcentajeDescuento: number;
   cantidad: number;
 }
 
@@ -46,16 +49,18 @@ interface ItemCotizacion {
     IonFabButton, IonLabel, IonAvatar, IonItem, IonCard, IonCol,
     IonRow, IonGrid, IonButton, IonSearchbar, IonButtons, IonIcon,
     IonFab, IonContent, IonHeader, IonTitle, IonToolbar, IonMenuButton,
-    IonModal, IonList, IonCardContent, IonInput,
+    IonModal, IonList, IonCardContent, IonInput, IonBadge,
     CommonModule
   ]
 })
 export class MostradorPage implements OnInit {
   private clienteService = inject(ClienteService);
   private articulosService = inject(ArticulosService);
+  private descuentoService = inject(DescuentoService);
   private authService = inject(AuthService);
   private modalCtrl = inject(ModalController);
   private alertCtrl = inject(AlertController);
+  private cdr = inject(ChangeDetectorRef);
 
   searchTerm: string = '';
   clientesFiltrados: Cliente[] = [];
@@ -64,10 +69,18 @@ export class MostradorPage implements OnInit {
   isCotizadorOpen: boolean = false;
   busquedaProductoTexto: string = '';
   mostrarSugerencias: boolean = false;
+  promocionesVigentes: Promocion[] = [];
   
   todosLosProductos: any[] = [];
   productosFiltrados: any[] = [];
-  productoSeleccionado: { id_articulo?: number; codigo?: string; nombre: string; precio_venta: number } | null = null;
+  productoSeleccionado: { 
+    id_articulo?: number; 
+    codigo?: string; 
+    nombre: string; 
+    precio_original: number;
+    precio_venta: number; 
+    porcentaje_descuento: number;
+  } | null = null;
   itemsCotizacion: ItemCotizacion[] = [];
 
   constructor() {
@@ -75,24 +88,94 @@ export class MostradorPage implements OnInit {
       calculatorOutline, refreshOutline, logOutOutline, searchOutline, callOutline,
       folderOpenOutline, documentTextOutline, personAdd, closeOutline, addCircleOutline,
       trashOutline, cartOutline, checkmarkCircleOutline, barcodeOutline, printOutline,
-      removeCircleOutline
+      removeCircleOutline, pricetagOutline
     });
   }
 
   ngOnInit() {
     this.clientesFiltrados = [];
+    this.cargarPromocionesVigentes();
 
     this.articulosService.getArticulosStream().subscribe({
       next: (articulos: any[]) => {
-        this.todosLosProductos = articulos.map((item: any) => ({
-          id_articulo: item.id_articulo,
-          codigo: item.codigo || item.codigo_barras || item.sku || '',
-          nombre: item.nombre || item.descripcion || 'Sin nombre',
-          precio_venta: Number(item.precio_venta || item.precio || 0)
-        }));
+        this.todosLosProductos = articulos.map((item: any) => {
+          const precioOriginal = Number(item.precio_venta || item.precio || 0);
+          const calculo = this.calcularDescuentoProducto({ ...item, precio_venta: precioOriginal });
+
+          return {
+            id_articulo: item.id_articulo,
+            codigo: item.codigo || item.codigo_barras || item.sku || '',
+            nombre: item.nombre || item.descripcion || 'Sin nombre',
+            categoria: item.categoria || '',
+            precio_original: precioOriginal,
+            precio_venta: calculo.precioFinal,
+            porcentaje_descuento: calculo.porcentaje
+          };
+        });
       },
       error: (err: any) => console.error('Error al cargar artículos:', err)
     });
+  }
+
+  ionViewWillEnter() {
+    this.cargarPromocionesVigentes();
+  }
+
+  cargarPromocionesVigentes() {
+    this.descuentoService.obtenerDescuentosVigentes().subscribe({
+      next: (res: any) => {
+        this.promocionesVigentes = res?.datos || res || [];
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => console.warn('Aviso: no se pudieron cargar descuentos en mostrador:', err)
+    });
+  }
+
+  // 🏷️ Calcula si aplica promoción a un artículo
+  calcularDescuentoProducto(prod: any): { precioFinal: number; porcentaje: number } {
+    const precioBase = Number(prod.precio_venta || prod.precio || 0);
+    if (!this.promocionesVigentes || this.promocionesVigentes.length === 0) {
+      return { precioFinal: precioBase, porcentaje: 0 };
+    }
+
+    const idArt = String(prod.id_articulo || prod.id || '');
+    const catArt = String(prod.categoria || '').toUpperCase();
+
+    // 1. Por producto rezagado
+    const promoProducto = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'PRODUCTO' && String(p.id_articulo) === idArt
+    );
+    if (promoProducto) {
+      const desc = Number(promoProducto.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 2. Por categoría
+    const promoCat = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'CATEGORIA' && String(p.categoria).toUpperCase() === catArt
+    );
+    if (promoCat) {
+      const desc = Number(promoCat.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 3. Global (Buen Fin)
+    const promoGlobal = this.promocionesVigentes.find(p => p.tipo_aplicacion === 'TODOS');
+    if (promoGlobal) {
+      const desc = Number(promoGlobal.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    return { precioFinal: precioBase, porcentaje: 0 };
   }
 
   async logout() {
@@ -144,6 +227,7 @@ export class MostradorPage implements OnInit {
     this.busquedaProductoTexto = '';
     this.mostrarSugerencias = false;
     this.productosFiltrados = [];
+    this.cargarPromocionesVigentes();
     this.articulosService.cargarArticulos(1, 50, '');
   }
 
@@ -163,22 +247,35 @@ export class MostradorPage implements OnInit {
       return;
     }
 
-    this.productosFiltrados = this.todosLosProductos.filter(prod => {
-      const nombreMatch = prod.nombre.toLowerCase().includes(query);
-      const codigoMatch = prod.codigo.toLowerCase().includes(query);
-      return nombreMatch || codigoMatch;
-    });
+    this.productosFiltrados = this.todosLosProductos
+      .filter(prod => {
+        const nombreMatch = prod.nombre.toLowerCase().includes(query);
+        const codigoMatch = prod.codigo.toLowerCase().includes(query);
+        return nombreMatch || codigoMatch;
+      })
+      .map(prod => {
+        const calculo = this.calcularDescuentoProducto(prod);
+        return {
+          ...prod,
+          precio_venta: calculo.precioFinal,
+          porcentaje_descuento: calculo.porcentaje
+        };
+      });
 
     this.mostrarSugerencias = true;
     this.articulosService.cargarArticulos(1, 20, query);
   }
 
   seleccionarProducto(producto: any) {
+    const calculo = this.calcularDescuentoProducto(producto);
+
     this.productoSeleccionado = {
       id_articulo: producto.id_articulo,
       codigo: producto.codigo,
       nombre: producto.nombre,
-      precio_venta: producto.precio_venta
+      precio_original: producto.precio_original || producto.precio_venta,
+      precio_venta: calculo.precioFinal,
+      porcentaje_descuento: calculo.porcentaje
     };
     
     this.mostrarSugerencias = false;
@@ -186,7 +283,6 @@ export class MostradorPage implements OnInit {
     this.productosFiltrados = [];
   }
 
-  // Agregar al desglose o incrementar si ya existía
   agregarItemCotizacion() {
     if (this.productoSeleccionado) {
       const etiquetaProd = this.productoSeleccionado.codigo 
@@ -203,7 +299,9 @@ export class MostradorPage implements OnInit {
         this.itemsCotizacion.push({
           id_articulo: this.productoSeleccionado.id_articulo,
           descripcion: etiquetaProd,
+          precioOriginal: this.productoSeleccionado.precio_original,
           precio: Number(this.productoSeleccionado.precio_venta),
+          porcentajeDescuento: this.productoSeleccionado.porcentaje_descuento,
           cantidad: 1
         });
       }
@@ -212,7 +310,6 @@ export class MostradorPage implements OnInit {
     }
   }
 
-  // Manejadores de Cantidad
   incrementarCantidad(item: ItemCotizacion) {
     item.cantidad = (item.cantidad || 0) + 1;
   }
@@ -254,7 +351,7 @@ export class MostradorPage implements OnInit {
 
     const alert = await this.alertCtrl.create({
       header: 'Imprimir Cotización',
-      message: '¿Deseas imprimir el ticket / comprobante de esta cotización?',
+      message: '¿Deseas imprimir el ticket de esta cotización con sus descuentos aplicados?',
       buttons: [
         {
           text: 'No',
@@ -306,7 +403,10 @@ export class MostradorPage implements OnInit {
     let y = 33;
 
     this.itemsCotizacion.forEach((item) => {
-      const desc = item.descripcion.length > 20 ? item.descripcion.substring(0, 18) + '..' : item.descripcion;
+      let desc = item.descripcion.length > 18 ? item.descripcion.substring(0, 16) + '..' : item.descripcion;
+      if (item.porcentajeDescuento > 0) {
+        desc += ` (-${item.porcentajeDescuento}%)`;
+      }
       const subtotal = item.precio * item.cantidad;
 
       doc.text(`${item.cantidad}x ${desc}`, 5, y);
@@ -326,7 +426,7 @@ export class MostradorPage implements OnInit {
     y += 10;
     doc.setFont('Helvetica', 'italic');
     doc.setFontSize(8);
-    doc.text('Precios sujetos a cambios sin previo aviso.', 40, y, { align: 'center' });
+    doc.text('Precios con descuentos vigentes incluidos.', 40, y, { align: 'center' });
     doc.text('¡Gracias por su preferencia!', 40, y + 5, { align: 'center' });
 
     doc.autoPrint();

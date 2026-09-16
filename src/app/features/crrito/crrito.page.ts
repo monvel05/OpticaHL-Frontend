@@ -1,11 +1,11 @@
-import { Component, Input, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, Input, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { 
   IonHeader, IonToolbar, IonButtons, IonButton, IonIcon, IonTitle, 
   IonNote, IonContent, IonItem, IonLabel, IonCard, IonCardHeader, 
   IonCardTitle, IonCardContent, IonSearchbar, IonGrid, IonRow, IonCol, 
-  IonBadge, IonList, ModalController , IonInfiniteScroll, IonInfiniteScrollContent
+  IonBadge, IonList, ModalController, IonInfiniteScroll, IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
 
 // Importaciones de PDF corregidas
@@ -22,11 +22,13 @@ import {
   personOutline, 
   checkmarkCircleOutline,
   eyeOutline,
-  searchOutline 
+  searchOutline,
+  pricetagOutline
 } from 'ionicons/icons';
 
 import { ArticulosService } from '../../core/services/articulos.service';
 import { OrdenService } from '../../core/services/orden.service';
+import { DescuentoService, Promocion } from '../../core/services/descuento.service';
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 
 @Component({
@@ -71,10 +73,13 @@ export class CrritoPage implements OnInit {
   private modalCtrl = inject(ModalController);
   private articulosService = inject(ArticulosService);
   private ordenService = inject(OrdenService);
+  private descuentoService = inject(DescuentoService);
+  private cdr = inject(ChangeDetectorRef);
 
   articulos: any[] = [];
   carrito: any[] = [];
   total: number = 0;
+  promocionesVigentes: Promocion[] = [];
   
   // Parámetros para la paginación y búsqueda real en BD
   paginaActual: number = 1;
@@ -92,33 +97,111 @@ export class CrritoPage implements OnInit {
       personOutline,
       checkmarkCircleOutline,
       eyeOutline,
-      searchOutline
+      searchOutline,
+      pricetagOutline
     });
   }
 
   ngOnInit() {
-    // Escuchamos el stream reactivo del servicio
+    this.cargarPromocionesVigentes();
+
+    // Escuchamos el stream reactivo del servicio de artículos
     this.articulosService.getArticulosStream().subscribe({
       next: (res: any[]) => {
-        console.log('📦 Productos actualizados en el componente:', res);
-        this.articulos = res;
+        this.articulos = res.map((item: any) => {
+          const precioOriginal = Number(item.precio_venta || item.precio || 0);
+          const calculo = this.calcularDescuentoProducto({ ...item, precio_venta: precioOriginal });
 
-        // Si los registros actuales son menores que lo que se espera acumular por página, 
-        // significa que ya alcanzamos el total en la base de datos.
+          return {
+            ...item,
+            precio_original: precioOriginal,
+            precio_venta: calculo.precioFinal,
+            porcentaje_descuento: calculo.porcentaje
+          };
+        });
+
         if (res.length > 0 && res.length < (this.paginaActual * this.limitePorPagina)) {
           this.hayMasDatos = false;
         }
+        this.cdr.detectChanges();
       },
-      error: (err) => console.error('Error al mapear artículos en carrito:', err)
+      error: (err: any) => console.error('Error al mapear artículos en carrito:', err)
     });
 
-    // Realizamos la primera carga limpia (Página 1, vacía)
     this.cargarDatosServidor();
   }
 
-  /**
-   * Centraliza la petición al servicio pasándole los parámetros actuales
-   */
+  cargarPromocionesVigentes() {
+    this.descuentoService.obtenerDescuentosVigentes().subscribe({
+      next: (res: any) => {
+        this.promocionesVigentes = res?.datos || res || [];
+        // Si ya hay artículos cargados, recalcula sus descuentos
+        if (this.articulos.length > 0) {
+          this.articulos = this.articulos.map(item => {
+            const precioOrig = item.precio_original || Number(item.precio_venta || 0);
+            const calculo = this.calcularDescuentoProducto({ ...item, precio_venta: precioOrig });
+            return {
+              ...item,
+              precio_original: precioOrig,
+              precio_venta: calculo.precioFinal,
+              porcentaje_descuento: calculo.porcentaje
+            };
+          });
+          this.calcularTotal();
+        }
+        this.cdr.detectChanges();
+      },
+      error: (err: any) => console.warn('Aviso: no se pudieron cargar descuentos en carrito:', err)
+    });
+  }
+
+  // 🏷️ Calcula si aplica promoción
+  calcularDescuentoProducto(prod: any): { precioFinal: number; porcentaje: number } {
+    const precioBase = Number(prod.precio_venta || prod.precio || 0);
+    if (!this.promocionesVigentes || this.promocionesVigentes.length === 0) {
+      return { precioFinal: precioBase, porcentaje: 0 };
+    }
+
+    const idArt = String(prod.id_articulo || prod.id || '');
+    const catArt = String(prod.categoria || '').toUpperCase();
+
+    // 1. Por producto específico rezagado
+    const promoProducto = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'PRODUCTO' && String(p.id_articulo) === idArt
+    );
+    if (promoProducto) {
+      const desc = Number(promoProducto.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 2. Por categoría
+    const promoCat = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'CATEGORIA' && String(p.categoria).toUpperCase() === catArt
+    );
+    if (promoCat) {
+      const desc = Number(promoCat.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 3. Global (Buen Fin)
+    const promoGlobal = this.promocionesVigentes.find(p => p.tipo_aplicacion === 'TODOS');
+    if (promoGlobal) {
+      const desc = Number(promoGlobal.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    return { precioFinal: precioBase, porcentaje: 0 };
+  }
+
   cargarDatosServidor() {
     this.articulosService.cargarArticulos(
       this.paginaActual, 
@@ -127,10 +210,6 @@ export class CrritoPage implements OnInit {
     );
   }
 
-  /**
-   * Ejecutado por el (ionInput) o el botón de búsqueda.
-   * Reinicia la paginación y le pide al backend que busque sobre los registros.
-   */
   buscarMaterial(event?: any) {
     const valor = event?.target?.value !== undefined ? event.target.value : this.filtroBusqueda;
     this.filtroBusqueda = valor || '';
@@ -140,9 +219,6 @@ export class CrritoPage implements OnInit {
     this.cargarDatosServidor();
   }
 
-  /**
-   * Evento disparado cuando el usuario llega al final de la lista en el HTML
-   */
   cargarMasArticulos(event: any) {
     if (!this.hayMasDatos) {
       event.target.complete();
@@ -171,8 +247,14 @@ export class CrritoPage implements OnInit {
         alert('Producto sin existencias en stock.');
         return;
       }
+
+      const calculo = this.calcularDescuentoProducto(item);
+
       this.carrito.push({
         ...item,
+        precio_original: item.precio_original || item.precio_venta,
+        precio_venta: calculo.precioFinal,
+        porcentaje_descuento: calculo.porcentaje,
         cantidad: 1
       });
     }
@@ -251,7 +333,7 @@ export class CrritoPage implements OnInit {
         this.total = 0;
         this.modalCtrl.dismiss(respuestaSalida, 'confirm');
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al guardar la orden desde el mostrador:', err);
         alert('Ocurrió un error al registrar la orden de trabajo en el servidor.');
       }
@@ -259,13 +341,13 @@ export class CrritoPage implements OnInit {
   }
 
   /**
-   * 📄 GENERACIÓN DE TICKET EN PDF
+   * 📄 GENERACIÓN DE TICKET EN PDF CON DESCUENTOS
    */
   public generarPDFNota(folio: string) {
     const doc = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [80, 200] // Tamaño Ticket (80mm)
+      format: [80, 200]
     });
 
     // Encabezado
@@ -285,12 +367,18 @@ export class CrritoPage implements OnInit {
     const nombreCliente = this.cliente?.nombre_completo || 'Cliente General';
     doc.text(`Cliente: ${nombreCliente}`, 5, 29);
 
-    // Tabla de Productos Comprados
-    const cuerpoTabla = this.carrito.map((item: any) => [
-      item.nombre || item.descripcion || 'Producto',
-      item.cantidad || 1,
-      `$${((item.precio_venta || item.precio || 0) * (item.cantidad || 1)).toFixed(2)}`
-    ]);
+    // Tabla de Productos Comprados con detalle de descuento
+    const cuerpoTabla = this.carrito.map((item: any) => {
+      let nombreProd = item.nombre || item.descripcion || 'Producto';
+      if (item.porcentaje_descuento > 0) {
+        nombreProd += ` (-${item.porcentaje_descuento}%)`;
+      }
+      return [
+        nombreProd,
+        item.cantidad || 1,
+        `$${((item.precio_venta || item.precio || 0) * (item.cantidad || 1)).toFixed(2)}`
+      ];
+    });
 
     autoTable(doc, {
       startY: 32,

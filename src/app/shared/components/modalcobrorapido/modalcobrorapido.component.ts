@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ModalController,
@@ -14,7 +14,8 @@ import {
   IonSegment,
   IonSegmentButton,
   IonList,
-  IonItem
+  IonItem,
+  IonBadge
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -26,14 +27,18 @@ import {
   swapHorizontalOutline,
   addCircleOutline,
   removeCircleOutline,
-  trashOutline
+  trashOutline,
+  pricetagOutline
 } from 'ionicons/icons';
 import { CajaService } from 'src/app/core/services/caja.service';
+import { DescuentoService, Promocion } from 'src/app/core/services/descuento.service';
 
 export interface ItemCobroRapido {
   id_articulo: number | string;
   concepto: string;
+  precioOriginal: number;
   precioUnitario: number;
+  porcentajeDescuento: number;
   cantidad: number;
   stockMaximo: number;
 }
@@ -57,16 +62,19 @@ export interface ItemCobroRapido {
     IonSegment,
     IonSegmentButton,
     IonList,
-    IonItem
+    IonItem,
+    IonBadge
   ]
 })
-export class ModalCobroRapidoComponent {
+export class ModalCobroRapidoComponent implements OnInit {
   private modalCtrl = inject(ModalController);
   private cajaService = inject(CajaService);
+  private descuentoService = inject(DescuentoService);
 
   busquedaTexto: string = '';
   productosFiltrados: any[] = [];
   mostrarSugerencias: boolean = false;
+  promocionesVigentes: Promocion[] = [];
 
   itemsCobro: ItemCobroRapido[] = [];
   metodoPago: string = 'EFECTIVO';
@@ -76,8 +84,68 @@ export class ModalCobroRapidoComponent {
   constructor() {
     addIcons({
       cashOutline, cardOutline, checkmarkCircleOutline, closeOutline,
-      searchOutline, swapHorizontalOutline, addCircleOutline, removeCircleOutline, trashOutline
+      searchOutline, swapHorizontalOutline, addCircleOutline, removeCircleOutline, trashOutline, pricetagOutline
     });
+  }
+
+  ngOnInit() {
+    this.cargarPromocionesVigentes();
+  }
+
+  cargarPromocionesVigentes() {
+    this.descuentoService.obtenerDescuentosVigentes().subscribe({
+      next: (res: any) => {
+        this.promocionesVigentes = res?.datos || res || [];
+      },
+      error: (err: any) => console.warn('Aviso: No se pudieron cargar descuentos vigentes:', err)
+    });
+  }
+
+  // Calcula si a un producto le aplica alguna promoción activa
+  calcularDescuentoProducto(prod: any): { precioFinal: number; porcentaje: number } {
+    const precioBase = Number(prod.precio || prod.precio_venta || 0);
+    if (!this.promocionesVigentes || this.promocionesVigentes.length === 0) {
+      return { precioFinal: precioBase, porcentaje: 0 };
+    }
+
+    const idArt = String(prod.id_articulo || prod.id || '');
+    const catArt = String(prod.categoria || '').toUpperCase();
+
+    // 1. Descuento específico por producto rezagado (Prioridad 1)
+    const promoProducto = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'PRODUCTO' && String(p.id_articulo) === idArt
+    );
+    if (promoProducto) {
+      const desc = Number(promoProducto.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 2. Descuento por categoría (Prioridad 2)
+    const promoCat = this.promocionesVigentes.find(
+      p => p.tipo_aplicacion === 'CATEGORIA' && String(p.categoria).toUpperCase() === catArt
+    );
+    if (promoCat) {
+      const desc = Number(promoCat.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    // 3. Descuento global tipo Buen Fin (Prioridad 3)
+    const promoGlobal = this.promocionesVigentes.find(p => p.tipo_aplicacion === 'TODOS');
+    if (promoGlobal) {
+      const desc = Number(promoGlobal.porcentaje_descuento);
+      return {
+        precioFinal: Math.max(0, precioBase * (1 - desc / 100)),
+        porcentaje: desc
+      };
+    }
+
+    return { precioFinal: precioBase, porcentaje: 0 };
   }
 
   get totalCobrar(): number {
@@ -96,22 +164,13 @@ export class ModalCobroRapidoComponent {
     return true;
   }
 
-  // 🔍 Función auxiliar para extraer dinámicamente el ID del producto
   private obtenerIdDinamico(p: any): number | string | undefined {
     if (!p) return undefined;
-
-    // 1. Verificar nombres habituales de propiedad ID
-    const idDirecto = p.id_articulo ?? p.id ?? p.id_producto ?? p.idArticulo ?? p.id_item ?? p.id_inventario ?? p.clave ?? p.codigo ?? p.codigo_barras;
+    const idDirecto = p.id_articulo ?? p.id ?? p.id_producto ?? p.idArticulo ?? p.id_item ?? p.id_inventario;
     if (idDirecto !== undefined && idDirecto !== null) return idDirecto;
 
-    // 2. Si no coincide con ninguna conocida, busca cualquier propiedad que tenga 'id', 'clave' o 'codigo'
     const llaves = Object.keys(p);
-    const llaveId = llaves.find(k => 
-      k.toLowerCase().includes('id') || 
-      k.toLowerCase().includes('clave') || 
-      k.toLowerCase().includes('codigo')
-    );
-
+    const llaveId = llaves.find(k => k.toLowerCase().includes('id') || k.toLowerCase().includes('clave'));
     return llaveId ? p[llaveId] : undefined;
   }
 
@@ -127,16 +186,18 @@ export class ModalCobroRapidoComponent {
 
     this.cajaService.buscarProductosInventario(val).subscribe({
       next: (prods: any[]) => {
-        console.log('🔍 Objeto crudo del Backend:', prods);
-
         if (prods && prods.length > 0) {
           this.productosFiltrados = prods.map(p => {
             const idEncontrado = this.obtenerIdDinamico(p);
+            const precioNormal = Number(p.precio || p.precio_venta || p.precio_unitario || 0);
+            const calculo = this.calcularDescuentoProducto({ ...p, id_articulo: idEncontrado, precio: precioNormal });
 
             return {
               id_articulo: idEncontrado,
               nombre: p.nombre || p.descripcion || p.articulo || 'Sin Nombre',
-              precio: Number(p.precio || p.precio_venta || p.precio_unitario || 0),
+              precioOriginal: precioNormal,
+              precioFinal: calculo.precioFinal,
+              porcentajeDescuento: calculo.porcentaje,
               stock: Number(p.stock_actual ?? p.stock ?? p.existencias ?? p.cantidad ?? 0)
             };
           });
@@ -146,7 +207,7 @@ export class ModalCobroRapidoComponent {
           this.mostrarSugerencias = false;
         }
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('Error al buscar productos:', err);
         this.productosFiltrados = [];
         this.mostrarSugerencias = false;
@@ -154,10 +215,9 @@ export class ModalCobroRapidoComponent {
     });
   }
 
-  seleccionarYAgregar(prod: { id_articulo: number | string; nombre: string; precio: number; stock: number }) {
+  seleccionarYAgregar(prod: any) {
     if (!prod.id_articulo) {
-      console.error('Objeto sin ID válido:', prod);
-      window.alert(`Error: No se encontró un ID válido para "${prod.nombre}". Revisa la consola (F12).`);
+      window.alert(`Error: No se encontró un ID válido para "${prod.nombre}".`);
       return;
     }
 
@@ -178,7 +238,9 @@ export class ModalCobroRapidoComponent {
       this.itemsCobro.push({
         id_articulo: prod.id_articulo,
         concepto: prod.nombre,
-        precioUnitario: prod.precio,
+        precioOriginal: prod.precioOriginal || prod.precioFinal,
+        precioUnitario: prod.precioFinal,
+        porcentajeDescuento: prod.porcentajeDescuento || 0,
         cantidad: 1,
         stockMaximo: prod.stock
       });
@@ -195,24 +257,6 @@ export class ModalCobroRapidoComponent {
 
     if (this.productosFiltrados.length > 0) {
       this.seleccionarYAgregar(this.productosFiltrados[0]);
-    } else {
-      this.cajaService.buscarProductosInventario(this.busquedaTexto.trim()).subscribe({
-        next: (prods: any[]) => {
-          if (prods && prods.length > 0) {
-            const p = prods[0];
-            const idEncontrado = this.obtenerIdDinamico(p);
-
-            this.seleccionarYAgregar({
-              id_articulo: idEncontrado!,
-              nombre: p.nombre || p.descripcion || p.articulo || 'Sin Nombre',
-              precio: Number(p.precio || p.precio_venta || p.precio_unitario || 0),
-              stock: Number(p.stock_actual ?? p.stock ?? p.existencias ?? p.cantidad ?? 0)
-            });
-          } else {
-            window.alert('No se encontró el producto en inventario.');
-          }
-        }
-      });
     }
   }
 
@@ -280,7 +324,9 @@ export class ModalCobroRapidoComponent {
 
   confirmarCobro() {
     const conceptosResumen = this.itemsCobro
-      .map(i => `${i.cantidad}x ${i.concepto}`)
+      .map(i => i.porcentajeDescuento > 0 
+        ? `${i.cantidad}x ${i.concepto} (-${i.porcentajeDescuento}%)` 
+        : `${i.cantidad}x ${i.concepto}`)
       .join(', ');
 
     const itemsLimpios = this.itemsCobro.map(item => ({

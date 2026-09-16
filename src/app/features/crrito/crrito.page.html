@@ -69,7 +69,6 @@
     <ion-card-header style="padding-bottom: 0px;">
       <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50; margin-bottom: 6px;">Productos / Servicios</ion-card-title>
       
-      <!-- Se vinculó el evento ionInput a la búsqueda dinámica del servidor -->
       <ion-searchbar 
         placeholder="Buscar material por nombre o código..." 
         [(ngModel)]="filtroBusqueda"
@@ -82,7 +81,6 @@
     <ion-card-content style="padding: 8px; max-height: 290px; overflow-y: auto;">
       <ion-grid class="ion-no-padding">
         <ion-row>
-          <!-- Ahora lee directamente del flujo acumulado 'articulos' -->
           @for (a of articulos; track a.id_articulo) {
             <ion-col size="6" size-md="4" size-lg="3" style="padding: 4px;">
               <ion-card class="producto-card" (click)="agregar(a)" button style="margin: 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.04); background: #f8f9fa;">
@@ -94,9 +92,27 @@
                 </ion-card-header>
 
                 <ion-card-content style="padding: 0 10px 10px 10px;">
-                  <p class="precio" style="font-weight: 800; color: var(--ion-color-success); margin: 2px 0 6px 0; font-size: 14px;">
-                    {{ a.precio_venta | currency }}
-                  </p>
+                  
+                  <!-- PRECIO CON DESCUENTO O REGULAR -->
+                  <div style="margin: 2px 0 6px 0;">
+                    @if (a.porcentaje_descuento > 0) {
+                      <div style="display: flex; align-items: center; gap: 4px; flex-wrap: wrap;">
+                        <span style="color: #94a3b8; text-decoration: line-through; font-size: 11px;">
+                          {{ a.precio_original | currency }}
+                        </span>
+                        <span style="font-weight: 800; color: #059669; font-size: 14px;">
+                          {{ a.precio_venta | currency }}
+                        </span>
+                        <ion-badge color="danger" style="font-size: 9px; padding: 2px 4px;">
+                          -{{ a.porcentaje_descuento }}%
+                        </ion-badge>
+                      </div>
+                    } @else {
+                      <p class="precio" style="font-weight: 800; color: var(--ion-color-success); margin: 0; font-size: 14px;">
+                        {{ a.precio_venta | currency }}
+                      </p>
+                    }
+                  </div>
                   
                   <ion-badge [color]="a.stock_actual <= 2 ? 'danger' : 'success'" style="font-size: 10px; padding: 4px 6px;">
                     Stock: {{ a.stock_actual }}
@@ -112,7 +128,6 @@
         </ion-row>
       </ion-grid>
 
-      <!-- Infinite Scroll para cargar más elementos de la base de datos al bajar -->
       <ion-infinite-scroll (ionInfinite)="cargarMasArticulos($event)" [disabled]="!hayMasDatos">
         <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Cargando más productos...">
         </ion-infinite-scroll-content>
@@ -120,6 +135,7 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- CARRITO DE COMPRA -->
   <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
     <ion-card-header style="padding-bottom: 5px;">
       <ion-card-title style="font-size: 16px; font-weight: bold; color: #2c3e50;">Carrito de Compra</ion-card-title>
@@ -131,10 +147,26 @@
           @for (c of carrito; track c.id_articulo) {
             <ion-item style="--background: transparent;">
               <ion-label slot="start">
-                <h2 style="font-weight: 600; font-size: 14px;">{{ c.nombre }}</h2>
-                <p style="font-size: 12px;">
-                  {{ c.precio_venta | currency }} x {{ c.cantidad }}
-                </p>
+                <h2 style="font-weight: 600; font-size: 14px; margin: 0;">{{ c.nombre }}</h2>
+                
+                <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+                  @if (c.porcentaje_descuento > 0) {
+                    <span style="color: #94a3b8; text-decoration: line-through; font-size: 11px;">
+                      {{ c.precio_original | currency }}
+                    </span>
+                    <span style="font-weight: bold; color: #059669; font-size: 12px;">
+                      {{ c.precio_venta | currency }}
+                    </span>
+                    <ion-badge color="danger" style="font-size: 9px; padding: 1px 4px;">
+                      -{{ c.porcentaje_descuento }}%
+                    </ion-badge>
+                  } @else {
+                    <span style="font-size: 12px; color: #555;">
+                      {{ c.precio_venta | currency }}
+                    </span>
+                  }
+                  <span style="font-size: 12px; color: #777;">x {{ c.cantidad }}</span>
+                </div>
               </ion-label>
 
               <div slot="end" style="display: flex; align-items: center;">
@@ -166,6 +198,7 @@
     </ion-card-content>
   </ion-card>
 
+  <!-- TOTAL Y ACCIÓN -->
   @if (carrito.length > 0) {
     <ion-card style="border-radius: 12px; margin: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.06); background: #fff;">
       <ion-card-content style="padding: 16px;">
