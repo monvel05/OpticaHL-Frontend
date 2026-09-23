@@ -1,0 +1,247 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <!-- BOTÓN DE MENÚ LATERAL SIDEBAR -->
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+
+    <ion-title>
+      <div class="header-title-container">
+        <ion-icon name="business-outline" class="title-icon"></ion-icon>
+        <span>Gestión de Sucursales</span>
+      </div>
+    </ion-title>
+
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalNuevaSucursal()" class="btn-nuevo">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Nueva Sucursal
+      </ion-button>
+      <ion-button (click)="logout()" title="Cerrar Sesión">
+        <ion-icon name="log-out-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- BARRA DE BÚSQUEDA Y SELECCIÓN DE VISTA -->
+  <div class="search-view-bar">
+    <div class="search-input-wrapper">
+      <ion-searchbar 
+        [value]="filtros.busqueda" 
+        (ionInput)="onSearchChange($event)" 
+        placeholder="Buscar por código, nombre o dirección de sucursal..." 
+        debounce="300"
+        class="custom-searchbar">
+      </ion-searchbar>
+    </div>
+    
+    <div class="view-toggle-buttons">
+      <ion-button [fill]="vistaModo === 'CARDS' ? 'solid' : 'outline'" size="small" (click)="vistaModo = 'CARDS'">
+        <ion-icon name="grid-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button [fill]="vistaModo === 'TABLE' ? 'solid' : 'outline'" size="small" (click)="vistaModo = 'TABLE'">
+        <ion-icon name="list-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+
+  <!-- FILTROS Y REFRESH -->
+  <div class="filters-row-bar">
+    <div class="filter-item">
+      <span class="filter-lbl">Estatus:</span>
+      <ion-select [(ngModel)]="filtros.activo" (ionChange)="onFiltroChange()" interface="popover" class="filter-select">
+        <ion-select-option value="all">Todas las sucursales</ion-select-option>
+        <ion-select-option value="true">Activas únicamente</ion-select-option>
+        <ion-select-option value="false">Inactivas únicamente</ion-select-option>
+      </ion-select>
+    </div>
+
+    <div class="filter-actions">
+      <ion-button fill="clear" size="small" (click)="cargarSucursales()" title="Recargar lista">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+  </div>
+</ion-header>
+
+<ion-content class="ion-padding sucursales-content">
+  <!-- REFRESHER CON GESTO HACIA ABAJO -->
+  <ion-refresher slot="fixed" (ionRefresh)="cargarSucursales($event)">
+    <ion-refresher-content pullingText="Arrastra para actualizar..." refreshingSpinner="circles">
+    </ion-refresher-content>
+  </ion-refresher>
+
+  <!-- TARJETAS DE INDICADORES / KPIS DE SUCURSALES -->
+  <div class="kpi-container">
+    <div class="kpi-card total">
+      <div class="kpi-icon"><ion-icon name="business-outline"></ion-icon></div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpiTotal }}</span>
+        <span class="kpi-label">Sucursales Totales</span>
+      </div>
+    </div>
+
+    <div class="kpi-card activas">
+      <div class="kpi-icon"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpiActivas }}</span>
+        <span class="kpi-label">Sucursales Activas</span>
+      </div>
+    </div>
+
+    <div class="kpi-card inactivas">
+      <div class="kpi-icon"><ion-icon name="close-circle-outline"></ion-icon></div>
+      <div class="kpi-info">
+        <span class="kpi-value">{{ kpiInactivas }}</span>
+        <span class="kpi-label">Sucursales Inactivas</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTADO DE CARGA / SKELETONS -->
+  @if (cargando()) {
+    <div class="skeleton-wrapper">
+      <ion-grid>
+        <ion-row>
+          @for (i of [1,2,3,4]; track i) {
+            <ion-col size="12" size-md="6" size-lg="4">
+              <ion-card class="sucursal-card skeleton-card">
+                <ion-card-header>
+                  <ion-skeleton-text animated style="width: 60%; height: 20px;"></ion-skeleton-text>
+                </ion-card-header>
+                <ion-card-content>
+                  <ion-skeleton-text animated style="width: 90%; height: 14px; margin-bottom: 8px;"></ion-skeleton-text>
+                  <ion-skeleton-text animated style="width: 40%; height: 14px;"></ion-skeleton-text>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          }
+        </ion-row>
+      </ion-grid>
+    </div>
+  } @else {
+
+    <!-- MODO VISTA TARJETAS (CARDS) -->
+    @if (vistaModo === 'CARDS') {
+      <ion-grid class="cards-grid">
+        <ion-row>
+          @for (suc of sucursales(); track suc.id_sucursal) {
+            <ion-col size="12" size-md="6" size-lg="4">
+              <ion-card class="sucursal-card" [class.inactivo]="!suc.activo">
+                <ion-card-header>
+                  <div class="card-header-flex">
+                    <div class="sucursal-title-area">
+                      <span class="sucursal-badge-code">{{ suc.id_sucursal }}</span>
+                      <h2 class="sucursal-nombre">{{ suc.nombre }}</h2>
+                    </div>
+                    <ion-badge [color]="suc.activo ? 'success' : 'medium'" class="status-badge">
+                      {{ suc.activo ? 'Activa' : 'Inactiva' }}
+                    </ion-badge>
+                  </div>
+                </ion-card-header>
+
+                <ion-card-content>
+                  <div class="sucursal-detail-item">
+                    <ion-icon name="location-outline" class="detail-icon"></ion-icon>
+                    <span>{{ suc.direccion || 'Sin dirección registrada' }}</span>
+                  </div>
+
+                  <div class="card-actions-footer">
+                    <ion-button 
+                      fill="outline" 
+                      size="small" 
+                      color="primary"
+                      (click)="abrirModalEditarSucursal(suc)"
+                      title="Editar sucursal">
+                      <ion-icon name="create-outline" slot="start"></ion-icon>
+                      Editar
+                    </ion-button>
+
+                    <ion-button 
+                      fill="clear" 
+                      size="small" 
+                      [color]="suc.activo ? 'warning' : 'success'"
+                      (click)="confirmarCambioEstado(suc, $event)"
+                      title="Alternar estado">
+                      <ion-icon name="power-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+
+                    <ion-button 
+                      fill="clear" 
+                      size="small" 
+                      color="danger"
+                      (click)="confirmarEliminacion(suc, $event)"
+                      title="Eliminar o desactivar sucursal">
+                      <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+                  </div>
+                </ion-card-content>
+              </ion-card>
+            </ion-col>
+          } @empty {
+            <div class="empty-state-container">
+              <ion-icon name="business-outline" class="empty-icon"></ion-icon>
+              <h3>No se encontraron sucursales</h3>
+              <p>No hay sucursales que coincidan con el término o filtro seleccionado.</p>
+              <ion-button color="primary" (click)="abrirModalNuevaSucursal()">
+                <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+                Registrar Nueva Sucursal
+              </ion-button>
+            </div>
+          }
+        </ion-row>
+      </ion-grid>
+    }
+
+    <!-- MODO VISTA TABLA (TABLE) -->
+    @if (vistaModo === 'TABLE') {
+      <div class="table-responsive-container">
+        <table class="custom-table">
+          <thead>
+            <tr>
+              <th>Código</th>
+              <th>Nombre de la Sucursal</th>
+              <th>Dirección / Ubicación</th>
+              <th>Estado</th>
+              <th class="text-right">Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (suc of sucursales(); track suc.id_sucursal) {
+              <tr [class.row-inactiva]="!suc.activo">
+                <td>
+                  <span class="code-pill">{{ suc.id_sucursal }}</span>
+                </td>
+                <td class="font-weight-bold">{{ suc.nombre }}</td>
+                <td>{{ suc.direccion || 'Sin dirección registrada' }}</td>
+                <td>
+                  <ion-badge [color]="suc.activo ? 'success' : 'medium'">
+                    {{ suc.activo ? 'Activa' : 'Inactiva' }}
+                  </ion-badge>
+                </td>
+                <td class="text-right">
+                  <ion-button fill="clear" size="small" color="primary" (click)="abrirModalEditarSucursal(suc)" title="Editar">
+                    <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" [color]="suc.activo ? 'warning' : 'success'" (click)="confirmarCambioEstado(suc, $event)" title="Cambiar estado">
+                    <ion-icon name="power-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                  <ion-button fill="clear" size="small" color="danger" (click)="confirmarEliminacion(suc, $event)" title="Borrar">
+                    <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                  </ion-button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center empty-td">
+                  No hay sucursales registradas que coincidan con la búsqueda.
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+
+  }
+</ion-content>

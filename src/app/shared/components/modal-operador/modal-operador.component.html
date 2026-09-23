@@ -1,0 +1,89 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ esEdicion ? 'Editar Operador' : 'Registrar Nuevo Operador' }}</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">Cancelar</ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-list lines="full">
+    <ion-item>
+      <ion-label position="stacked">Nombre Completo *</ion-label>
+      <ion-input type="text" [(ngModel)]="formData.nombre_completo" placeholder="Ej. Carlos Eduardo Gómez"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Usuario (Login de acceso) *</ion-label>
+      <ion-input type="text" [(ngModel)]="formData.usuario_login" placeholder="Ej. cgomez.mostrador"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">
+        Contraseña {{ esEdicion ? '(Dejar en blanco para conservar actual)' : '*' }}
+      </ion-label>
+      <ion-input type="password" [(ngModel)]="formData.password" placeholder="Mínimo 6 caracteres"></ion-input>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Sucursal Asignada *</ion-label>
+      <ion-select [(ngModel)]="formData.id_sucursal" interface="popover">
+        @for (s of sucursalesDisponibles; track s.id_sucursal) {
+          <ion-select-option [value]="s.id_sucursal">{{ s.nombre }}</ion-select-option>
+        }
+      </ion-select>
+    </ion-item>
+
+    <ion-item>
+      <ion-label position="stacked">Roles y Permisos Asignados (Selección múltiple)</ion-label>
+      <div class="roles-selection-container">
+        @for (r of rolesDisponibles; track r) {
+          <ion-chip 
+            [color]="isRolSelected(r) ? 'primary' : 'medium'" 
+            [outline]="!isRolSelected(r)"
+            (click)="toggleRol(r)" 
+            class="role-chip-select">
+            <ion-icon [name]="isRolSelected(r) ? 'checkmark-circle' : 'shield-checkmark-outline'"></ion-icon>
+            <ion-label>{{ r }}</ion-label>
+          </ion-chip>
+        }
+      </div>
+    </ion-item>
+
+    @if (isRolSelected('OPTOMETRISTA')) {
+      <ion-item-divider color="light" style="margin-top: 15px;">
+        <ion-label color="secondary" style="font-weight: bold;">🎓 Datos Académicos y Profesionales (Optometrista)</ion-label>
+      </ion-item-divider>
+
+      <ion-item>
+        <ion-label position="stacked">Especialidad</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.especialidad" placeholder="Ej. Contactología, Refracción Clínica, Pediátrica"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Cédula Profesional</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.cedula" placeholder="Ej. 12345678"></ion-input>
+      </ion-item>
+
+      <ion-item>
+        <ion-label position="stacked">Universidad / Institución de Egreso</ion-label>
+        <ion-input type="text" [(ngModel)]="formData.universidad" placeholder="Ej. Universidad Nacional Autónoma de México (UNAM)"></ion-input>
+      </ion-item>
+    }
+
+    <ion-item>
+      <ion-label position="stacked">Descripción / Nota Operativa</ion-label>
+      <ion-textarea [(ngModel)]="formData.descripcion" placeholder="Ej. Vendedor Senior especializado en Armazones"></ion-textarea>
+    </ion-item>
+
+    <ion-item>
+      <ion-label>Estatus Activo (Permite acceso al sistema)</ion-label>
+      <ion-toggle slot="end" [(ngModel)]="formData.activo" color="success"></ion-toggle>
+    </ion-item>
+  </ion-list>
+
+  <ion-button expand="block" class="ion-margin-top" color="primary" (click)="guardar()">
+    {{ esEdicion ? 'Guardar Cambios' : 'Crear Operador' }}
+  </ion-button>
+</ion-content>

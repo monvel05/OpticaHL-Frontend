@@ -1,2 +1,93 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+/**
+ * Ionic & OpticaHL Theme Variables - Modern Retro (Modo Claro)
+ * ----------------------------------------------------------------------------
+ * Paleta: Crema Vainilla (#FFF9EF), Rojo Sangría (#930500), Azul Aciano (#95BBEA), Menta (#AACCB1)
+ */
+
+:root {
+  /** Font Family **/
+  --ion-font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+
+  /** Backgrounds & Surface **/
+  --ion-background-color: #FFF9EF;
+  --ion-background-color-rgb: 255, 249, 239;
+  --ion-text-color: #1E1C1A;
+  --ion-text-color-rgb: 30, 28, 26;
+
+  --ion-card-background: #FFFFFF;
+  --ion-item-background: #FFFFFF;
+  --ion-toolbar-background: #FFF9EF;
+  --ion-tab-bar-background: #FFFFFF;
+
+  /** Primary: Crimson Sangria Red **/
+  --ion-color-primary: #930500;
+  --ion-color-primary-rgb: 147, 5, 0;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #810400;
+  --ion-color-primary-tint: #9e1e1a;
+
+  /** Secondary: Cornflower Blue **/
+  --ion-color-secondary: #95BBEA;
+  --ion-color-secondary-rgb: 149, 187, 234;
+  --ion-color-secondary-contrast: #1E1C1A;
+  --ion-color-secondary-contrast-rgb: 30, 28, 26;
+  --ion-color-secondary-shade: #83A4CE;
+  --ion-color-secondary-tint: #A0C2EC;
+
+  /** Tertiary / Accent: Warm Biscuit **/
+  --ion-color-tertiary: #F5EFE0;
+  --ion-color-tertiary-rgb: 245, 239, 224;
+  --ion-color-tertiary-contrast: #1E1C1A;
+
+  /** Success: Mint Green (Detalles/Acentos) **/
+  --ion-color-success: #AACCB1;
+  --ion-color-success-rgb: 170, 204, 177;
+  --ion-color-success-contrast: #1E1C1A;
+  --ion-color-success-shade: #96B39C;
+  --ion-color-success-tint: #B3D1B8;
+
+  /** Warning: Warm Amber **/
+  --ion-color-warning: #E6A15C;
+  --ion-color-warning-rgb: 230, 161, 92;
+  --ion-color-warning-contrast: #1E1C1A;
+
+  /** Danger **/
+  --ion-color-danger: #C0392B;
+  --ion-color-danger-rgb: 192, 57, 43;
+
+  /** Dark **/
+  --ion-color-dark: #1E1C1A;
+  --ion-color-dark-rgb: 30, 28, 26;
+  --ion-color-dark-contrast: #FFFFFF;
+
+  /** Medium **/
+  --ion-color-medium: #6E675F;
+  --ion-color-medium-rgb: 110, 103, 95;
+  --ion-color-medium-contrast: #FFFFFF;
+
+  /** Light **/
+  --ion-color-light: #FFF9EF;
+  --ion-color-light-rgb: 255, 249, 239;
+  --ion-color-light-contrast: #1E1C1A;
+
+  /** OpticaHL Custom Variables **/
+  --optica-bg-cream: #FFF9EF;
+  --optica-surface-white: #FFFFFF;
+  --optica-surface-warm: #F5EFE0;
+  --optica-sangria: #930500;
+  --optica-cornflower: #95BBEA;
+  --optica-mint-accent: #AACCB1;
+  --optica-text-dark: #1E1C1A;
+  --optica-text-muted: #6E675F;
+  --optica-border-light: #E5DFD3;
+  --optica-border-subtle: rgba(30, 28, 26, 0.08);
+
+  --optica-radius-btn: 12px;
+  --optica-radius-card: 16px;
+  --optica-radius-input: 10px;
+  --optica-radius-badge: 20px;
+
+  --optica-shadow-card: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+  --optica-shadow-btn: 0 4px 14px rgba(147, 5, 0, 0.2);
+}

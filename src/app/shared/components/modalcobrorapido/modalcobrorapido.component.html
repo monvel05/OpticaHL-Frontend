@@ -1,0 +1,187 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>⚡ Cobro Rápido / Mostrador</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" style="position: relative;">
+
+  <!-- BÚSQUEDA DE PRODUCTO -->
+  <div class="input-card" style="position: relative; z-index: 10;">
+    <ion-label position="stacked"><b>Buscar Producto / Concepto</b></ion-label>
+    <div class="search-row" style="position: relative;">
+      <ion-input
+        type="text"
+        [value]="busquedaTexto"
+        placeholder="Ej. Solución, Armazón, Cód. Barras"
+        (ionInput)="onInputBusqueda($event)"
+        (keyup.enter)="buscarYSeleccionarPrimero()"
+      ></ion-input>
+      <ion-button fill="clear" (click)="buscarYSeleccionarPrimero()" title="Buscar en inventario">
+        <ion-icon name="search-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </div>
+
+    <!-- SUGERENCIAS FLOTANTES -->
+    @if (mostrarSugerencias && productosFiltrados.length > 0) {
+      <ion-list style="position: absolute; top: 100%; left: 0; right: 0; max-height: 200px; overflow-y: auto; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-radius: 0 0 12px 12px; z-index: 99; background: #fff; margin-top: 4px;">
+        @for (prod of productosFiltrados; track prod.id_articulo) {
+          <ion-item button (click)="seleccionarYAgregar(prod)" lines="full">
+            <ion-label>
+              <h3 style="font-weight: 600; color: #1e293b; margin: 0;">{{ prod.nombre }}</h3>
+              
+              <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                @if (prod.porcentajeDescuento > 0) {
+                  <span style="color: #94a3b8; text-decoration: line-through; font-size: 13px;">
+                    ${{ prod.precioOriginal | number:'1.2-2' }}
+                  </span>
+                  <span style="color: #059669; font-weight: bold; font-size: 15px;">
+                    ${{ prod.precioFinal | number:'1.2-2' }}
+                  </span>
+                  <ion-badge color="danger" style="font-size: 10px;">-{{ prod.porcentajeDescuento }}%</ion-badge>
+                } @else {
+                  <p style="color: var(--ion-color-primary); font-weight: bold; margin: 0;">
+                    ${{ prod.precioFinal | number:'1.2-2' }}
+                  </p>
+                }
+              </div>
+            </ion-label>
+          </ion-item>
+        }
+      </ion-list>
+    }
+  </div>
+
+  <!-- CARRITO / DETALLE -->
+  <h5 style="margin-top: 18px; font-weight: bold; color: #334155;">Productos a Cobrar</h5>
+  <ion-list style="border-radius: 12px; overflow: hidden; background: #fff; border: 1px solid #e2e8f0;">
+    @for (item of itemsCobro; track $index) {
+      <ion-item lines="full">
+        <ion-label style="flex: 1;">
+          <h2 style="font-weight: 600; font-size: 14px; margin: 0;">{{ item.concepto }}</h2>
+          
+          <div style="display: flex; align-items: center; gap: 6px; margin-top: 2px;">
+            @if (item.porcentajeDescuento > 0) {
+              <span style="color: #94a3b8; text-decoration: line-through; font-size: 12px;">
+                ${{ item.precioOriginal | number:'1.2-2' }}
+              </span>
+              <span style="color: #059669; font-weight: bold;">
+                ${{ item.precioUnitario | number:'1.2-2' }} c/u
+              </span>
+              <ion-badge color="danger" style="font-size: 9px;">-{{ item.porcentajeDescuento }}%</ion-badge>
+            } @else {
+              <span style="color: #059669; font-weight: bold;">
+                ${{ item.precioUnitario | number:'1.2-2' }} c/u
+              </span>
+            }
+
+            <span style="color: #64748b; font-weight: normal; margin-left: 4px; font-size: 12px;">
+              (Subtotal: ${{ (item.precioUnitario * item.cantidad) | number:'1.2-2' }})
+            </span>
+          </div>
+        </ion-label>
+
+        <div style="display: flex; align-items: center; gap: 4px; margin-right: 8px;">
+          <ion-button fill="clear" size="small" color="medium" (click)="decrementarCantidad(item)" style="--padding-start: 4px; --padding-end: 4px; height: 32px;">
+            <ion-icon slot="icon-only" name="remove-circle-outline" style="font-size: 20px;"></ion-icon>
+          </ion-button>
+
+          <ion-input 
+            type="number" 
+            min="1" 
+            [value]="item.cantidad"
+            (ionInput)="onCantidadInput($event, item)"
+            style="width: 45px; text-align: center; --padding-start: 0; --padding-end: 0; font-weight: bold; border: 1px solid #cbd5e1; border-radius: 6px; height: 32px; background: #f8fafc;">
+          </ion-input>
+
+          <ion-button fill="clear" size="small" color="primary" (click)="incrementarCantidad(item)" style="--padding-start: 4px; --padding-end: 4px; height: 32px;">
+            <ion-icon slot="icon-only" name="add-circle-outline" style="font-size: 20px;"></ion-icon>
+          </ion-button>
+        </div>
+
+        <ion-button slot="end" fill="clear" color="danger" (click)="eliminarItem($index)">
+          <ion-icon name="trash-outline"></ion-icon>
+        </ion-button>
+      </ion-item>
+    } @empty {
+      <div style="text-align: center; padding: 16px; color: #94a3b8;">
+        <p style="margin: 0;">No has agregado ningún producto para cobrar.</p>
+      </div>
+    }
+  </ion-list>
+
+  <!-- TOTAL -->
+  <div class="input-card" style="background: #f1f5f9; cursor: not-allowed; margin-top: 14px;">
+    <ion-label position="stacked"><b>Total a Cobrar ($)</b></ion-label>
+    <ion-input
+      type="number"
+      [value]="totalCobrar"
+      [readonly]="true"
+      style="font-weight: bold; color: #0f172a; font-size: 18px;"
+    ></ion-input>
+  </div>
+
+  <!-- MÉTODO PAGO -->
+  <div class="metodo-section" style="margin-top: 14px;">
+    <p style="margin-bottom: 6px;"><b>Método de Pago</b></p>
+    <ion-segment [value]="metodoPago" (ionChange)="onMetodoPagoChange($event)" scrollable="true">
+      <ion-segment-button value="EFECTIVO">
+        <ion-icon name="cash-outline"></ion-icon>
+        <ion-label>Efectivo</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="TARJETA_DEBITO">
+        <ion-icon name="card-outline"></ion-icon>
+        <ion-label>Débito</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="TARJETA_CREDITO">
+        <ion-icon name="card-outline"></ion-icon>
+        <ion-label>Crédito</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="TRANSFERENCIA">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <ion-label>Transferencia</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </div>
+
+  <!-- EFECTIVO RECIBIDO Y CAMBIO -->
+  @if (metodoPago === 'EFECTIVO') {
+    <div class="input-card highlight" style="margin-top: 14px;">
+      <ion-label position="stacked"><b>Efectivo Recibido ($)</b></ion-label>
+      <ion-input
+        type="number"
+        [value]="efectivoRecibido"
+        placeholder="Ingrese el dinero recibido"
+        min="0"
+        (ionInput)="onEfectivoInput($event)"
+      ></ion-input>
+    </div>
+
+    <div class="cambio-box" [class.insuficiente]="cambio < 0" style="margin-top: 10px;">
+      <span>{{ cambio >= 0 ? 'Cambio / Feria:' : 'Falta para completar:' }}</span>
+      <h2>${{ cambioAbsoluto | number:'1.2-2' }}</h2>
+    </div>
+  }
+
+  <!-- CONFIRMAR -->
+  <ion-button
+    expand="block"
+    shape="round"
+    color="success"
+    style="margin-top: 20px; font-weight: bold;"
+    [disabled]="!esValido"
+    (click)="confirmarCobro()"
+  >
+    <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+    Confirmar y Cobrar ${{ totalCobrar | number:'1.2-2' }}
+  </ion-button>
+
+</ion-content>

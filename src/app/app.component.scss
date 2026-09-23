@@ -1,0 +1,68 @@
+/* Styles for Sidebar Menu & Root Layout - Modern Retro */
+ion-menu {
+  --background: #FFF9EF;
+
+  ion-header ion-toolbar {
+    --background: #930500 !important;
+    --color: #FFFFFF !important;
+
+    ion-title {
+      font-weight: 400 !important;
+      color: #FFFFFF !important;
+      letter-spacing: 0.3px;
+    }
+  }
+
+  ion-content {
+    --background: #FFF9EF !important;
+    padding: 12px 8px;
+  }
+
+  ion-list {
+    background: transparent !important;
+    padding: 8px;
+  }
+
+  ion-item {
+    --background: transparent;
+    --color: #1E1C1A;
+    --border-radius: 12px;
+    margin-bottom: 6px;
+    font-weight: 300;
+    transition: all 0.2s ease;
+
+    ion-icon {
+      color: #6E675F;
+      margin-right: 12px;
+    }
+
+    &.selected {
+      --background: #95BBEA !important;
+      --color: #1E1C1A !important;
+      font-weight: 400 !important;
+
+      ion-icon {
+        color: #930500 !important;
+      }
+    }
+
+    &:hover:not(.selected) {
+      --background: #F5EFE0;
+    }
+  }
+
+  ion-footer {
+    --background: #FFF9EF;
+    border-top: 1px solid rgba(30, 28, 26, 0.08);
+
+    ion-item {
+      --background: transparent;
+      --border-radius: 12px;
+      margin: 8px;
+
+      ion-label, ion-icon {
+        font-weight: 400;
+      }
+    }
+  }
+}

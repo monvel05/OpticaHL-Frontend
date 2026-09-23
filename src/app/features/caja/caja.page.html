@@ -1,0 +1,192 @@
+<ion-header [translucent]="true" class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title style="font-weight: bold;">Punto de Cobro - Caja Óptica</ion-title>
+    <ion-buttons slot="end">
+      <ion-button routerLink="/cortecaja">
+        <ion-icon slot="start" name="analytics-outline"></ion-icon>
+        Ver Corte
+      </ion-button>
+      <ion-button (click)="logout()" title="Cerrar Sesión" color="light">
+        <ion-icon slot="icon-only" name="log-out-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content color="light" class="ion-padding">
+  
+  <!-- Buscador de Folios -->
+  <div class="search-container" style="margin-bottom: 16px;">
+    <ion-item lines="outline" style="--background: #fff; border-radius: 10px; box-shadow: 0 2px 6px rgba(0,0,0,0.04);">
+      <ion-input 
+        [formControl]="folioBusqueda" 
+        label="Ingrese Folio de Orden" 
+        labelPlacement="floating" 
+        placeholder="Ej: ORD-HL01-1786211278926" 
+        (keyup.enter)="buscarOrden()">
+      </ion-input>
+      <ion-button slot="end" fill="clear" (click)="buscarOrden()">
+        <ion-icon name="search-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-item>
+  </div>
+
+  <!-- Botón de Cobro Rápido -->
+  @if (!ordenSeleccionada) {
+    <ion-button 
+      expand="block" 
+      color="warning" 
+      shape="round" 
+      style="margin-bottom: 16px; font-weight: bold; color: #000; height: 46px;" 
+      (click)="cobroRapido()">
+      <ion-icon name="flash-outline" slot="start"></ion-icon>
+      ⚡ COBRO RÁPIDO / VENTA MOSTRADOR
+    </ion-button>
+  }
+
+  <!-- Lista de Últimas Ventas / Órdenes Recientes -->
+  @if (!ordenSeleccionada && ultimasOrdenes.length > 0) {
+    <ion-card style="border-radius: 12px; margin: 0 0 16px 0; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+      <ion-card-header color="light" style="padding: 12px 16px;">
+        <ion-card-title style="font-size: 14px; font-weight: bold; color: #444; display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="time-outline" style="font-size: 18px; color: #1565c0;"></ion-icon>
+          Últimas Ventas / Órdenes Recientes
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content style="padding: 0;">
+        <ion-list lines="full" style="padding: 0;">
+          @for (orden of ultimasOrdenes; track orden.folio || orden.folio_orden) {
+            <ion-item button (click)="seleccionarOrdenRapida(orden.folio || orden.folio_orden)" detail="true">
+              <ion-label>
+                <h3 style="font-weight: bold; color: #2c3e50; margin-bottom: 2px;">
+                  {{ orden.folio || orden.folio_orden }}
+                </h3>
+                <p style="font-size: 12px; color: #666;">
+                  Cliente: {{ orden.paciente || orden.paciente_nombre || 'Venta General' }}
+                </p>
+              </ion-label>
+
+              <div slot="end" style="text-align: right;">
+                <span 
+                  [style.background-color]="orden.estatus === 'PAGADO' || orden.estatus === 'LIQUIDADO' ? '#2e7d32' : '#ed6c02'" 
+                  style="color: white; font-size: 10px; font-weight: bold; padding: 3px 8px; border-radius: 12px; display: inline-block; margin-bottom: 4px;">
+                  {{ orden.estatus || 'PENDIENTE' }}
+                </span>
+                <p style="margin: 0; font-size: 13px; font-weight: bold; color: #2e7d32;">
+                  {{ (orden.total || orden.total_general || 0) | currency }}
+                </p>
+              </div>
+            </ion-item>
+          }
+        </ion-list>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- Detalle de Orden Seleccionada -->
+  @if (ordenSeleccionada) {
+
+    <!-- Botón para Regresar -->
+    <ion-button 
+      fill="clear" 
+      color="dark" 
+      size="small" 
+      style="margin-bottom: 8px; font-weight: bold;" 
+      (click)="limpiarPantalla()">
+      <ion-icon name="arrow-back-outline" slot="start"></ion-icon>
+      Volver a la lista
+    </ion-button>
+
+    <ion-card style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); margin: 0;">
+      
+      <!-- Encabezado con color dinámico -->
+      <ion-card-header [color]="esLiquidada ? 'success' : 'medium'" style="padding: 12px 16px;">
+        <ion-card-title style="font-size: 16px; font-weight: bold; color: white; display: flex; justify-content: space-between; align-items: center;">
+          <span>Orden de: {{ ordenSeleccionada.paciente || ordenSeleccionada.paciente_nombre || 'Cliente General' }}</span>
+          <span style="font-size: 12px; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 6px;">
+            {{ esLiquidada ? 'LIQUIDADO' : 'PENDIENTE' }}
+          </span>
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content style="padding: 16px;">
+        
+        <!-- Banner de aviso si ya fue pagada -->
+        @if (esLiquidada) {
+          <div style="background-color: #e8f5e9; color: #2e7d32; border: 1px solid #c8e6c9; padding: 12px; border-radius: 8px; text-align: center; margin-bottom: 16px; font-weight: bold;">
+            ✓ ESTA ORDEN YA SE ENCUENTRA TOTALMENTE LIQUIDADA
+          </div>
+        }
+
+        <ion-list lines="none" style="background: transparent;">
+          
+          <!-- Lista de artículos -->
+          @if (ordenSeleccionada.articulos && ordenSeleccionada.articulos.length > 0) {
+            @for (item of ordenSeleccionada.articulos; track item.id_articulo) {
+              <ion-item style="--background: transparent; --min-height: 35px;">
+                <ion-label style="color: #555;">
+                  Artículo Cód: {{ item.id_articulo }} (x{{ item.cantidad }})
+                </ion-label>
+                <ion-note slot="end" style="font-weight: 600; color: #2c3e50;">
+                  {{ item.precio_unitario | currency }}
+                </ion-note>
+              </ion-item>
+            }
+            <div style="border-top: 1px dashed #ccc; margin: 12px 0;"></div>
+          }
+
+          <!-- Resumen de montos -->
+          <ion-item style="--background: transparent; --min-height: 30px;">
+            <ion-label style="color: #666;">Total General:</ion-label>
+            <ion-note slot="end" style="font-weight: bold; color: #2c3e50;">
+              {{ ordenSeleccionada.total | currency }}
+            </ion-note>
+          </ion-item>
+
+          <ion-item style="--background: transparent; --min-height: 30px;">
+            <ion-label style="color: #666;">Total Pagado / Anticipos:</ion-label>
+            <ion-note slot="end" color="primary" style="font-weight: bold;">
+              {{ ordenSeleccionada.anticipo | currency }}
+            </ion-note>
+          </ion-item>
+
+          <ion-item style="--background: transparent;">
+            <ion-label><strong style="font-size: 16px; color: #2c3e50;">SALDO PENDIENTE:</strong></ion-label>
+            <ion-note slot="end" [color]="esLiquidada ? 'medium' : 'danger'">
+              <strong style="font-size: 20px;">{{ ordenSeleccionada.saldo | currency }}</strong>
+            </ion-note>
+          </ion-item>
+        </ion-list>
+
+        <!-- Botón de Registro de Pago -->
+        <ion-button 
+          expand="block" 
+          [color]="esLiquidada ? 'medium' : 'success'" 
+          shape="round" 
+          [disabled]="esLiquidada"
+          style="font-weight: bold; height: 48px; margin-top: 24px;" 
+          (click)="registrarPago()">
+          <ion-icon [name]="esLiquidada ? 'checkmark-circle-outline' : 'cash-outline'" slot="start"></ion-icon>
+          {{ esLiquidada ? 'ORDEN LIQUIDADA' : 'REGISTRAR PAGO Y FINALIZAR' }}
+        </ion-button>
+
+        <!-- Botón Imprimir Ticket PDF -->
+        <ion-button 
+          expand="block" 
+          fill="outline" 
+          color="primary" 
+          shape="round" 
+          style="font-weight: bold; height: 44px; margin-top: 12px;" 
+          (click)="imprimirTicket()">
+          <ion-icon name="document-text-outline" slot="start"></ion-icon>
+          DESCARGAR TICKET PDF
+        </ion-button>
+
+      </ion-card-content>
+    </ion-card>
+  }
+</ion-content>

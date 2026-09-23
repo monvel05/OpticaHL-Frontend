@@ -1,0 +1,108 @@
+.historial-card {
+  border-radius: 12px;
+  margin: 0 0 16px 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border: 1px solid #e2e8f0;
+}
+
+.card-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  .icon-folio {
+    font-size: 26px;
+  }
+
+  .folio-title {
+    font-size: 0.98rem;
+    font-weight: 700;
+    margin: 0;
+    color: #0f172a;
+  }
+
+  .fecha-txt {
+    font-size: 0.8rem;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+}
+
+/* TABLA ORGANIZADA DE GRADUACIÓN */
+.table-container {
+  overflow-x: auto;
+}
+
+.graduacion-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: center;
+  background-color: #f8fafc;
+  border-radius: 8px;
+  overflow: hidden;
+
+  th {
+    background-color: #f1f5f9;
+    color: #475569;
+    font-size: 0.8rem;
+    padding: 8px 4px;
+    font-weight: 600;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  td {
+    padding: 8px 4px;
+    font-size: 0.85rem;
+    color: #1e293b;
+  }
+
+  .eye-od { 
+    color: #dc2626; 
+    font-weight: bold; 
+  }
+  
+  .eye-oi { 
+    color: #2563eb; 
+    font-weight: bold; 
+  }
+}
+
+.notas-box {
+  background-color: #fffbebfb;
+  border-left: 3px solid #f59e0b;
+  padding: 8px 12px;
+  border-radius: 4px;
+
+  p {
+    margin: 0;
+    font-size: 0.82rem;
+    color: #b45309;
+  }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 30px;
+  color: #94a3b8;
+
+  ion-icon {
+    font-size: 48px;
+  }
+
+  p {
+    margin-top: 8px;
+    font-size: 0.9rem;
+  }
+}
+
+.chip-custom {
+  height: 22px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.detalle-item {
+  margin: 4px 0;
+  font-size: 0.85rem;
+  color: #334155;
+}

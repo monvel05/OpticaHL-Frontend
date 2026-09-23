@@ -1,0 +1,319 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  --ion-background-color: #FFF9EF;
+}
+
+ion-content {
+  --overflow: auto !important;
+  --padding-bottom: 80px !important;
+}
+
+.header-title-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400 !important;
+  color: #1E1C1A;
+
+  .title-icon {
+    font-size: 1.4rem;
+    color: #930500;
+  }
+}
+
+.search-view-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  background-color: #FFF9EF;
+
+  .search-input-wrapper {
+    flex: 1;
+
+    .custom-searchbar {
+      --background: #FFFFFF;
+      --box-shadow: none;
+      --border-radius: 10px;
+      padding: 0;
+    }
+  }
+
+  .view-toggle-buttons {
+    display: flex;
+    gap: 4px;
+
+    ion-button {
+      --border-color: #E5DFD3;
+      --color: #1E1C1A;
+    }
+  }
+}
+
+.filters-row-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 16px;
+  background-color: #FFF9EF;
+  border-bottom: 1px solid rgba(30, 28, 26, 0.08);
+
+  .filter-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .filter-lbl {
+      font-size: 0.85rem;
+      font-weight: 400 !important;
+      color: #1E1C1A;
+    }
+
+    .filter-select {
+      font-size: 0.85rem;
+      font-weight: 300 !important;
+      --padding-start: 8px;
+      --padding-end: 8px;
+      background: #FFFFFF;
+      border: 1.5px solid #E5DFD3;
+      border-radius: 10px;
+    }
+  }
+}
+
+.kpi-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 20px;
+
+  .kpi-card {
+    display: flex;
+    align-items: center;
+    padding: 16px;
+    background: #FFFFFF;
+    border-radius: 16px;
+    border: 1px solid rgba(30, 28, 26, 0.08);
+    box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+
+    .kpi-icon {
+      font-size: 1.8rem;
+      margin-right: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+    }
+
+    .kpi-info {
+      display: flex;
+      flex-direction: column;
+
+      .kpi-value {
+        font-size: 1.5rem;
+        font-weight: 400 !important;
+        line-height: 1.2;
+        color: #1E1C1A;
+      }
+
+      .kpi-label {
+        font-size: 0.8rem;
+        font-weight: 300 !important;
+        color: #6E675F;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+    }
+
+    &.total {
+      .kpi-icon { background: rgba(149, 187, 234, 0.3); color: #930500; }
+      .kpi-value { color: #930500; }
+    }
+
+    &.activas {
+      .kpi-icon { background: rgba(170, 204, 177, 0.3); color: #1E1C1A; }
+      .kpi-value { color: #1E1C1A; }
+    }
+
+    &.inactivas {
+      .kpi-icon { background: rgba(147, 5, 0, 0.15); color: #930500; }
+      .kpi-value { color: #930500; }
+    }
+  }
+}
+
+.sucursal-card {
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(30, 28, 26, 0.08) !important;
+  margin: 0 0 16px 0;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 24px rgba(30, 28, 26, 0.08) !important;
+  }
+
+  &.inactivo {
+    opacity: 0.75;
+    background-color: #FFF9EF !important;
+  }
+
+  .card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+
+    .sucursal-title-area {
+      .sucursal-badge-code {
+        display: inline-block;
+        background: #F5EFE0;
+        color: #930500;
+        font-weight: 400 !important;
+        font-size: 0.75rem;
+        padding: 2px 8px;
+        border-radius: 6px;
+        margin-bottom: 4px;
+      }
+
+      .sucursal-nombre {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 400 !important;
+        color: #1E1C1A;
+      }
+    }
+
+    .status-badge {
+      font-size: 0.75rem;
+      font-weight: 400 !important;
+      padding: 4px 10px;
+      border-radius: 20px;
+    }
+  }
+
+  .sucursal-detail-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    color: #1E1C1A;
+    font-size: 0.9rem;
+    font-weight: 300 !important;
+    margin: 12px 0 16px 0;
+
+    .detail-icon {
+      font-size: 1.1rem;
+      color: #930500;
+      margin-top: 2px;
+    }
+  }
+
+  .card-actions-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 4px;
+    border-top: 1px solid #E5DFD3;
+    padding-top: 10px;
+  }
+}
+
+.table-responsive-container {
+  width: 100%;
+  overflow-x: auto;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid rgba(30, 28, 26, 0.08);
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05);
+
+  .custom-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #F5EFE0;
+      color: #1E1C1A;
+      font-weight: 400 !important;
+      text-transform: uppercase;
+      font-size: 0.78rem;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #E5DFD3;
+    }
+
+    td {
+      font-weight: 300 !important;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid rgba(30, 28, 26, 0.05);
+
+      &:hover {
+        background-color: #FFF9EF;
+      }
+
+      &.row-inactiva {
+        opacity: 0.7;
+        background-color: #FFF9EF;
+      }
+    }
+
+    .code-pill {
+      font-weight: 400 !important;
+      background: #F5EFE0;
+      color: #930500;
+      padding: 2px 8px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+
+    .text-right {
+      text-align: right;
+    }
+
+    .text-center {
+      text-align: center;
+    }
+
+    .empty-td {
+      padding: 30px;
+      color: #6E675F;
+      font-weight: 300 !important;
+    }
+  }
+}
+
+.empty-state-container {
+  text-align: center;
+  padding: 40px 20px;
+  width: 100%;
+
+  .empty-icon {
+    font-size: 4rem;
+    color: #95BBEA;
+    margin-bottom: 12px;
+  }
+
+  h3 {
+    font-size: 1.25rem;
+    font-weight: 400 !important;
+    color: #1E1C1A;
+    margin-bottom: 6px;
+  }
+
+  p {
+    color: #6E675F;
+    font-weight: 300 !important;
+    margin-bottom: 20px;
+  }
+}

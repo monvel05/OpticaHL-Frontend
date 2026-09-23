@@ -1,0 +1,157 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Historial del Cliente</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrarModal()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- PESTAÑAS DIVIDIDAS -->
+  <ion-toolbar color="primary">
+    <ion-segment [(ngModel)]="pestanaActiva" mode="md">
+      <ion-segment-button value="clinico">
+        <ion-icon name="medical-outline"></ion-icon>
+        <ion-label>HISTORIAL CLÍNICO</ion-label>
+      </ion-segment-button>
+
+      <ion-segment-button value="materiales">
+        <ion-icon name="glasses-outline"></ion-icon>
+        <ion-label>HISTORIAL MATERIALES</ion-label>
+      </ion-segment-button>
+    </ion-segment>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+
+  <!-- ENCABEZADO PACIENTE -->
+  <div class="ion-margin-bottom">
+    <h2 style="font-weight: bold; margin-bottom: 2px; color: #1e293b;">Expediente de Paciente</h2>
+    <p style="color: #64748b; margin: 0; text-transform: capitalize; font-weight: 500;">
+      {{ nombreCliente || 'Cliente General' }}
+    </p>
+  </div>
+
+  <!-- PESTAÑA 1: CLÍNICO (GRADUACIONES) -->
+  @if (pestanaActiva === 'clinico') {
+    @for (receta of historialClinico; track receta.folio || $index) {
+      <ion-card class="historial-card">
+        <ion-card-content>
+          <div class="card-header-info">
+            <ion-icon name="document-text-outline" color="primary" class="icon-folio"></ion-icon>
+            <div>
+              <h3 class="folio-title">Folio: {{ receta.folio }}</h3>
+              <p class="fecha-txt">
+                Atendido el: {{ receta.fecha_emision ? (receta.fecha_emision | date:'dd/MM/yyyy, h:mm a') : 'Fecha no disponible' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- TABLA DE GRADUACIÓN -->
+          <div class="table-container ion-margin-top">
+            <table class="graduacion-table">
+              <thead>
+                <tr>
+                  <th>Ojo</th>
+                  <th>Esfera</th>
+                  <th>Cilindro</th>
+                  <th>Eje</th>
+                  <th>Add</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td class="eye-od">OD</td>
+                  <td>{{ receta.od_esfera ?? receta.od?.esfera ?? '-' }}</td>
+                  <td>{{ receta.od_cilindro ?? receta.od?.cilindro ?? '-' }}</td>
+                  <td>{{ receta.od_eje ? (receta.od_eje + '°') : (receta.od?.eje ? receta.od.eje + '°' : '-') }}</td>
+                  <td>{{ receta.od_adicion ?? receta.od?.adicion ?? '-' }}</td>
+                </tr>
+                <tr>
+                  <td class="eye-oi">OI</td>
+                  <td>{{ receta.oi_esfera ?? receta.oi?.esfera ?? '-' }}</td>
+                  <td>{{ receta.oi_cilindro ?? receta.oi?.cilindro ?? '-' }}</td>
+                  <td>{{ receta.oi_eje ? (receta.oi_eje + '°') : (receta.oi?.eje ? receta.oi.eje + '°' : '-') }}</td>
+                  <td>{{ receta.oi_adicion ?? receta.oi?.adicion ?? '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- NOTAS / OBSERVACIONES -->
+          @if (receta.observaciones) {
+            <div class="notas-box ion-margin-top">
+              <p><strong>Notas:</strong> <em>{{ receta.observaciones }}</em></p>
+            </div>
+          }
+        </ion-card-content>
+      </ion-card>
+    } @empty {
+      <div class="empty-state">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <p>No se encontraron registros de graduación para este paciente.</p>
+      </div>
+    }
+  }
+
+  <!-- PESTAÑA 2: MATERIALES (COMPRAS REALES) -->
+  <!-- PESTAÑA 2: MATERIALES (COMPRAS REALES) -->
+  @if (pestanaActiva === 'materiales') {
+    @for (compra of historialMateriales; track compra.folio_orden || $index) {
+      <ion-card class="historial-card">
+        <ion-card-content>
+          <div class="card-header-info">
+            <ion-icon name="cart-outline" color="success" class="icon-folio"></ion-icon>
+            <div>
+              <h3 class="folio-title">Folio: {{ compra.folio_orden }}</h3>
+              <p class="fecha-txt">
+                Fecha: {{ compra.fecha ? (compra.fecha | date:'dd/MM/yyyy') : 'N/A' }}
+              </p>
+            </div>
+          </div>
+
+          <ion-grid class="ion-no-padding ion-margin-top">
+            <ion-row>
+              <ion-col size="12">
+                <p class="detalle-item">
+                  <strong>Producto(s):</strong> {{ compra.productos || compra.armazon || 'Producto general' }}
+                </p>
+              </ion-col>
+            </ion-row>
+
+            @if (compra.tipo_lente !== 'N/A') {
+              <ion-row>
+                <ion-col size="12" size-sm="6">
+                  <p class="detalle-item"><strong>Tipo Lente:</strong> {{ compra.tipo_lente }}</p>
+                  <p class="detalle-item">
+                    <strong>Material:</strong> 
+                    <ion-chip color="primary" class="chip-custom">{{ compra.material }}</ion-chip>
+                  </p>
+                </ion-col>
+                <ion-col size="12" size-sm="6">
+                  <p class="detalle-item"><strong>Tratamiento:</strong> {{ compra.tratamiento }}</p>
+                </ion-col>
+              </ion-row>
+            }
+
+            <!-- TOTAL PAGADO -->
+            <ion-row class="ion-margin-top ion-align-items-center">
+              <ion-col size="12" class="ion-text-right">
+                <span style="font-weight: bold; color: #16a34a; font-size: 1.1rem;">
+                  Total: ${{ compra.total | number:'1.2-2' }}
+                </span>
+              </ion-col>
+            </ion-row>
+          </ion-grid>
+        </ion-card-content>
+      </ion-card>
+    } @empty {
+      <div class="empty-state">
+        <ion-icon name="glasses-outline"></ion-icon>
+        <p>No hay registro de ventas o materiales comprados.</p>
+      </div>
+    }
+  }
+</ion-content>

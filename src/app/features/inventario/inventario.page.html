@@ -1,70 +1,245 @@
-<ion-header [translucent]="true">
+<ion-header [translucent]="true" class="ion-no-border">
   <ion-toolbar color="primary">
-    <ion-title>Gestión de Inventario</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title style="font-weight: bold">Gestión e Inventario General</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="agregarProducto()" fill="solid" color="success" size="small" style="font-weight: bold; margin-right: 6px;">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        Nuevo Artículo
+      </ion-button>
+
+      <ion-button (click)="toggleFiltroAlertas()" [title]="soloAlertas ? 'Mostrar Todos' : 'Stock Crítico'">
+        <ion-icon
+          slot="icon-only"
+          [name]="soloAlertas ? 'notifications' : 'notifications-outline'"
+          [style.color]="soloAlertas ? '#ffdd00' : '#fff'"
+          style="font-size: 24px"
+        >
+        </ion-icon>
+      </ion-button>
+
+      <ion-button (click)="cargarDatos()" title="Sincronizar Datos">
+        <ion-icon slot="icon-only" name="refresh-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 
-  <ion-toolbar>
-    <ion-searchbar 
-      placeholder="Buscar por marca o modelo..." 
+  <!-- BARRA DE BÚSQUEDA Y FILTRO TOGGLE DE SUCURSAL -->
+  <ion-toolbar color="primary">
+    <ion-searchbar
+      placeholder="Buscar por código, nombre o marca..."
+      [debounce]="200"
       (ionInput)="onSearchChange($event)"
-      debounce="300">
+      class="custom-searchbar"
+    >
     </ion-searchbar>
   </ion-toolbar>
 
-  <ion-toolbar>
-    <ion-segment [value]="segmentoActual" (ionChange)="cambiarSegmento($event)">
-      <ion-segment-button value="armazones">
-        <ion-label>Armazones</ion-label>
+  <!-- TOGGLE FILTRO SUCURSAL: TODAS VS POR SUCURSAL -->
+  <div class="branch-filter-bar">
+    <div class="filter-toggle-group">
+      <ion-icon name="funnel-outline" class="bar-icon"></ion-icon>      <span class="bar-label">Inventario:</span>
+      <ion-segment [value]="sucursalModo" (ionChange)="onSucursalModoChange($any($event.detail.value))" class="branch-segment">
+        <ion-segment-button value="TODAS">
+          <ion-label>Todas las Sucursales</ion-label>
+        </ion-segment-button>
+        <ion-segment-button value="POR_SUCURSAL">
+          <ion-label>Por Sucursal</ion-label>
+        </ion-segment-button>
+      </ion-segment>
+    </div>
+
+    @if (sucursalModo === 'POR_SUCURSAL') {
+      <div class="branch-select-group">
+        <ion-icon name="business-outline" class="bar-icon"></ion-icon>
+        <ion-select [value]="idSucursalActual" (ionChange)="onSucursalSelectChange($event)" interface="popover" class="branch-select">
+          @for (s of sucursales; track s.id) {
+            <ion-select-option [value]="s.id">{{ s.nombre }}</ion-select-option>
+          }
+        </ion-select>
+      </div>
+    }
+  </div>
+
+  <ion-toolbar color="primary">
+    <ion-segment
+      [value]="segmentoActual"
+      (ionChange)="cambiarSegmento($event)"
+      style="--background: rgba(255, 255, 255, 0.12); border-radius: 0"
+    >
+      <ion-segment-button value="ARMAZON">
+        <ion-label style="font-weight: 500">Armazones</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="lentes">
-        <ion-label>Lentes</ion-label>
+      <ion-segment-button value="MICA">
+        <ion-label style="font-weight: 500">Micas/Cristales</ion-label>
       </ion-segment-button>
-      <ion-segment-button value="accesorios">
-        <ion-label>Accesorios</ion-label>
+      <ion-segment-button value="ACCESORIO">
+        <ion-label style="font-weight: 500">Accesorios</ion-label>
+      </ion-segment-button>
+      <ion-segment-button value="SERVICIO">
+        <ion-label style="font-weight: 500">Servicios</ion-label>
       </ion-segment-button>
       <ion-segment-button value="sucursales">
-        <ion-label>Sucursales</ion-label>
+        <ion-label style="font-weight: 500">Sucursales</ion-label>
       </ion-segment-button>
     </ion-segment>
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <div class="ion-padding-horizontal">
-    <app-selector-entidad 
-      label="Filtrar por Marca" 
-      icon="pricetag-outline" 
-      [opciones]="marcas"
-      (seleccionCambiada)="tuFuncionDePrueba($event)">
-    </app-selector-entidad>
-  </div>
+<ion-content [fullscreen]="true" class="ion-padding" color="light">
+  <ion-refresher slot="fixed" (ionRefresh)="doRefresh($event)">
+    <ion-refresher-content pullingText="Desliza para actualizar..." refreshingSpinner="circles"></ion-refresher-content>
+  </ion-refresher>
 
-  <ion-list>
-    @for (producto of productosFiltrados; track producto.id) {
-      <ion-item lines="full">
-        <ion-thumbnail slot="start">
-          <img alt="Producto" src="https://ionicframework.com/docs/img/demos/thumbnail.svg" />
-        </ion-thumbnail>
+  <!-- TARJETAS DE KPIs EJECUTIVOS DE INVENTARIO -->
+  @if (segmentoActual !== 'sucursales') {
+    <ion-grid class="kpi-grid">
+      <ion-row>
+        <ion-col size="6" size-md="4">
+          <div class="stat-card card-total">
+            <div class="stat-icon"><ion-icon name="cube-outline"></ion-icon></div>
+            <div class="stat-data">
+              <span class="stat-value">{{ kpiTotalArticulos }}</span>
+              <span class="stat-title">Artículos Registrados</span>
+            </div>
+          </div>
+        </ion-col>
+        <ion-col size="6" size-md="4">
+          <div class="stat-card card-value">
+            <div class="stat-icon"><ion-icon name="cash-outline"></ion-icon></div>
+            <div class="stat-data">
+              <span class="stat-value">${{ kpiValorTotal | number:'1.0-0' }}</span>
+              <span class="stat-title">Valor Estimado ({{ sucursalModo === 'TODAS' ? 'Global' : idSucursalActual }})</span>
+            </div>
+          </div>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <div class="stat-card card-alert" [class.active-alert]="kpiStockCritico > 0">
+            <div class="stat-icon"><ion-icon name="alert-circle-outline"></ion-icon></div>
+            <div class="stat-data">
+              <span class="stat-value">{{ kpiStockCritico }}</span>
+              <span class="stat-title">Stock Crítico / Alerta</span>
+            </div>
+          </div>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  }
 
-        <ion-label>
-          <h2>{{ producto.nombre }}</h2>
-          <p>Marca: {{ producto.marca }} | Stock: {{ producto.cantidad }}</p>
-        </ion-label>
-
-        <ion-badge slot="end" [color]="producto.cantidad <= producto.stockMinimo ? 'danger' : 'success'">
-          {{ producto.cantidad <= producto.stockMinimo ? 'REABASTECER' : 'OK' }} 
-        </ion-badge>
-      </ion-item>
-    } @empty {
-      <div class="ion-padding ion-text-center">
-        <ion-text color="medium">No se encontraron artículos.</ion-text>
+  @if (segmentoActual !== 'sucursales') {
+    @if (isLoading && page === 1) {
+      <div class="ion-text-center ion-padding" style="margin-top: 60px">
+        <ion-spinner name="crescent" color="primary" style="width: 50px; height: 50px"></ion-spinner>
+        <p style="color: var(--ion-color-medium); font-weight: 500; margin-top: 15px">
+          Sincronizando inventario en tiempo real...
+        </p>
       </div>
-    }
-  </ion-list>
+    } @else {
+      @if (productosFiltrados.length === 0) {
+        <div class="ion-text-center ion-padding" style="margin-top: 50px">
+          <ion-icon
+            [name]="soloAlertas ? 'shield-checkmark-outline' : (segmentoActual === 'SERVICIO' ? 'construct-outline' : 'cube-outline')"
+            [style.color]="soloAlertas ? 'var(--ion-color-success)' : 'var(--ion-color-medium)'"
+            style="font-size: 64px"
+          >
+          </ion-icon>
+          <p style="color: var(--ion-color-medium); font-size: 16px; margin-top: 12px; font-weight: 500;">
+            @if (soloAlertas) {
+              ¡Excelente! No hay artículos con <b>Stock Bajo</b> en esta categoría.
+            } @else {
+              No se encontraron elementos registrados en <b>{{ segmentoActual }}</b>.
+            }
+          </p>
+        </div>
+      } @else {
+        <ion-grid class="ion-no-padding">
+          <ion-row>
+            @for (producto of productosFiltrados; track producto.id_articulo || producto.codigo) {
+              <ion-col size="12" size-md="6" size-lg="4" style="padding: 6px">
+                <ion-card class="product-item-card" [class.critical-stock]="producto.categoria !== 'SERVICIO' && producto.stock_actual <= producto.stock_minimo">
+                  <div class="card-left">
+                    <div class="category-icon-box">
+                      <ion-icon [name]="$any(producto).categoria === 'Z' || $any(producto).categoria === 'ARMAZON' ? 'glasses-outline' : ($any(producto).categoria === 'S' || $any(producto).categoria === 'MICA' ? 'eye-outline' : ($any(producto).categoria === 'SERVICIO' ? 'build-outline' : 'pricetag-outline'))">
+                      </ion-icon>
+                    </div>
+                  </div>
 
-  <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-    <ion-fab-button (click)="agregarProducto()">
-      <ion-icon name="add"></ion-icon>
-    </ion-fab-button>
-  </ion-fab>
+                  <div class="card-center">
+                    <h3 class="prod-title">{{ producto.nombre }}</h3>
+                    <div class="prod-subtitle">
+                      @if ($any(producto).categoria !== 'SERVICIO') {
+                        <span>Marca: <strong>{{ producto.marca || 'Genérica' }}</strong></span>
+                      } @else {
+                        <span class="text-medium">Servicio / Laboratorio</span>
+                      }
+                    </div>
+                    <div class="prod-code-price">
+                      <code>{{ producto.codigo }}</code>
+                      <span class="prod-price">${{ producto.precio_venta | number:'1.2-2' }}</span>
+                    </div>
+                  </div>
+
+                  <div class="card-right">
+                    <ion-button fill="clear" size="small" (click)="editarProducto(producto)" class="btn-edit" title="Editar datos y existencias por sucursal">
+                      <ion-icon name="create-outline" slot="icon-only"></ion-icon>
+                    </ion-button>
+
+                    @if ($any(producto).categoria !== 'SERVICIO') {
+                      <div class="stock-control-stepper">
+                        <ion-button fill="clear" size="small" color="danger" (click)="ajustarStock(producto, -1)" class="stepper-btn" title="Restar stock en sucursal activa">
+                          <ion-icon name="remove-outline"></ion-icon>
+                        </ion-button>
+
+                        <span class="stock-num" [class.low-stock-num]="producto.stock_actual <= producto.stock_minimo">
+                          {{ producto.stock_actual }}
+                        </span>
+
+                        <ion-button fill="clear" size="small" color="success" (click)="ajustarStock(producto, 1)" class="stepper-btn" title="Sumar stock en sucursal activa">
+                          <ion-icon name="add-outline"></ion-icon>
+                        </ion-button>
+                      </div>
+                    } @else {
+                      <ion-badge color="medium" class="badge-service">Servicio</ion-badge>
+                    }
+                  </div>
+                </ion-card>
+              </ion-col>
+            }
+          </ion-row>
+        </ion-grid>
+      }
+    }
+  }
+
+  @if (segmentoActual === 'sucursales') {
+    <div class="sucursales-list-container">
+      @for (suc of sucursales; track suc.id) {
+        <ion-item button (click)="verDetalleSucursal(suc)" detail="true" lines="inset" class="sucursal-item">
+          <ion-icon name="business-outline" slot="start" color="primary" style="font-size: 24px"></ion-icon>
+          <ion-label>
+            <h2 style="font-weight: 700; color: #1e293b">{{ suc.nombre }}</h2>
+            <p style="font-size: 13px; color: #64748b">Filtrar existencias específicas de esta tienda</p>
+          </ion-label>
+          <ion-badge slot="end" color="tertiary" style="padding: 6px 10px; font-weight: bold; border-radius: 8px">
+            {{ suc.id }}
+          </ion-badge>
+        </ion-item>
+      }
+    </div>
+  }
+
+  @if (segmentoActual !== 'sucursales') {
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed" style="margin-bottom: 15px; margin-right: 15px">
+      <ion-fab-button (click)="agregarProducto()" color="primary" style="box-shadow: 0 4px 16px rgba(var(--ion-color-primary-rgb), 0.4)">
+        <ion-icon name="add" style="font-size: 28px"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
+
+    <ion-infinite-scroll (ionInfinite)="cargarMas($event)" [disabled]="!hayMasDatos">
+      <ion-infinite-scroll-content loadingSpinner="bubbles" loadingText="Cargando más artículos...">
+      </ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  }
 </ion-content>

@@ -1,0 +1,214 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>🏷️ Gestión de Descuentos y Promociones</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalCrear()" fill="solid" color="light" style="font-weight: bold;">
+        <ion-icon name="add-circle-outline" slot="start"></ion-icon>
+        Nueva Promoción
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" style="background-color: #f8fafc;">
+
+  <!-- TARJETAS DE RESUMEN KPI -->
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px;">
+    <div style="background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #10b981;">
+      <span style="font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">Vigentes Hoy</span>
+      <h2 style="margin: 6px 0 0 0; color: #10b981; font-weight: 800;">{{ kpiVigentes }}</h2>
+    </div>
+
+    <div style="background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #3b82f6;">
+      <span style="font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">Programadas (Próximas)</span>
+      <h2 style="margin: 6px 0 0 0; color: #3b82f6; font-weight: 800;">{{ kpiProgramadas }}</h2>
+    </div>
+
+    <div style="background: #ffffff; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; border-left: 5px solid #64748b;">
+      <span style="font-size: 12px; color: #64748b; font-weight: bold; text-transform: uppercase;">Total Registradas</span>
+      <h2 style="margin: 6px 0 0 0; color: #1e293b; font-weight: 800;">{{ listaPromociones.length }}</h2>
+    </div>
+  </div>
+
+  <!-- LISTA DE PROMOCIONES -->
+  <h4 style="color: #1e293b; font-weight: bold; margin-bottom: 12px;">Lista de Promociones Registradas</h4>
+
+  @if (cargando) {
+    <div style="text-align: center; padding: 40px;">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p style="color: #64748b;">Cargando descuentos...</p>
+    </div>
+  } @else {
+    @for (promo of listaPromociones; track promo.id_promocion) {
+      <ion-card style="border-radius: 12px; margin: 0 0 14px 0; border: 1px solid #e2e8f0; box-shadow: none;">
+        <ion-card-content style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 8px;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3 style="font-weight: 700; color: #0f172a; margin: 0; font-size: 17px;">{{ promo.nombre }}</h3>
+                <span [style.background]="getColorBadge(promo.estado_actual)" style="color: white; padding: 3px 8px; border-radius: 6px; font-size: 11px; font-weight: bold;">
+                  {{ promo.estado_actual }}
+                </span>
+              </div>
+              <p style="color: #64748b; margin: 4px 0; font-size: 13px;">{{ promo.descripcion || 'Sin descripción' }}</p>
+            </div>
+
+            <!-- PORCENTAJE DESTACADO -->
+            <div style="background: #ecfdf5; border: 1px dashed #10b981; padding: 8px 14px; border-radius: 10px; text-align: center;">
+              <span style="font-size: 20px; font-weight: 900; color: #059669;">-{{ promo.porcentaje_descuento }}%</span>
+              <span style="display: block; font-size: 10px; color: #059669; font-weight: 600;">DESCUENTO</span>
+            </div>
+          </div>
+
+          <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 12px 0;">
+
+          <!-- DETALLES DE VIGENCIA Y ALCANCE -->
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; font-size: 12px; color: #475569;">
+            <div>
+              <b>Aplica a:</b>
+              @if (promo.tipo_aplicacion === 'TODOS') {
+                <span style="color: #0284c7; font-weight: 600;"> Toda la tienda</span>
+              } @else if (promo.tipo_aplicacion === 'CATEGORIA') {
+                <span style="color: #7c3aed; font-weight: 600;"> Categoría: {{ promo.categoria }}</span>
+              } @else {
+                <span style="color: #d97706; font-weight: 600;"> Producto: {{ promo.articulo_nombre || ('ID #' + promo.id_articulo) }}</span>
+              }
+            </div>
+
+            <div>
+              <b>Periodo:</b> {{ promo.fecha_inicio | date:'dd/MM/yyyy' }} al {{ promo.fecha_fin | date:'dd/MM/yyyy' }}
+            </div>
+          </div>
+
+          <!-- ACCIONES -->
+          <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-top: 12px;">
+            <ion-button size="small" fill="outline" [color]="promo.activo === 1 ? 'warning' : 'success'" (click)="toggleEstado(promo)">
+              <ion-icon [name]="promo.activo === 1 ? 'pause-outline' : 'play-outline'" slot="start"></ion-icon>
+              {{ promo.activo === 1 ? 'Pausar' : 'Activar' }}
+            </ion-button>
+
+            <ion-button size="small" fill="clear" color="danger" (click)="eliminar(promo)">
+              <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+            </ion-button>
+          </div>
+        </ion-card-content>
+      </ion-card>
+    } @empty {
+      <div style="text-align: center; padding: 40px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+        <ion-icon name="pricetag-outline" style="font-size: 48px; color: #94a3b8;"></ion-icon>
+        <h4 style="color: #64748b; margin-top: 10px;">No hay promociones registradas</h4>
+        <p style="color: #94a3b8; font-size: 13px;">Haz clic en "Nueva Promoción" para crear una para el Buen Fin o rebajar productos en liquidación.</p>
+      </div>
+    }
+  }
+
+  <!-- MODAL DE CREACIÓN DE DESCUENTO -->
+  <ion-modal [isOpen]="mostrarModalCrear" (didDismiss)="mostrarModalCrear = false">
+    <ng-template>
+      <ion-header>
+        <ion-toolbar color="primary">
+          <ion-title>Nueva Promoción / Descuento</ion-title>
+          <ion-buttons slot="end">
+            <ion-button (click)="mostrarModalCrear = false">
+              <ion-icon name="close-outline"></ion-icon>
+            </ion-button>
+          </ion-buttons>
+        </ion-toolbar>
+      </ion-header>
+
+      <ion-content class="ion-padding">
+        <form (ngSubmit)="guardarPromocion()">
+          
+          <ion-item lines="full">
+            <ion-label position="stacked"><b>Nombre de la Promoción *</b></ion-label>
+            <ion-input [(ngModel)]="nuevoDescuento.nombre" name="nombre" placeholder="Ej: Buen Fin 2026, Remate Armazón Ray-Ban" required></ion-input>
+          </ion-item>
+
+          <ion-item lines="full" style="margin-top: 8px;">
+            <ion-label position="stacked"><b>Descripción breve (opcional)</b></ion-label>
+            <ion-input [(ngModel)]="nuevoDescuento.descripcion" name="descripcion" placeholder="Ej: Liquidación de stock rezagado"></ion-input>
+          </ion-item>
+
+          <ion-item lines="full" style="margin-top: 8px;">
+            <ion-label position="stacked"><b>Porcentaje de Descuento (%) *</b></ion-label>
+            <ion-input type="number" [(ngModel)]="nuevoDescuento.porcentaje_descuento" name="porcentaje" min="1" max="100" placeholder="Ej: 20" required></ion-input>
+          </ion-item>
+
+          <ion-item lines="full" style="margin-top: 8px;">
+            <ion-label position="stacked"><b>¿A qué aplica? *</b></ion-label>
+            <ion-select [(ngModel)]="nuevoDescuento.tipo_aplicacion" name="tipo_aplicacion" interface="popover">
+              <ion-select-option value="TODOS">Toda la tienda (Global)</ion-select-option>
+              <ion-select-option value="CATEGORIA">Por Categoría</ion-select-option>
+              <ion-select-option value="PRODUCTO">Producto Específico (Rezagado / Liquidación)</ion-select-option>
+            </ion-select>
+          </ion-item>
+
+          @if (nuevoDescuento.tipo_aplicacion === 'CATEGORIA') {
+            <ion-item lines="full" style="margin-top: 8px;">
+              <ion-label position="stacked"><b>Categoría</b></ion-label>
+              <ion-select [(ngModel)]="nuevoDescuento.categoria" name="categoria" interface="popover">
+                <ion-select-option value="ARMAZON">Armazones</ion-select-option>
+                <ion-select-option value="MICA">Micas / Graduaciones</ion-select-option>
+                <ion-select-option value="ACCESORIO">Accesorios / Soluciones</ion-select-option>
+                <ion-select-option value="SOLAR">Lentes de Sol</ion-select-option>
+              </ion-select>
+            </ion-item>
+          }
+
+          @if (nuevoDescuento.tipo_aplicacion === 'PRODUCTO') {
+            <div style="margin-top: 10px; background: #f8fafc; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+              <ion-label style="font-weight: bold; color: #1e293b;">Buscar Producto para Liquidar:</ion-label>
+              <ion-input 
+                [(ngModel)]="busquedaProducto" 
+                name="busqProd" 
+                placeholder="Escribe el nombre o código..." 
+                (ionInput)="buscarProductoParaRebaja($event)">
+              </ion-input>
+
+              @if (productosSugeridos.length > 0) {
+                <ion-list style="max-height: 150px; overflow-y: auto; background: white; border-radius: 6px; margin-top: 4px;">
+                  @for (p of productosSugeridos; track p.id_articulo) {
+                    <ion-item button (click)="seleccionarProductoParaRebaja(p)">
+                      <ion-label>
+                        <h4 style="margin: 0; font-weight: bold;">{{ p.nombre }}</h4>
+                        <p style="color: #64748b; font-size: 11px;">Precio normal: ${{ p.precio }} | Stock: {{ p.stock }}</p>
+                      </ion-label>
+                    </ion-item>
+                  }
+                </ion-list>
+              }
+
+              @if (productoSeleccionadoNombre) {
+                <p style="margin-top: 6px; color: #059669; font-weight: bold; font-size: 13px;">
+                  ✓ Seleccionado: {{ productoSeleccionadoNombre }}
+                </p>
+              }
+            </div>
+          }
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px;">
+            <ion-item lines="full">
+              <ion-label position="stacked"><b>Fecha Inicio *</b></ion-label>
+              <ion-input type="date" [(ngModel)]="nuevoDescuento.fecha_inicio" name="fecha_inicio" required></ion-input>
+            </ion-item>
+
+            <ion-item lines="full">
+              <ion-label position="stacked"><b>Fecha Fin *</b></ion-label>
+              <ion-input type="date" [(ngModel)]="nuevoDescuento.fecha_fin" name="fecha_fin" required></ion-input>
+            </ion-item>
+          </div>
+
+          <!-- BOTÓN SIEMPRE HABILITADO CON VALIDACIÓN ACTIVA -->
+          <ion-button expand="block" type="submit" color="success" style="margin-top: 24px; font-weight: bold;">
+            <ion-icon name="checkmark-circle-outline" slot="start"></ion-icon>
+            Guardar y Aplicar Descuento
+          </ion-button>
+        </form>
+      </ion-content>
+    </ng-template>
+  </ion-modal>
+
+</ion-content>

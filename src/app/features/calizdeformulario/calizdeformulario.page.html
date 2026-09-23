@@ -1,0 +1,10 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Panel de Control - Clientes</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <h2>Registro de Nuevo Cliente</h2>
+  <app-cliente-form (onSave)="handleClienteGuardado($event)"></app-cliente-form>
+</ion-content>

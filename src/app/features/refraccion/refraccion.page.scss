@@ -1,0 +1,115 @@
+:host {
+  ion-content {
+    --background: #FFF9EF;
+  }
+}
+
+ion-toolbar {
+  --background: #930500;
+  --color: #FFFFFF;
+}
+
+h2 {
+  color: #1E1C1A;
+  font-weight: 400 !important;
+}
+
+ion-searchbar {
+  --background: #FFFFFF;
+  --color: #1E1C1A;
+  --placeholder-color: #6E675F;
+  --border-radius: 25px;
+  --box-shadow: 0 4px 14px rgba(30, 28, 26, 0.05);
+  padding: 4px 10px;
+  margin-bottom: 12px;
+
+  &.searchbar-has-focus {
+    --box-shadow: 0 6px 16px rgba(147, 5, 0, 0.2);
+    transform: scale(1.01);
+    transition: 0.2s;
+  }
+}
+
+ion-card {
+  border-radius: 16px !important;
+  background: #FFFFFF !important;
+  border: 1px solid rgba(30, 28, 26, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05) !important;
+  transition: transform 0.2s;
+}
+
+ion-card:hover {
+  transform: translateY(-3px);
+}
+
+ion-card-title {
+  color: #1E1C1A !important;
+  font-weight: 400 !important;
+}
+
+ion-card-subtitle {
+  color: #6E675F !important;
+  font-weight: 300 !important;
+}
+
+ion-badge[color="primary"] {
+  --background: #95BBEA !important;
+  --color: #1E1C1A !important;
+  font-weight: 400 !important;
+  border-radius: 20px;
+}
+
+ion-badge[color="secondary"] {
+  --background: #930500 !important;
+  --color: #FFFFFF !important;
+  font-weight: 400 !important;
+  border-radius: 20px;
+}
+
+ion-item {
+  --background: #FFFFFF;
+  --border-radius: 10px;
+  --border-color: #E5DFD3;
+  margin-bottom: 10px;
+}
+
+ion-label {
+  color: #1E1C1A;
+  font-size: 0.85rem;
+  font-weight: 300 !important;
+}
+
+ion-input, ion-textarea {
+  font-size: 0.9rem;
+  font-weight: 300 !important;
+}
+
+ion-list {
+  background: #FFFFFF;
+  border-radius: 10px;
+  box-shadow: 0 4px 14px rgba(30, 28, 26, 0.08);
+  max-height: 150px;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+ion-button {
+  --border-radius: 12px;
+  font-weight: 400 !important;
+  letter-spacing: 0.3px;
+}
+
+ion-button[color="primary"] {
+  --background: #930500 !important;
+  --color: #FFFFFF !important;
+}
+
+ion-row ion-input {
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  h2 {
+    text-align: center;
+  }
+}
