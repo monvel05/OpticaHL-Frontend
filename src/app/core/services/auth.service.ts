@@ -4,7 +4,7 @@ import { Router } from '@angular/router';
 import { BehaviorSubject, Observable } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { Preferences } from '@capacitor/preferences';
-import { environment } from '../../../environment/envs';
+import { environment } from '@env';
 
 // 1. INTERFACES ACTUALIZADAS
 export interface Usuario {

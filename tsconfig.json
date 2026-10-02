@@ -20,7 +20,10 @@
     "target": "es2022",
     "module": "es2020",
     "skipLibCheck": true,
-    "useDefineForClassFields": false
+    "useDefineForClassFields": false,
+    "paths": {
+      "@env": ["src/environments/environment"]
+    }
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,
