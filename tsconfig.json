@@ -3,6 +3,9 @@
   "compileOnSave": false,
   "compilerOptions": {
     "baseUrl": "./",
+    "paths": {
+      "@env": ["src/environments/environment.ts"]
+    },
     "ignoreDeprecations": "6.0",
     "outDir": "./dist/out-tsc",
     "forceConsistentCasingInFileNames": true,
@@ -20,10 +23,7 @@
     "target": "es2022",
     "module": "es2020",
     "skipLibCheck": true,
-    "useDefineForClassFields": false,
-    "paths": {
-      "@env": ["src/environments/environment"]
-    }
+    "useDefineForClassFields": false
   },
   "angularCompilerOptions": {
     "enableI18nLegacyMessageIdFormat": false,

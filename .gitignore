@@ -69,12 +69,5 @@ testem.log
 .DS_Store
 Thumbs.db
 
-# Environment files
-envs.ts
-environment.ts
-environment.prod.ts
-/environment
-envs.ts
-
 # Carpeta www generada por Ionic
 www/
