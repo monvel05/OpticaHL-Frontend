@@ -21,13 +21,12 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: 'npm'
 
       - name: Instalar dependencias del proyecto
-        run: npm ci
+        run: npm install
 
       - name: Compilar aplicación Ionic Angular Standalone
-        run: npm run build -- --configuration=production
+        run: npm run build
 
       - name: Autenticar en AWS con IAM
         uses: aws-actions/configure-aws-credentials@v4
@@ -38,7 +37,7 @@ jobs:
 
       - name: Sincronizar artefactos hacia Amazon S3
         run: |
-          echo "Sincronizando www/ con S3..."
+          echo "Sincronizando directorio www/ con S3..."
           aws s3 sync www/ s3://${{ secrets.S3_BUCKET_NAME }} --delete
 
       - name: Invalidar Caché en CloudFront
