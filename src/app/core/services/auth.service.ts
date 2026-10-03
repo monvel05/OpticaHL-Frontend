@@ -52,10 +52,13 @@ export class AuthService {
       tap(async (response: any) => {
         if (response && response.token) {
           
-          let usuarioLogueado = response.usuario || response.user || {};
+          let usuarioLogueado = response.operador || response.usuario || response.user || response.datos || {};
           
-          // BYPASS: Inyección de rol de emergencia si el backend falla
-          if (!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) {
+          // BYPASS: Inyección de rol si es admin_mon o si viene sin roles
+          if ((!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) && 
+              (credenciales?.usuario === 'admin_mon' || credenciales?.usuario_login === 'admin_mon' || usuarioLogueado?.usuario_login === 'admin_mon')) {
+            usuarioLogueado.roles = ['ADMINISTRADOR'];
+          } else if (!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) {
             console.warn('⚠️ Roles vacíos detectados. Aplicando rol MOSTRADOR de emergencia.');
             usuarioLogueado.roles = ['MOSTRADOR'];
           }
