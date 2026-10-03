@@ -1,188 +1,187 @@
-<ion-header>
-  <ion-toolbar>
-    <ion-title>Refracción e Historial</ion-title>
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title>Orden de Reparación y Taller</ion-title>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-
+<ion-content class="ion-padding custom-bg">
   <ion-grid>
+    <ion-row>
+      
+      <!-- COLUMNA IZQUIERDA -->
+      <ion-col size="12" size-lg="5">
+        
+        <!-- Datos del Cliente -->
+        <ion-card class="clean-card ion-no-margin ion-margin-bottom">
+          <ion-card-header>
+            <ion-card-title class="section-title">1. Datos del Cliente</ion-card-title>
+          </ion-card-header>
+          <ion-card-content>
+            @if (!clienteSeleccionado) {
+              <div class="field-container">
+                <ion-label class="custom-label">Buscar cliente</ion-label>
+                <ion-searchbar
+                  placeholder="Escriba nombre o teléfono..."
+                  [(ngModel)]="textoBusquedaCliente"
+                  (ionInput)="buscarCliente()"
+                  class="custom-searchbar">
+                </ion-searchbar>
+              </div>
 
-    @if (!clienteSeleccionado) {
-      <ion-row>
-        <ion-col size="12">
-          <h2>Cliente</h2>
-          <ion-searchbar
-            placeholder="Buscar cliente por nombre, RFC o teléfono..."
-            [(ngModel)]="textoBusquedaCliente"
-            (ionInput)="buscarCliente()">
-          </ion-searchbar>
-          <ion-button expand="block" color="primary" (click)="toggleNuevoCliente()">
-            + Nuevo Cliente
-          </ion-button>
-          @if (mostrarFormNuevoCliente) {
-            <ion-card>
-              <ion-card-header>
-                <ion-card-title>Registrar Cliente</ion-card-title>
-              </ion-card-header>
-              <ion-card-content>
-                <ion-item>
-                  <ion-label position="stacked">Nombre Completo</ion-label>
-                  <ion-input [(ngModel)]="nuevoCliente.nombre_completo"></ion-input>
-                </ion-item>
-                <ion-item>
-                  <ion-label position="stacked">Teléfono</ion-label>
-                  <ion-input [(ngModel)]="nuevoCliente.telefono"></ion-input>
-                </ion-item>
-                <ion-row>
-                  <ion-col size="6">
-                    <ion-button expand="block" fill="outline" (click)="toggleNuevoCliente()">
-                      Cancelar
-                    </ion-button>
-                  </ion-col>
-                  <ion-col size="6">
-                    <ion-button expand="block" color="success" (click)="guardarNuevoCliente()">
-                      Guardar
-                    </ion-button>
-                  </ion-col>
-                </ion-row>
-              </ion-card-content>
-            </ion-card>
-          }
-          <ion-list>
-            @for (cliente of clientesFiltrados; track cliente) {
-              <ion-item
-                button
-                (click)="seleccionarCliente(cliente)">
-                <ion-icon name="person-circle" slot="start" color="primary"></ion-icon>
-                <ion-label>
-                  <h2>{{ cliente.nombre_completo }}</h2>
-                  @if (cliente.telefono) {
-                    <p>{{ cliente.telefono }}</p>
-                  }
-                </ion-label>
-              </ion-item>
-            }
-          </ion-list>
-        </ion-col>
-      </ion-row>
-    }
-
-    @if (clienteSeleccionado) {
-      <ion-row>
-        <ion-col size="12">
-          <ion-button fill="clear" color="medium" (click)="limpiarCliente()">
-            ← Cambiar cliente
-          </ion-button>
-        </ion-col>
-        <ion-col size="12" size-md="4">
-          <h2>Historial Óptico</h2>
-          <ion-searchbar
-            placeholder="Buscar por doctor, fecha o folio..."
-            [(ngModel)]="textoBusqueda"
-            (ionInput)="filtrarHistorial()">
-          </ion-searchbar>
-          <ion-card>
-            <ion-card-content>
-              <strong>ID Paciente: {{ idCliente }}</strong>
-            </ion-card-content>
-          </ion-card>
-          @if (historialFiltrado.length === 0) {
-            <div class="ion-text-center ion-margin-top">
-              No hay resultados
-            </div>
-          }
-          @for (r of historialFiltrado; track r) {
-            <ion-card>
-              <ion-card-header>
-                <ion-card-title>{{ r.doctor }}</ion-card-title>
-                <ion-card-subtitle>{{ r.fecha | date:'mediumDate' }}</ion-card-subtitle>
-              </ion-card-header>
-              <ion-card-content>
-                <ion-grid>
-                  <ion-row>
-                    <ion-col size="6">
-                      <ion-badge color="primary">OD</ion-badge>
-                      <p>
-                        {{ r.od?.esfera }} /
-                        {{ r.od?.cilindro }} /
-                        {{ r.od?.eje }}
-                      </p>
-                    </ion-col>
-                    <ion-col size="6">
-                      <ion-badge color="secondary">OI</ion-badge>
-                      <p>
-                        {{ r.oi?.esfera }} /
-                        {{ r.oi?.cilindro }} /
-                        {{ r.oi?.eje }}
-                      </p>
-                    </ion-col>
-                  </ion-row>
-                </ion-grid>
-              </ion-card-content>
-            </ion-card>
-          }
-        </ion-col>
-        <ion-col size="12" size-md="8">
-          <h2>Nueva Receta</h2>
-          <ion-row>
-            <ion-col size="12" size-md="8">
-              <ion-item>
-                <ion-label position="stacked">Doctor *</ion-label>
-                <ion-input
-                  [(ngModel)]="nuevaRx.doctor"
-                  (ionFocus)="mostrarTodosDoctores()"
-                  (ionInput)="buscarDoctor()"
-                  placeholder="Buscar doctor">
-                </ion-input>
-              </ion-item>
-              @if (mostrarListaDoctores) {
-                <ion-list>
-                  @for (doc of doctoresFiltrados; track doc) {
-                    <ion-item
-                      button
-                      (click)="seleccionarDoctor(doc)">
-                      <ion-label>
-                        {{ doc.nombre }}
-                        <p>{{ doc.cedula }}</p>
+              @if (clientesFiltrados.length > 0) {
+                <ion-list class="results-list">
+                  @for (cliente of clientesFiltrados; track cliente.id_cliente) {
+                    <ion-item button (click)="seleccionarCliente(cliente)" lines="full">
+                      <ion-icon name="person-circle-outline" slot="start" color="primary"></ion-icon>
+                      <ion-label class="ion-text-wrap">
+                        <h2 class="client-name">{{ cliente.nombre_completo }}</h2>
+                        <p class="client-phone">{{ cliente.telefono || 'Sin teléfono' }}</p>
                       </ion-label>
                     </ion-item>
                   }
                 </ion-list>
               }
-            </ion-col>
-            <ion-col size="12" size-md="4">
-              <ion-item>
-                <ion-label position="stacked">Cédula *</ion-label>
-                <ion-input [(ngModel)]="nuevaRx.cedula"></ion-input>
-              </ion-item>
-            </ion-col>
-          </ion-row>
-          <ion-list-header>Ojo Derecho (OD)</ion-list-header>
-          <ion-row>
-            <ion-col size="3"><ion-input type="number" placeholder="Esfera" [(ngModel)]="nuevaRx.od.esfera"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Cilindro" [(ngModel)]="nuevaRx.od.cilindro"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Eje" [(ngModel)]="nuevaRx.od.eje"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Adición" [(ngModel)]="nuevaRx.od.adicion"></ion-input></ion-col>
-          </ion-row>
-          <ion-list-header>Ojo Izquierdo (OI)</ion-list-header>
-          <ion-row>
-            <ion-col size="3"><ion-input type="number" placeholder="Esfera" [(ngModel)]="nuevaRx.oi.esfera"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Cilindro" [(ngModel)]="nuevaRx.oi.cilindro"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Eje" [(ngModel)]="nuevaRx.oi.eje"></ion-input></ion-col>
-            <ion-col size="3"><ion-input type="number" placeholder="Adición" [(ngModel)]="nuevaRx.oi.adicion"></ion-input></ion-col>
-          </ion-row>
-          <ion-item>
-            <ion-label position="stacked">Observaciones</ion-label>
-            <ion-textarea [(ngModel)]="nuevaRx.observaciones"></ion-textarea>
-          </ion-item>
-          <ion-button expand="block" color="success" (click)="guardarExamen()" class="ion-margin-top">
-            GUARDAR REFRACCIÓN
-          </ion-button>
-        </ion-col>
-      </ion-row>
-    }
+            } @else {
+              <div class="cliente-selected-box">
+                <p><strong>Paciente:</strong> {{ clienteSeleccionado.nombre_completo }}</p>
+                <p><strong>Teléfono:</strong> {{ clienteSeleccionado.telefono || 'Sin registrar' }}</p>
+                <ion-button size="small" fill="outline" color="danger" (click)="limpiarCliente()" class="ion-margin-top">
+                  Cambiar Cliente
+                </ion-button>
+              </div>
+            }
+          </ion-card-content>
+        </ion-card>
 
+        <!-- Detalle del Lente -->
+        <ion-card class="clean-card ion-no-margin">
+          <ion-card-header>
+            <ion-card-title class="section-title">2. Detalle del Lente / Daño</ion-card-title>
+          </ion-card-header>
+          <ion-card-content class="form-spacing">
+            <div class="field-container">
+              <label class="custom-label">Marca / Modelo del Armazón</label>
+              <ion-input 
+                [(ngModel)]="reparacion.armazon" 
+                placeholder="Ej. Ray-Ban Negro / Metálico Genérico"
+                class="custom-input">
+              </ion-input>
+            </div>
+
+            <div class="field-container">
+              <label class="custom-label">Falla / Motivo de Reparación</label>
+              <ion-textarea 
+                [(ngModel)]="reparacion.descripcion_falla" 
+                rows="3" 
+                placeholder="Ej. Cambio de plaquetas, tornillo barrido en varilla derecha, nivelado de armazón."
+                class="custom-input">
+              </ion-textarea>
+            </div>
+          </ion-card-content>
+        </ion-card>
+
+      </ion-col>
+
+      <!-- COLUMNA DERECHA -->
+      <ion-col size="12" size-lg="7">
+        <ion-card class="clean-card ion-no-margin">
+          <ion-card-header class="card-header-accent">
+            <ion-card-title class="section-title">3. Desglose de Refacciones y Mano de Obra</ion-card-title>
+          </ion-card-header>
+          <ion-card-content class="ion-padding form-spacing">
+            
+            <!-- Insumos / Refacción Temp -->
+            <ion-row class="ion-align-items-end">
+              <ion-col size="12" size-md="6">
+                <div class="field-container">
+                  <label class="custom-label">Seleccionar Refacción/Pieza</label>
+                  <ion-input 
+                    [(ngModel)]="refaccionTemp.nombre" 
+                    placeholder="Ej. Juego de Plaquetas Silicona"
+                    class="custom-input">
+                  </ion-input>
+                </div>
+              </ion-col>
+              <ion-col size="8" size-md="4">
+                <div class="field-container">
+                  <label class="custom-label">Precio ($)</label>
+                  <ion-input 
+                    type="number" 
+                    [(ngModel)]="refaccionTemp.precio" 
+                    placeholder="0.00"
+                    class="custom-input">
+                  </ion-input>
+                </div>
+              </ion-col>
+              <ion-col size="4" size-md="2">
+                <ion-button expand="block" color="primary" class="add-btn" (click)="agregarRefaccion()">
+                  <ion-icon name="add-outline" slot="icon-only"></ion-icon>
+                </ion-button>
+              </ion-col>
+            </ion-row>
+
+            <!-- Tabla de Refacciones -->
+            <div class="table-container ion-margin-vertical">
+              <table class="tabla-reparacion">
+                <thead>
+                  <tr>
+                    <th>Refacción / Insumo</th>
+                    <th class="ion-text-right">Precio</th>
+                    <th class="ion-text-center">Acción</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of reparacion.items; track $index) {
+                    <tr>
+                      <td>{{ item.nombre }}</td>
+                      <td class="ion-text-right">${{ item.precio | number:'1.2-2' }}</td>
+                      <td class="ion-text-center">
+                        <ion-button size="small" fill="clear" color="danger" (click)="eliminarRefaccion($index)">
+                          <ion-icon name="trash-outline" slot="icon-only"></ion-icon>
+                        </ion-button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="3" class="empty-row">No se han agregado refacciones a esta orden.</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Mano de Obra y Total -->
+            <ion-row class="ion-align-items-center ion-margin-top">
+              <ion-col size="12" size-md="6">
+                <div class="field-container">
+                  <label class="custom-label">Costo Mano de Obra / Servicio ($)</label>
+                  <ion-input 
+                    type="number" 
+                    [(ngModel)]="reparacion.mano_obra" 
+                    (ionInput)="calcularTotal()"
+                    placeholder="0.00"
+                    class="custom-input">
+                  </ion-input>
+                </div>
+              </ion-col>
+              <ion-col size="12" size-md="6">
+                <div class="total-banner">
+                  <span class="total-label">TOTAL A COBRAR</span>
+                  <h2 class="total-amount">${{ totalCalculado | number:'1.2-2' }}</h2>
+                </div>
+              </ion-col>
+            </ion-row>
+
+            <!-- Botón de Envío -->
+            <ion-button expand="block" color="success" size="large" class="ion-margin-top submit-btn" (click)="guardarReparacion()">
+              <ion-icon name="build-outline" slot="start"></ion-icon>
+              Generar Orden de Reparación
+            </ion-button>
+
+          </ion-card-content>
+        </ion-card>
+      </ion-col>
+
+    </ion-row>
   </ion-grid>
-
 </ion-content>

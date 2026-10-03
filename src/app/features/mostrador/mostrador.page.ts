@@ -376,62 +376,72 @@ export class MostradorPage implements OnInit {
   }
 
   imprimirPDF() {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [80, 160]
-    });
+  const doc = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: [80, 170] // Se amplió el alto para dar espacio a los datos de usuario
+  });
 
-    const fechaHora = new Date().toLocaleString();
+  const fechaHora = new Date().toLocaleString();
 
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(12);
-    doc.text('ÓPTICA - COTIZACIÓN', 40, 10, { align: 'center' });
+  // 👤 Obtener datos del operador actual desde localStorage o AuthService
+  const usuarioLogueado = JSON.parse(localStorage.getItem('usuario') || '{}');
+  const nombreAtendio = usuarioLogueado.nombre || usuarioLogueado.nombre_completo || 'MOSTRADOR';
 
-    doc.setFont('Helvetica', 'normal');
-    doc.setFontSize(8);
-    doc.text(`Fecha: ${fechaHora}`, 5, 16);
-    doc.text('-----------------------------------------------------------', 5, 20);
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(12);
+  doc.text('ÓPTICA - COTIZACIÓN', 40, 10, { align: 'center' });
 
-    doc.setFont('Helvetica', 'bold');
-    doc.text('Cant. Descrip.', 5, 25);
-    doc.text('P.Unit', 55, 25, { align: 'right' });
-    doc.text('Importe', 75, 25, { align: 'right' });
-    doc.text('-----------------------------------------------------------', 5, 28);
+  doc.setFont('Helvetica', 'normal');
+  doc.setFontSize(8);
+  doc.text(`Fecha: ${fechaHora}`, 5, 16);
+  
+  // 👈 AGREGAMOS LA LÍNEA DE QUIÉN ATENDIÓ
+  doc.setFont('Helvetica', 'bold');
+  doc.text(`Atendió: ${nombreAtendio.toUpperCase()}`, 5, 20);
 
-    doc.setFont('Helvetica', 'normal');
-    let y = 33;
+  doc.setFont('Helvetica', 'normal');
+  doc.text('-----------------------------------------------------------', 5, 24);
 
-    this.itemsCotizacion.forEach((item) => {
-      let desc = item.descripcion.length > 18 ? item.descripcion.substring(0, 16) + '..' : item.descripcion;
-      if (item.porcentajeDescuento > 0) {
-        desc += ` (-${item.porcentajeDescuento}%)`;
-      }
-      const subtotal = item.precio * item.cantidad;
+  doc.setFont('Helvetica', 'bold');
+  doc.text('Cant. Descrip.', 5, 29);
+  doc.text('P.Unit', 55, 29, { align: 'right' });
+  doc.text('Importe', 75, 29, { align: 'right' });
+  doc.text('-----------------------------------------------------------', 5, 32);
 
-      doc.text(`${item.cantidad}x ${desc}`, 5, y);
-      doc.text(`$${item.precio.toFixed(2)}`, 55, y, { align: 'right' });
-      doc.text(`$${subtotal.toFixed(2)}`, 75, y, { align: 'right' });
-      y += 6;
-    });
+  doc.setFont('Helvetica', 'normal');
+  let y = 37;
 
-    doc.text('-----------------------------------------------------------', 5, y);
-    y += 5;
+  this.itemsCotizacion.forEach((item) => {
+    let desc = item.descripcion.length > 18 ? item.descripcion.substring(0, 16) + '..' : item.descripcion;
+    if (item.porcentajeDescuento > 0) {
+      desc += ` (-${item.porcentajeDescuento}%)`;
+    }
+    const subtotal = item.precio * item.cantidad;
 
-    doc.setFont('Helvetica', 'bold');
-    doc.setFontSize(10);
-    doc.text('TOTAL:', 5, y);
-    doc.text(`$${this.calcularTotalCotizacion().toFixed(2)}`, 75, y, { align: 'right' });
+    doc.text(`${item.cantidad}x ${desc}`, 5, y);
+    doc.text(`$${item.precio.toFixed(2)}`, 55, y, { align: 'right' });
+    doc.text(`$${subtotal.toFixed(2)}`, 75, y, { align: 'right' });
+    y += 6;
+  });
 
-    y += 10;
-    doc.setFont('Helvetica', 'italic');
-    doc.setFontSize(8);
-    doc.text('Precios con descuentos vigentes incluidos.', 40, y, { align: 'center' });
-    doc.text('¡Gracias por su preferencia!', 40, y + 5, { align: 'center' });
+  doc.text('-----------------------------------------------------------', 5, y);
+  y += 5;
 
-    doc.autoPrint();
-    window.open(doc.output('bloburl'), '_blank');
-  }
+  doc.setFont('Helvetica', 'bold');
+  doc.setFontSize(10);
+  doc.text('TOTAL:', 5, y);
+  doc.text(`$${this.calcularTotalCotizacion().toFixed(2)}`, 75, y, { align: 'right' });
+
+  y += 10;
+  doc.setFont('Helvetica', 'italic');
+  doc.setFontSize(8);
+  doc.text('Precios con descuentos vigentes incluidos.', 40, y, { align: 'center' });
+  doc.text('¡Gracias por su preferencia!', 40, y + 5, { align: 'center' });
+
+  doc.autoPrint();
+  window.open(doc.output('bloburl'), '_blank');
+}
 
   // MÉTODOS DE CLIENTES E HISTORIAL
   verHistorial(cliente: Cliente) {

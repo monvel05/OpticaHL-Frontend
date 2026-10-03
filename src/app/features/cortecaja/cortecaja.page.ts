@@ -153,12 +153,38 @@ export class CortecajaPage implements OnInit {
   }
 
   private ejecutarImpresionCorte() {
+    // 🔍 1. DETECTAR EL NOMBRE DEL OPERADOR DESDE EL LOCALSTORAGE
+    let usuarioSesion: any = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        try {
+          const val = JSON.parse(localStorage.getItem(key) || '');
+          if (val && (val.nombre || val.nombre_completo || val.name || val.token || val.id_operador || val.id)) {
+            usuarioSesion = val;
+            break;
+          }
+        } catch (e) {
+          // Ignorar cadenas no JSON
+        }
+      }
+    }
+
+    const nombreOperador = 
+      usuarioSesion.nombre || 
+      usuarioSesion.nombre_completo || 
+      usuarioSesion.name || 
+      usuarioSesion.usuario || 
+      usuarioSesion.username || 
+      'Cajero';
+
     const ventanaPDF = window.open('', '_blank');
     if (ventanaPDF) {
       ventanaPDF.document.write('Generando Ticket de Corte de Caja...');
     }
 
-    this.cajaService.descargarTicketCortePDF().subscribe({
+    // 🖨️ 2. ENVIAR EL NOMBRE DEL OPERADOR AL SERVICIO
+    this.cajaService.descargarTicketCortePDF(nombreOperador).subscribe({
       next: (blob: Blob) => {
         const blobUrl = URL.createObjectURL(blob);
         if (ventanaPDF) {

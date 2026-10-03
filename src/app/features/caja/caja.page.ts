@@ -334,16 +334,45 @@ async cobroRapido() {
   const { data, role } = await modal.onDidDismiss();
 
   if (role === 'confirm' && data) {
-    // 💡 AHORA SÍ ENVIAMOS LOS ITEMS Y EL FORMATO CORRECTO DE MÉTODO DE PAGO
+    // 🔍 1. IMPRIMIR TODAS LAS CLAVES DE LOCALSTORAGE
+    console.log('🔑 TODAS LAS CLAVES EN LOCALSTORAGE:', Object.keys(localStorage));
+
+    // Buscar los datos del usuario en cualquier clave existente
+    let usuarioSesion: any = {};
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key) {
+        try {
+          const val = JSON.parse(localStorage.getItem(key) || '');
+          if (val && (val.nombre || val.nombre_completo || val.name || val.token || val.id_operador || val.id)) {
+            usuarioSesion = val;
+            console.log(`✅ USUARIO ENCONTRADO EN LA CLAVE: "${key}"`, usuarioSesion);
+            break;
+          }
+        } catch (e) {
+          // Ignorar valores que no sean JSON válidos
+        }
+      }
+    }
+
+    // Extraer el nombre detectado
+    const nombreOperador = 
+      usuarioSesion.nombre || 
+      usuarioSesion.nombre_completo || 
+      usuarioSesion.name || 
+      usuarioSesion.usuario || 
+      usuarioSesion.username || 
+      'Cajero';
+
     const movimiento = {
       id_sucursal: 'HL01',
-      id_operador: 1,
+      id_operador: usuarioSesion.id_operador || usuarioSesion.id || 1,
       folio_orden: null,
       tipo_movimiento: 'INGRESO',
       metodo_pago: data.metodo_pago || data.metodoPago, 
       monto: data.monto,
       concepto: data.concepto,
-      items: data.items // <--- ESTO ES LO QUE FALTABA PARA QUE EL BACKEND DESCUENTE EL STOCK
+      items: data.items
     };
 
     this.cajaService.registrarMovimiento(movimiento).subscribe({
@@ -357,7 +386,7 @@ async cobroRapido() {
         window.alert(mensajeExito);
 
         // 🖨️ Descargar e Imprimir Ticket PDF
-        this.cajaService.descargarTicketVentaExpresPDF(data.concepto, data.monto, metodoUsado).subscribe({
+        this.cajaService.descargarTicketVentaExpresPDF(data.concepto, data.monto, metodoUsado, nombreOperador).subscribe({
           next: (blob: Blob) => {
             const blobUrl = URL.createObjectURL(blob);
             window.open(blobUrl, '_blank');
@@ -383,40 +412,63 @@ async cobroRapido() {
   }
 
   imprimirTicket(folioParam?: string) {
-    const folio = folioParam || this.ordenSeleccionada?.folio_orden || this.ordenSeleccionada?.folio;
+  const folio = folioParam || this.ordenSeleccionada?.folio_orden || this.ordenSeleccionada?.folio;
 
-    if (!folio) {
-      window.alert('No hay un folio seleccionado para generar el ticket.');
-      return;
-    }
-
-    const ventanaPDF = window.open('', '_blank');
-    if (ventanaPDF) {
-      ventanaPDF.document.write('Cargando Ticket PDF...');
-    }
-
-    this.cajaService.descargarTicketPDF(folio).subscribe({
-      next: (blob: Blob) => {
-        const blobUrl = URL.createObjectURL(blob);
-
-        if (ventanaPDF) {
-          ventanaPDF.location.href = blobUrl;
-        } else {
-          const link = document.createElement('a');
-          link.href = blobUrl;
-          link.download = `Ticket_${folio}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-        }
-      },
-      error: (err: any) => {
-        if (ventanaPDF) ventanaPDF.close();
-        console.error('❌ Error descargando el ticket PDF:', err);
-        window.alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
-      }
-    });
+  if (!folio) {
+    window.alert('No hay un folio seleccionado para generar el ticket.');
+    return;
   }
+
+  // 1. Extraer el nombre del operador logueado desde localStorage
+  let usuarioSesion: any = {};
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (key) {
+      try {
+        const val = JSON.parse(localStorage.getItem(key) || '');
+        if (val && (val.nombre || val.nombre_completo || val.name || val.token || val.id_operador || val.id)) {
+          usuarioSesion = val;
+          break;
+        }
+      } catch (e) {}
+    }
+  }
+
+  const nombreOperador = 
+    usuarioSesion.nombre || 
+    usuarioSesion.nombre_completo || 
+    usuarioSesion.name || 
+    usuarioSesion.usuario || 
+    'Cajero';
+
+  const ventanaPDF = window.open('', '_blank');
+  if (ventanaPDF) {
+    ventanaPDF.document.write('Cargando Ticket PDF...');
+  }
+
+  // 2. Le pasamos el nombreOperador como 2do parámetro
+  this.cajaService.descargarTicketPDF(folio, nombreOperador).subscribe({
+    next: (blob: Blob) => {
+      const blobUrl = URL.createObjectURL(blob);
+
+      if (ventanaPDF) {
+        ventanaPDF.location.href = blobUrl;
+      } else {
+        const link = document.createElement('a');
+        link.href = blobUrl;
+        link.download = `Ticket_${folio}.pdf`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+    },
+    error: (err: any) => {
+      if (ventanaPDF) ventanaPDF.close();
+      console.error('❌ Error descargando el ticket PDF:', err);
+      window.alert('Error al descargar el ticket PDF. Verifique que cuenta con permisos.');
+    }
+  });
+}
 
   async logout() {
     await this.authService.logout();

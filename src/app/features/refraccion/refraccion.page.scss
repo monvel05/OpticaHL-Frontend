@@ -1,115 +1,168 @@
-:host {
-  ion-content {
-    --background: #FFF9EF;
-  }
+.custom-bg {
+  --background: #f8f9fa;
 }
 
-ion-toolbar {
-  --background: #930500;
-  --color: #FFFFFF;
+.clean-card {
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border: 1px solid #e9ecef;
 }
 
-h2 {
-  color: #1E1C1A;
-  font-weight: 400 !important;
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #2c3e50;
+  margin: 0;
 }
 
-ion-searchbar {
-  --background: #FFFFFF;
-  --color: #1E1C1A;
-  --placeholder-color: #6E675F;
-  --border-radius: 25px;
-  --box-shadow: 0 4px 14px rgba(30, 28, 26, 0.05);
-  padding: 4px 10px;
-  margin-bottom: 12px;
-
-  &.searchbar-has-focus {
-    --box-shadow: 0 6px 16px rgba(147, 5, 0, 0.2);
-    transform: scale(1.01);
-    transition: 0.2s;
-  }
+.card-header-accent {
+  background-color: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
 }
 
-ion-card {
-  border-radius: 16px !important;
-  background: #FFFFFF !important;
-  border: 1px solid rgba(30, 28, 26, 0.08) !important;
-  box-shadow: 0 4px 20px -2px rgba(30, 28, 26, 0.05) !important;
-  transition: transform 0.2s;
+/* Espaciado de campos */
+.form-spacing {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-ion-card:hover {
-  transform: translateY(-3px);
+.field-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
 }
 
-ion-card-title {
-  color: #1E1C1A !important;
-  font-weight: 400 !important;
-}
-
-ion-card-subtitle {
-  color: #6E675F !important;
-  font-weight: 300 !important;
-}
-
-ion-badge[color="primary"] {
-  --background: #95BBEA !important;
-  --color: #1E1C1A !important;
-  font-weight: 400 !important;
-  border-radius: 20px;
-}
-
-ion-badge[color="secondary"] {
-  --background: #930500 !important;
-  --color: #FFFFFF !important;
-  font-weight: 400 !important;
-  border-radius: 20px;
-}
-
-ion-item {
-  --background: #FFFFFF;
-  --border-radius: 10px;
-  --border-color: #E5DFD3;
-  margin-bottom: 10px;
-}
-
-ion-label {
-  color: #1E1C1A;
+.custom-label {
   font-size: 0.85rem;
-  font-weight: 300 !important;
+  font-weight: 600;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-ion-input, ion-textarea {
-  font-size: 0.9rem;
-  font-weight: 300 !important;
+.custom-input, .custom-searchbar {
+  --background: #ffffff;
+  --border-color: #cbd5e1;
+  --border-radius: 8px;
+  --border-style: solid;
+  --border-width: 1px;
+  --padding-start: 12px;
+  --padding-end: 12px;
+  color: #1e293b;
+  font-size: 0.95rem;
+  min-height: 44px;
 }
 
-ion-list {
-  background: #FFFFFF;
-  border-radius: 10px;
-  box-shadow: 0 4px 14px rgba(30, 28, 26, 0.08);
-  max-height: 150px;
+.custom-searchbar {
+  padding: 0;
+  box-shadow: none;
+}
+
+/* Lista de Clientes */
+.results-list {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  max-height: 200px;
   overflow-y: auto;
-  margin-bottom: 10px;
-}
+  margin-top: 8px;
 
-ion-button {
-  --border-radius: 12px;
-  font-weight: 400 !important;
-  letter-spacing: 0.3px;
-}
-
-ion-button[color="primary"] {
-  --background: #930500 !important;
-  --color: #FFFFFF !important;
-}
-
-ion-row ion-input {
-  text-align: center;
-}
-
-@media (max-width: 768px) {
-  h2 {
-    text-align: center;
+  .client-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
   }
+
+  .client-phone {
+    font-size: 0.85rem;
+    color: #64748b;
+  }
+}
+
+.cliente-selected-box {
+  background: #eff6ff;
+  border: 1px solid #bfdbfe;
+  padding: 14px;
+  border-radius: 8px;
+  
+  p {
+    margin: 4px 0;
+    color: #1e3a8a;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tabla de Reparaciones */
+.table-container {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.tabla-reparacion {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    background-color: #f8fafc;
+    color: #475569;
+    padding: 10px 12px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #334155;
+    font-size: 0.9rem;
+  }
+
+  .empty-row {
+    text-align: center;
+    color: #94a3b8;
+    padding: 18px;
+    font-style: italic;
+  }
+}
+
+/* Banner de Total */
+.total-banner {
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+  padding: 12px 16px;
+  border-radius: 8px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  .total-label {
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: #047857;
+    letter-spacing: 0.5px;
+  }
+
+  .total-amount {
+    margin: 0;
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #059669;
+  }
+}
+
+.add-btn {
+  height: 44px;
+  margin: 0;
+}
+
+.submit-btn {
+  --border-radius: 8px;
+  font-weight: 700;
+  height: 48px;
 }

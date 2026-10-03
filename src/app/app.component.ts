@@ -60,7 +60,7 @@ export class AppComponent implements OnInit, OnDestroy {
   // Catálogo maestro de todas las páginas del sistema y sus roles autorizados
   private allPages: AppPage[] = [
     { title: 'Mostrador', url: '/mostrador', icon: 'people-outline', roles: ['MOSTRADOR', 'ADMINISTRADOR'] },
-    { title: 'Órdenes', url: '/orden', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
+    { title: 'Refracción', url: '/refraccion', icon: 'document-text-outline', roles: ['MOSTRADOR', 'CAJA', 'ADMINISTRADOR'] },
     { title: 'Caja', url: '/caja', icon: 'cash-outline', roles: ['CAJA', 'ADMINISTRADOR'] },
     { title: 'Facturación', url: '/facturacion', icon: 'receipt-outline', roles: ['ADMINISTRADOR', 'CONTADOR', 'CAJA', 'CAJER@', 'MOSTRADOR'] },
     { title: 'Corte de Caja', url: '/cortecaja', icon: 'document-text-outline', roles: ['CAJA', 'ADMINISTRADOR'] },

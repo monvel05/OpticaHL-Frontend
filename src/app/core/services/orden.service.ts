@@ -1,6 +1,5 @@
-// src/app/core/services/orden.service.ts
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environment/envs';
 
@@ -9,7 +8,7 @@ import { environment } from '../../../environment/envs';
 })
 export class OrdenService {
   private http = inject(HttpClient);
-  // 🎯 Asegura la ruta exacta al backend en español: /api/ordenes
+  // 🎯 Ruta base al backend en español: /api/ordenes
   private apiUrl = `${environment.apiUrl}/ordenes`;
 
   // =====================
@@ -39,12 +38,56 @@ export class OrdenService {
   }
 
   // =====================
+  // IMPRESIÓN / DESCARGA PDF
+  // =====================
+
+  /** 
+   * Descarga y abre la Nota de Venta / Orden de Trabajo en PDF
+   * enviando el operador detectado correctamente
+   */
+  descargarTicketPDF(folio: string): void {
+  // 🔍 DEBUGEAR EN CONSOLA:
+  console.log('--- DEBUG LOCALSTORAGE ---');
+  console.log('usuario:', localStorage.getItem('usuario'));
+  console.log('user:', localStorage.getItem('user'));
+  console.log('token/jwt:', localStorage.getItem('token'));
+  console.log('---------------------------');
+
+  const userStorage = localStorage.getItem('usuario') || localStorage.getItem('user') || '{}';
+  let usuarioData: any = {};
+
+  try {
+    usuarioData = JSON.parse(userStorage);
+  } catch (e) {
+    usuarioData = {};
+  }
+
+  // Buscamos en todas las propiedades posibles que suele devolver el backend
+  const nombreOperador =
+    usuarioData.nombre ||
+    usuarioData.nombre_completo ||
+    usuarioData.username ||
+    usuarioData.nombreUsuario ||
+    usuarioData.email ||
+    localStorage.getItem('nombre') ||
+    '';
+
+  console.log('Nombre detectado para enviar:', nombreOperador);
+
+  const operadorParam = encodeURIComponent(nombreOperador);
+  const folioParam = encodeURIComponent(folio);
+
+  const urlPdf = `${this.apiUrl}/pdf/${folioParam}?operador=${operadorParam}`;
+
+  window.open(urlPdf, '_blank');
+}
+
+  // =====================
   // ACCIONES (POST / PUT)
   // =====================
 
   /** 
    * Crear una nueva orden de óptica desde el Mostrador
-   * 🎯 ¡Usa este método en crrito.page.ts línea 210!
    */
   crearOrden(ordenData: any): Observable<any> {
     return this.http.post<any>(this.apiUrl, ordenData);

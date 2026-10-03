@@ -58,32 +58,30 @@ export class CajaService {
     });
   }
 
-  /**
-   * 6. Descargar el ticket PDF de una orden por su folio
-   */
-  descargarTicketPDF(folio: string): Observable<Blob> {
-    return this.http.get(`${this.api}/ticket/${folio.trim()}`, {
-      responseType: 'blob',
-      headers: this.getHeaders()
-    });
-  }
+descargarTicketPDF(folio: string, operador: string = ''): Observable<Blob> {
+  const url = `${this.api}/ticket-pdf/${folio}?operador=${encodeURIComponent(operador)}`;
+  return this.http.get(url, {
+    responseType: 'blob',
+    headers: this.getHeaders()
+  });
+}
 
   /**
    * 7. Descargar Ticket PDF para Venta Exprés / Mostrador (Autenticado vía HttpClient)
    */
-  descargarTicketVentaExpresPDF(concepto: string, monto: number, metodoPago: string): Observable<Blob> {
-    const url = `${this.api}/ticket-expres/pdf?concepto=${encodeURIComponent(concepto)}&monto=${monto}&metodo_pago=${encodeURIComponent(metodoPago)}`;
-    return this.http.get(url, {
-      responseType: 'blob',
-      headers: this.getHeaders()
-    });
-  }
-
-  /**
+descargarTicketVentaExpresPDF(concepto: string, monto: number, metodoPago: string, operador: string = ''): Observable<Blob> {
+  const url = `${this.api}/ticket-expres/pdf?concepto=${encodeURIComponent(concepto)}&monto=${monto}&metodo_pago=${encodeURIComponent(metodoPago)}&operador=${encodeURIComponent(operador)}`;
+  return this.http.get(url, {
+    responseType: 'blob',
+    headers: this.getHeaders()
+  });
+}
+ /**
    * 8. Descargar el PDF del corte de caja
    */
-  descargarTicketCortePDF(): Observable<Blob> {
-    return this.http.get(`${this.api}/corte/pdf`, {
+  descargarTicketCortePDF(operador: string = ''): Observable<Blob> {
+    const url = `${this.api}/corte/pdf?operador=${encodeURIComponent(operador)}`;
+    return this.http.get(url, {
       responseType: 'blob',
       headers: this.getHeaders()
     });

@@ -8,10 +8,6 @@ import {
   IonBadge, IonList, ModalController, IonInfiniteScroll, IonInfiniteScrollContent
 } from '@ionic/angular/standalone';
 
-// Importaciones de PDF corregidas
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-
 import { addIcons } from 'ionicons';
 import { 
   closeOutline, 
@@ -135,7 +131,6 @@ export class CrritoPage implements OnInit {
     this.descuentoService.obtenerDescuentosVigentes().subscribe({
       next: (res: any) => {
         this.promocionesVigentes = res?.datos || res || [];
-        // Si ya hay artículos cargados, recalcula sus descuentos
         if (this.articulos.length > 0) {
           this.articulos = this.articulos.map(item => {
             const precioOrig = item.precio_original || Number(item.precio_venta || 0);
@@ -301,10 +296,14 @@ export class CrritoPage implements OnInit {
     
     if (!this.validarStock()) return;
 
+    // Obtener los datos del operador logueado desde localStorage
+    const usuarioLogueado = JSON.parse(localStorage.getItem('usuario') || '{}');
+    const idOperador = usuarioLogueado.id || usuarioLogueado.id_usuario || 1;
+
     const orden = {
       id_sucursal: 'HL01',
       id_cliente: this.cliente?.id_cliente || 1,
-      id_operador: 1,
+      id_operador: idOperador, // 👈 Enviamos el ID real del operador
       folio_rx: this.folioRx || null,
       total: this.total,
       detalle: this.carrito.map(i => ({
@@ -318,8 +317,8 @@ export class CrritoPage implements OnInit {
       next: (res: any) => {
         const folioGenerado = res?.folio || res?.data?.folio || 'ORD-HL01-' + Date.now();
         
-        // 📄 1. Generamos e imprimimos el PDF del ticket automáticamente
-        this.generarPDFNota(folioGenerado);
+        // 📄 1. LLAMADA AL BACKEND: Usamos la función del servicio para abrir el PDF oficial con "Atendió:"
+        this.ordenService.descargarTicketPDF(folioGenerado);
 
         // 2. Limpiamos carrito y cerramos el modal
         const respuestaSalida = {
@@ -338,70 +337,6 @@ export class CrritoPage implements OnInit {
         alert('Ocurrió un error al registrar la orden de trabajo en el servidor.');
       }
     });
-  }
-
-  /**
-   * 📄 GENERACIÓN DE TICKET EN PDF CON DESCUENTOS
-   */
-  public generarPDFNota(folio: string) {
-    const doc = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [80, 200]
-    });
-
-    // Encabezado
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'bold');
-    doc.text('ÓPTICA HL', 40, 10, { align: 'center' });
-
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.text('Nota de Venta / Orden de Trabajo', 40, 15, { align: 'center' });
-    doc.setFont('helvetica', 'bold');
-    doc.text(`Folio: ${folio}`, 40, 19, { align: 'center' });
-    doc.setFont('helvetica', 'normal');
-    doc.text(`Fecha: ${new Date().toLocaleDateString('es-MX')}`, 40, 23, { align: 'center' });
-
-    // Datos del Cliente
-    const nombreCliente = this.cliente?.nombre_completo || 'Cliente General';
-    doc.text(`Cliente: ${nombreCliente}`, 5, 29);
-
-    // Tabla de Productos Comprados con detalle de descuento
-    const cuerpoTabla = this.carrito.map((item: any) => {
-      let nombreProd = item.nombre || item.descripcion || 'Producto';
-      if (item.porcentaje_descuento > 0) {
-        nombreProd += ` (-${item.porcentaje_descuento}%)`;
-      }
-      return [
-        nombreProd,
-        item.cantidad || 1,
-        `$${((item.precio_venta || item.precio || 0) * (item.cantidad || 1)).toFixed(2)}`
-      ];
-    });
-
-    autoTable(doc, {
-      startY: 32,
-      head: [['Producto', 'Cant.', 'Total']],
-      body: cuerpoTabla.length > 0 ? cuerpoTabla : [['Sin productos', '0', '$0.00']],
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: [0, 128, 0] },
-      margin: { left: 5, right: 5 }
-    });
-
-    // Total General
-    const finalY = (doc as any).lastAutoTable?.finalY || 50;
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'bold');
-    doc.text(`TOTAL: $${Number(this.total).toFixed(2)}`, 75, finalY + 6, { align: 'right' });
-
-    // Mensaje Final
-    doc.setFontSize(7);
-    doc.setFont('helvetica', 'normal');
-    doc.text('¡Gracias por su preferencia!', 40, finalY + 12, { align: 'center' });
-
-    // Abrir ventana lista para imprimir
-    doc.output('dataurlnewwindow');
   }
 
   cerrar() {

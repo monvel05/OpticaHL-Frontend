@@ -60,12 +60,6 @@ export const routes: Routes = [
     data: { expectedRoles: ['MOSTRADOR', 'ADMINISTRADOR'] } 
   },
   {
-    path: 'orden',
-    loadComponent: () => import('./features/orden/orden.page').then(m => m.OrdenPage),
-    canActivate: [roleGuard],
-    data: { expectedRoles: ['MOSTRADOR', 'CAJA', 'CAJER@', 'ADMINISTRADOR'] } 
-  },
-  {
     path: 'optometrista', 
     loadComponent: () => import('./features/optometrista/optometrista.page').then(m => m.OptometristaPage),
     canActivate: [roleGuard],
@@ -83,6 +77,12 @@ export const routes: Routes = [
     canActivate: [roleGuard],
     data: { expectedRoles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'CAJER@', 'OPTOMETRISTA', 'INVENTARIO', 'CONTADOR'] }
   },
+ {
+    path: 'refraccion',
+    loadComponent: () => import('./features/refraccion/refraccion.page').then(m => m.RefraccionPage),
+    canActivate: [roleGuard],
+    data: { expectedRoles: ['ADMINISTRADOR', 'CONTADOR', 'CAJA', 'CAJER@', 'MOSTRADOR'] }
+  },
   {
     path: 'facturacion',
     loadComponent: () => import('./features/facturacion/facturacion.page').then(m => m.FacturacionPage),
@@ -99,16 +99,12 @@ export const routes: Routes = [
   // RUTAS PRUEBAS O REDIRECCIONES
   // ==========================================
   {
-    path: 'calizdeformulario',
-    loadComponent: () => import('./features/calizdeformulario/calizdeformulario.page').then(m => m.CalizdeformularioPage)
-  },
-  {
     path: '',
     redirectTo: 'auth/login', 
     pathMatch: 'full',
   },
   {
-    path: '**', // Ahora sí este comodín queda al final de todo
+    path: '**', // Comodín al final
     redirectTo: 'auth/login' 
   }
 ];
