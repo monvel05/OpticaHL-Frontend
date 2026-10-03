@@ -80,18 +80,13 @@ export class LoginPage implements OnInit {
 
       this.authService.login(credentials as any).subscribe({
         next: async (res: any) => {
-          console.log('Respuesta cruda del backend:', res);
-
           const usuarioData = res?.operador || res?.usuario || res?.user || res?.datos || {};
           const nombreUsuario = usuarioData?.nombre_completo || usuarioData?.nombre || 'Usuario';
-          
-          console.log('🔍 PROPIEDADES REALES DE TU USER:', Object.keys(usuarioData), usuarioData);
           
           let rolesUsuario = usuarioData?.roles || usuarioData?.rol || usuarioData?.role || usuarioData?.id_rol || res?.roles || [];
 
           if ((!rolesUsuario || rolesUsuario.length === 0) && 
               (credentials.usuario === 'admin_mon' || credentials.usuario_login === 'admin_mon')) {
-            console.warn('⚠️ Activando bypass para admin_mon.');
             rolesUsuario = ['ADMINISTRADOR'];
             usuarioData.roles = ['ADMINISTRADOR'];
             usuarioData.rol = 'ADMINISTRADOR';
@@ -99,7 +94,6 @@ export class LoginPage implements OnInit {
 
           if ((!rolesUsuario || rolesUsuario.length === 0) && 
               (credentials.usuario === 'juan_mostrador' || credentials.usuario_login === 'juan_mostrador')) {
-            console.warn('⚠️ Activando bypass para juan_mostrador.');
             rolesUsuario = ['MOSTRADOR'];
             usuarioData.roles = ['MOSTRADOR'];
             usuarioData.rol = 'MOSTRADOR';
@@ -107,7 +101,6 @@ export class LoginPage implements OnInit {
 
           if ((!rolesUsuario || rolesUsuario.length === 0 || rolesUsuario === 2) && 
               (credentials.usuario === 'amendoza' || credentials.usuario_login === 'amendoza')) {
-            console.warn('⚠️ Activando bypass de rol para el Optometrista amendoza.');
             rolesUsuario = ['OPTOMETRISTA'];
             usuarioData.roles = ['OPTOMETRISTA'];
             usuarioData.id_rol = 2;
@@ -139,8 +132,6 @@ export class LoginPage implements OnInit {
   }
 
   redirigirSegunRol(roles: any) {
-    console.log('Validando roles para navegación:', roles);
-
     let rolesArray: string[] = [];
     if (Array.isArray(roles)) {
       rolesArray = roles.map(r => String(r).trim().toUpperCase());
@@ -148,27 +139,20 @@ export class LoginPage implements OnInit {
       rolesArray = [String(roles).trim().toUpperCase()];
     }
 
-    console.log('Arreglo de roles final procesado:', rolesArray);
-
     const esAdmin = rolesArray.some(r => r.includes('ADMIN') || r === '1');
     const esOptometrista = rolesArray.some(r => r.includes('OPTOMETRISTA') || r === '2');
     const esMostrador = rolesArray.some(r => r.includes('MOSTRADOR') || r.includes('VENDEDOR') || r === '4');
     const esCaja = rolesArray.some(r => r.includes('CAJA') || r.includes('CAJERO') || r === '3');
 
     if (esAdmin) {
-      console.log('-> Ejecutando navegación a: /inventario');
       this.router.navigate(['/inventario']);
     } else if (esOptometrista) {
-      console.log('-> Ejecutando navegación a: /optometrista');
       this.router.navigateByUrl('/optometrista'); 
     } else if (esMostrador) {
-      console.log('-> Ejecutando navegación a: /mostrador');
       this.router.navigate(['/mostrador']); 
     } else if (esCaja) {
-      console.log('-> Ejecutando navegación a: /caja');
       this.router.navigate(['/caja']); 
     } else {
-      console.warn('Rol no emparejado en los filtros tradicionales, forzando enrutamiento.');
       this.router.navigateByUrl('/optometrista'); 
     }
   }

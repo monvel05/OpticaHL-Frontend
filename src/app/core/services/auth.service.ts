@@ -59,7 +59,6 @@ export class AuthService {
               (credenciales?.usuario === 'admin_mon' || credenciales?.usuario_login === 'admin_mon' || usuarioLogueado?.usuario_login === 'admin_mon')) {
             usuarioLogueado.roles = ['ADMINISTRADOR'];
           } else if (!usuarioLogueado.roles || usuarioLogueado.roles.length === 0) {
-            console.warn('⚠️ Roles vacíos detectados. Aplicando rol MOSTRADOR de emergencia.');
             usuarioLogueado.roles = ['MOSTRADOR'];
           }
           
