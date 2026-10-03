@@ -3,13 +3,15 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class CajaService {
   private http = inject(HttpClient);
   private authService = inject(AuthService);
-  private api = 'http://localhost:3000/api/caja';
+  private api = `${environment.apiUrl}/caja`;
 
   /**
    * Helper para adjuntar el token JWT en las cabeceras HTTP
@@ -53,7 +55,7 @@ export class CajaService {
    * 5. Buscar productos en inventario por código o nombre
    */
   buscarProductosInventario(termino: string): Observable<any[]> {
-    return this.http.get<any[]>(`http://localhost:3000/api/inventario?search=${encodeURIComponent(termino)}`, {
+    return this.http.get<any[]>(`${environment.apiUrl}/inventario?search=${encodeURIComponent(termino)}`, {
       headers: this.getHeaders()
     });
   }

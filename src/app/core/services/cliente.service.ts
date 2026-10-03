@@ -3,12 +3,14 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Cliente } from '../../shared/interfaces/cliente.interface';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ClienteService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/clientes';
+  private apiUrl = `${environment.apiUrl}/clientes`;
 
   /**
    * 1. Buscar clientes por término (Nombre, Teléfono, etc.)

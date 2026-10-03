@@ -11,6 +11,8 @@ import { CommonModule } from '@angular/common';
 import { addIcons } from 'ionicons';
 import { personCircle } from 'ionicons/icons';
 
+import { environment } from '../../../environments/environment';
+
 @Component({
   selector: 'app-refraccion',
   templateUrl: './refraccion.page.html',
@@ -46,7 +48,7 @@ import { personCircle } from 'ionicons/icons';
 })
 export class RefraccionPage implements OnInit {
 /* yo estaba usando una api local para poder hacer pruebas */
-  API = 'http://localhost:3000/api';
+  API = environment.apiUrl;
 
   textoBusquedaCliente = '';
   clientesFiltrados: any[] = [];
