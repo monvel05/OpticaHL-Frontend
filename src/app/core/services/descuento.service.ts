@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 
 export interface Promocion {
   id_promocion?: number;
@@ -22,7 +23,7 @@ export interface Promocion {
 })
 export class DescuentoService {
   private http = inject(HttpClient);
-  private api = 'http://localhost:3000/api/descuentos';
+  private api = `${environment.apiUrl}/descuentos`;
 
   private getHeaders(): HttpHeaders {
     const token = localStorage.getItem('token') || localStorage.getItem('jwt') || '';

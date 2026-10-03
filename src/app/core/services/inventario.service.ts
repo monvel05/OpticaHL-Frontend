@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, of } from 'rxjs';
 import { tap, map, catchError } from 'rxjs/operators';
-import { environment } from '../../../environment/envs';
+import { environment } from '@env';
 
 // Interfaz mapeada al 100% con la base de datos
 export interface Articulo {

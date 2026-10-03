@@ -2,13 +2,15 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
 
+import { environment } from '../../../environments/environment';
+
 @Injectable({
   providedIn: 'root'
 })
 export class ArticulosService {
 
   // Ajustado a singular /articulo para coincidir exactamente con tu backend
-  private api = 'http://localhost:3000/api/articulos';
+  private api = `${environment.apiUrl}/articulos`;
 
   private articulos$ = new BehaviorSubject<any[]>([]);
 
