@@ -1,241 +1,194 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { addIcons } from 'ionicons';
+import { personCircleOutline, addOutline, trashOutline, buildOutline } from 'ionicons/icons';
 import { 
   IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, 
   IonSearchbar, IonButton, IonCard, IonCardHeader, IonCardTitle, 
   IonCardContent, IonItem, IonLabel, IonInput, IonList, IonIcon, 
-  IonCardSubtitle, IonBadge, IonListHeader, IonTextarea, ToastController 
+  IonTextarea, ToastController 
 } from '@ionic/angular/standalone';
-import { FormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
-import { addIcons } from 'ionicons';
-import { personCircle } from 'ionicons/icons';
+import { environment } from 'src/environments/environment';
 
-import { environment } from '../../../environments/environment';
+interface ItemRefaccion {
+  nombre: string;
+  precio: number;
+}
+
+interface Cliente {
+  id_cliente: number;
+  nombre_completo: string;
+  telefono?: string;
+}
 
 @Component({
   selector: 'app-refraccion',
   templateUrl: './refraccion.page.html',
   styleUrls: ['./refraccion.page.scss'],
   standalone: true,
-  changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
-    CommonModule, 
+    CommonModule,
+    DecimalPipe,
     FormsModule,
-    IonHeader, 
-    IonToolbar, 
-    IonTitle, 
-    IonContent, 
-    IonGrid, 
-    IonRow, 
-    IonCol, 
-    IonSearchbar, 
-    IonButton, 
-    IonCard, 
-    IonCardHeader, 
-    IonCardTitle, 
-    IonCardContent, 
-    IonItem, 
-    IonLabel, 
-    IonInput, 
-    IonList, 
-    IonIcon, 
-    IonCardSubtitle, 
-    IonBadge, 
-    IonListHeader, 
+    IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol,
+    IonSearchbar, IonButton, IonCard, IonCardHeader, IonCardTitle,
+    IonCardContent, IonItem, IonLabel, IonInput, IonList, IonIcon,
     IonTextarea
   ]
 })
 export class RefraccionPage implements OnInit {
-/* yo estaba usando una api local para poder hacer pruebas */
   API = environment.apiUrl;
 
-  textoBusquedaCliente = '';
-  clientesFiltrados: any[] = [];
+  // --- BÚSQUEDA Y CLIENTES ---
+  clientes: Cliente[] = [];
+  clientesFiltrados: Cliente[] = [];
+  textoBusquedaCliente: string = '';
+  clienteSeleccionado: Cliente | null = null;
 
-  clienteSeleccionado: any = null;
-  idCliente: number | null = null;
-
-  mostrarFormNuevoCliente = false;
-  nuevoCliente: any = { nombre_completo: '', telefono: '' };
-
-  historialOriginal: any[] = [];
-  historialFiltrado: any[] = [];
-  textoBusqueda = '';
-
-  doctores: any[] = [];
-  doctoresFiltrados: any[] = [];
-  mostrarListaDoctores = false;
-
-  nuevaRx: any = {
-    doctor: '',
-    cedula: '',
-    observaciones: '',
-    od: { esfera: null, cilindro: null, eje: null, adicion: null },
-    oi: { esfera: null, cilindro: null, eje: null, adicion: null }
+  // --- ESTRUCTURA DE LA REPARACIÓN ---
+  reparacion = {
+    armazon: '',
+    descripcion_falla: '',
+    mano_obra: 0,
+    items: [] as ItemRefaccion[]
   };
+
+  // --- CAMPO TEMPORAL PARA AGREGAR REFACCIÓN ---
+  refaccionTemp = {
+    nombre: '',
+    precio: null as number | null
+  };
+
+  totalCalculado: number = 0;
 
   constructor(
     private http: HttpClient,
     private toastCtrl: ToastController
   ) {
-    addIcons({ personCircle });
+    addIcons({
+      'person-circle-outline': personCircleOutline,
+      'add-outline': addOutline,
+      'trash-outline': trashOutline,
+      'build-outline': buildOutline
+    });
   }
 
   ngOnInit() {
     this.cargarClientes();
-    this.cargarDoctores();
   }
 
+  // --- MÉTODOS DE CLIENTE ---
   cargarClientes() {
-    this.http.get(`${this.API}/clientes/buscar?q=`)
-      .subscribe((data: any) => {
-        this.clientesFiltrados = data;
-      });
+    this.http.get<Cliente[]>(`${this.API}/clientes`).subscribe({
+      next: (res) => {
+        this.clientes = res;
+      },
+      error: () => this.mostrarToast('Error al cargar la lista de clientes', 'danger')
+    });
   }
 
   buscarCliente() {
-    this.http.get(`${this.API}/clientes/buscar?q=${this.textoBusquedaCliente}`)
-      .subscribe((data: any) => {
-        this.clientesFiltrados = data;
-      });
+    const query = this.textoBusquedaCliente.trim().toLowerCase();
+    if (!query) {
+      this.clientesFiltrados = [];
+      return;
+    }
+    this.clientesFiltrados = this.clientes.filter(c => 
+      c.nombre_completo.toLowerCase().includes(query) || 
+      (c.telefono && c.telefono.includes(query))
+    );
   }
 
-  seleccionarCliente(cliente: any) {
+  seleccionarCliente(cliente: Cliente) {
     this.clienteSeleccionado = cliente;
-    this.idCliente = cliente.id_cliente;
     this.clientesFiltrados = [];
-    this.cargarHistorial();
+    this.textoBusquedaCliente = '';
   }
 
   limpiarCliente() {
     this.clienteSeleccionado = null;
-    this.idCliente = null;
-    this.textoBusquedaCliente = '';
-    this.cargarClientes();
-    this.historialOriginal = [];
-    this.historialFiltrado = [];
-    this.resetForm();
   }
 
-  toggleNuevoCliente() {
-    this.mostrarFormNuevoCliente = !this.mostrarFormNuevoCliente;
-    this.nuevoCliente.nombre_completo = this.textoBusquedaCliente;
+  // --- MÉTODOS DE REFACCIONES Y TALLER ---
+  agregarRefaccion() {
+    if (!this.refaccionTemp.nombre.trim() || this.refaccionTemp.precio === null || this.refaccionTemp.precio <= 0) {
+      this.mostrarToast('Ingresa una descripción y un precio válido', 'warning');
+      return;
+    }
+
+    this.reparacion.items.push({
+      nombre: this.refaccionTemp.nombre.trim(),
+      precio: Number(this.refaccionTemp.precio)
+    });
+
+    this.refaccionTemp = { nombre: '', precio: null };
+    this.calcularTotal();
   }
 
-  guardarNuevoCliente() {
-    this.http.post(`${this.API}/clientes`, this.nuevoCliente)
-      .subscribe((res: any) => {
-
-        const cliente = {
-          id_cliente: res.id_cliente,
-          nombre_completo: this.nuevoCliente.nombre_completo
-        };
-
-        this.seleccionarCliente(cliente);
-        this.mostrarFormNuevoCliente = false;
-        this.nuevoCliente = { nombre_completo: '', telefono: '' };
-
-        this.mostrarToast('Cliente agregado', 'success');
-      });
+  eliminarRefaccion(index: number) {
+    this.reparacion.items.splice(index, 1);
+    this.calcularTotal();
   }
 
-  cargarHistorial() {
-    if (!this.idCliente) return;
-
-    this.http.get(`${this.API}/historial/${this.idCliente}`)
-      .subscribe((data: any) => {
-        this.historialOriginal = data;
-        this.historialFiltrado = data;
-      });
-  }
-
-  filtrarHistorial() {
-    const texto = this.textoBusqueda.toLowerCase();
-
-    this.historialFiltrado = this.historialOriginal.filter((r: any) =>
-      (r.doctor || '').toLowerCase().includes(texto) ||
-      (r.folio || '').toLowerCase().includes(texto)
+  calcularTotal() {
+    const totalRefacciones = this.reparacion.items.reduce(
+      (acc, item) => acc + (Number(item.precio) || 0), 0
     );
+    const manoObra = Number(this.reparacion.mano_obra) || 0;
+
+    this.totalCalculado = totalRefacciones + manoObra;
   }
 
-  cargarDoctores() {
-    this.http.get(`${this.API}/doctores`)
-      .subscribe((data: any) => {
-        this.doctores = data;
-      });
-  }
+  guardarReparacion() {
+    if (!this.clienteSeleccionado) {
+      this.mostrarToast('Selecciona un cliente antes de guardar', 'warning');
+      return;
+    }
 
-  mostrarTodosDoctores() {
-    this.mostrarListaDoctores = true;
-    this.doctoresFiltrados = this.doctores;
-  }
-
-  buscarDoctor() {
-    const texto = this.nuevaRx.doctor.toLowerCase();
-
-    this.mostrarListaDoctores = true;
-
-    this.doctoresFiltrados = this.doctores.filter((d: any) =>
-      d.nombre.toLowerCase().includes(texto)
-    );
-  }
-
-  buscarCedula() {
-    const texto = this.nuevaRx.cedula;
-
-    this.doctoresFiltrados = this.doctores.filter((d: any) =>
-      d.cedula.includes(texto)
-    );
-  }
-
-  seleccionarDoctor(doc: any) {
-    this.nuevaRx.doctor = doc.nombre;
-    this.nuevaRx.cedula = doc.cedula;
-    this.mostrarListaDoctores = false;
-  }
-
-  guardarExamen() {
-    if (!this.idCliente) {
-      this.mostrarToast('Selecciona un cliente', 'warning');
+    if (!this.reparacion.armazon.trim() || !this.reparacion.descripcion_falla.trim()) {
+      this.mostrarToast('Ingresa la información del armazón y el motivo de reparación', 'warning');
       return;
     }
 
     const payload = {
-      id_cliente: this.idCliente,
-      doctor: this.nuevaRx.doctor,
-      cedula: this.nuevaRx.cedula,
-      observaciones: this.nuevaRx.observaciones,
-      od: this.nuevaRx.od,
-      oi: this.nuevaRx.oi
+      id_cliente: this.clienteSeleccionado.id_cliente,
+      armazon: this.reparacion.armazon,
+      descripcion_falla: this.reparacion.descripcion_falla,
+      mano_obra: this.reparacion.mano_obra,
+      items: this.reparacion.items,
+      total: this.totalCalculado
     };
 
-    this.http.post(`${this.API}/guardar-rx`, payload)
-      .subscribe(() => {
-        this.mostrarToast('RX guardada', 'success');
-        this.resetForm();
-        this.cargarHistorial();
-      });
-  }
-
-  resetForm() {
-    this.nuevaRx = {
-      doctor: '',
-      cedula: '',
-      observaciones: '',
-      od: { esfera: null, cilindro: null, eje: null, adicion: null },
-      oi: { esfera: null, cilindro: null, eje: null, adicion: null }
-    };
-  }
-
-  async mostrarToast(msg: string, color: string) {
-    const toast = await this.toastCtrl.create({
-      message: msg,
-      duration: 2000,
-      color,
-      position: 'top'
+    this.http.post(`${this.API}/reparaciones`, payload).subscribe({
+      next: () => {
+        this.mostrarToast('Orden de reparación guardada con éxito', 'success');
+        this.resetFormulario();
+      },
+      error: () => this.mostrarToast('Error al guardar la orden de reparación', 'danger')
     });
-    await toast.present();
   }
 
+  resetFormulario() {
+    this.clienteSeleccionado = null;
+    this.reparacion = {
+      armazon: '',
+      descripcion_falla: '',
+      mano_obra: 0,
+      items: []
+    };
+    this.refaccionTemp = { nombre: '', precio: null };
+    this.totalCalculado = 0;
+  }
+
+  async mostrarToast(mensaje: string, color: string) {
+    const toast = await this.toastCtrl.create({
+      message: mensaje,
+      duration: 3000,
+      color: color,
+      position: 'bottom'
+    });
+    toast.present();
+  }
 }
