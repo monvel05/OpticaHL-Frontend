@@ -1,29 +1,54 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment';
+import { Observable } from 'rxjs';
+import { environment } from 'src/environments/environment';
+
+export interface Proveedor {
+  id_proveedor?: number;
+  tipo_cliente: 'Persona' | 'Negocio';
+  razon_social: string;
+  domicilio?: string;
+  colonia?: string;
+  localidad?: string;
+  estado?: string;
+  cp?: string;
+  lada?: string;
+  tel_negocio?: string;
+  ext?: string;
+  fax?: string;
+  email?: string;
+  responsable?: string;
+  telefono_responsable?: string;
+  celular?: string;
+  observaciones?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class ProveedoresService {
+  private API = environment.apiUrl;
 
-  private api = `${environment.apiUrl}/proveedores`;
+  constructor(private http: HttpClient) { }
 
-  constructor(private http: HttpClient) {}
-
-  getProveedores() {
-    return this.http.get<any[]>(this.api);
+  getProveedores(query: string = '', buscarPor: string = 'NOMBRE'): Observable<Proveedor[]> {
+    return this.http.get<Proveedor[]>(`${this.API}/proveedores?q=${query}&buscarPor=${buscarPor}`);
   }
 
-  crearProveedor(data: any) {
-    return this.http.post(this.api, data);
+  guardarProveedor(proveedor: Proveedor): Observable<any> {
+    if (proveedor.id_proveedor) {
+      return this.http.put(`${this.API}/proveedores/${proveedor.id_proveedor}`, proveedor);
+    }
+    return this.http.post(`${this.API}/proveedores`, proveedor);
   }
 
-  actualizarProveedor(id: number, data: any) {
-    return this.http.put(`${this.api}/${id}`, data);
+  // src/app/shared/services/proveedores.service.ts
+
+  guardarCompra(compra: any, items: any[]): Observable<any> {
+    return this.http.post(`${this.API}/proveedores/compras`, { compra, items });
   }
 
-  eliminarProveedor(id: number) {
-    return this.http.delete(`${this.api}/${id}`);
+  guardarVale(vale: any, detalles: any[]): Observable<any> {
+    return this.http.post(`${this.API}/vales`, { vale, detalles });
   }
 }

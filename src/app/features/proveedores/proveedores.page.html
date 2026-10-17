@@ -1,0 +1,83 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Buscar Proveedor</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="ion-padding">
+    <ion-grid>
+      <ion-row class="ion-align-items-center">
+        <ion-col size="12" size-md="4">
+          <ion-item lines="none">
+            <ion-label>Buscar por:</ion-label>
+            <ion-select [(ngModel)]="buscarPor" interface="popover">
+              <ion-select-option value="NOMBRE">NOMBRE</ion-select-option>
+              <ion-select-option value="CVEP">CVEP (Clave)</ion-select-option>
+            </ion-select>
+          </ion-item>
+        </ion-col>
+
+        <ion-col size="12" size-md="8">
+          <ion-item>
+            <ion-label position="stacked">Proveedor:</ion-label>
+            <ion-input [(ngModel)]="terminoBusqueda" (keyup.enter)="buscar()"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-vertical">
+        <ion-col size="6">
+          <ion-button expand="block" color="medium" (click)="buscar()">Buscar</ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" color="primary" (click)="abrirModalNuevo()">Nuevo Proveedor</ion-button>
+        </ion-col>
+      </ion-row>
+
+      <!-- TABLA DE PROVEEDORES (Representación fiel al sistema heredado) -->
+      <ion-row>
+        <ion-col size="12">
+          <div style="overflow-x: auto; max-height: 300px;">
+            <table class="tabla-proveedores" style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc;">
+                  <th style="padding: 8px; text-align: left;">CVEP</th>
+                  <th style="padding: 8px; text-align: left;">RAZON SOCIAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of proveedores; track p.id_proveedor) {
+                  <tr 
+                    (click)="seleccionar(p)" 
+                    [style.background-color]="proveedorSeleccionado?.id_proveedor === p.id_proveedor ? '#d0e1fd' : 'transparent'"
+                    style="cursor: pointer; border-bottom: 1px solid #eee;">
+                    <td style="padding: 8px;">{{ p.id_proveedor }}</td>
+                    <td style="padding: 8px;">{{ p.razon_social }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="2" style="padding: 16px; text-align: center;">Sin resultados</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="6">
+          <ion-button expand="block" color="tertiary" [disabled]="!proveedorSeleccionado" (click)="irACompras()">
+            Compras
+          </ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" color="secondary" [disabled]="!proveedorSeleccionado" (click)="abrirModalEditar()">
+            Editar Datos
+          </ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+</ion-content>

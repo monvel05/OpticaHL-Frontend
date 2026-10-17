@@ -1,0 +1,129 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Compras</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="ion-padding">
+    <ion-grid>
+      <ion-row class="ion-align-items-center">
+        <ion-col size="6" size-md="3">
+          <ion-item lines="none">
+            <ion-label position="stacked">CLAVE:</ion-label>
+            <ion-input [(ngModel)]="compra.clave" readonly></ion-input>
+          </ion-item>
+        </ion-col>
+        <ion-col size="6" size-md="5">
+          <ion-item lines="none">
+            <ion-label position="stacked">PROVEEDOR:</ion-label>
+            <ion-input [value]="nombreProveedor" readonly></ion-input>
+          </ion-item>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-radio-group [(ngModel)]="compra.tipo_compra">
+            <ion-item lines="none">
+              <ion-label>TIPO DE COMPRA:</ion-label>
+              <ion-radio value="ARMAZON">ARMAZON</ion-radio>
+              <ion-radio value="ACCESORIO" class="ion-margin-start">ACCESORIO</ion-radio>
+            </ion-item>
+          </ion-radio-group>
+        </ion-col>
+      </ion-row>
+
+      <ion-row>
+        <ion-col size="6" size-md="4">
+          <ion-item>
+            <ion-label position="stacked">FECHA FACTURA:</ion-label>
+            <ion-input type="date" [(ngModel)]="compra.fecha_factura"></ion-input>
+          </ion-item>
+        </ion-col>
+        <ion-col size="6" size-md="4">
+          <ion-item>
+            <ion-label position="stacked">FACTURA:</ion-label>
+            <ion-input [(ngModel)]="compra.num_factura"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <!-- TABLA DETALLE DE COMPRAS -->
+      <ion-row class="ion-margin-top">
+        <ion-col size="12">
+          <div style="overflow-x: auto; min-height: 200px; border: 1px solid #ccc;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc;">
+                  <th style="padding: 6px;">ITEM</th>
+                  <th style="padding: 6px;">CODIGO</th>
+                  <th style="padding: 6px;">DESCRIP</th>
+                  <th style="padding: 6px;">CANT</th>
+                  <th style="padding: 6px;">COSTO</th>
+                  <th style="padding: 6px;">SUBTOTAL</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of items; track $index) {
+                  <tr 
+                    (click)="seleccionarItem($index)"
+                    [style.background-color]="itemSeleccionadoIndex === $index ? '#d0e1fd' : 'transparent'"
+                    style="cursor: pointer; border-bottom: 1px solid #eee;">
+                    <td style="padding: 6px; text-align: center;">{{ $index + 1 }}</td>
+                    <td style="padding: 6px;">{{ item.codigo }}</td>
+                    <td style="padding: 6px;">{{ item.descripcion }}</td>
+                    <td style="padding: 6px; text-align: center;">{{ item.cantidad || 1 }}</td>
+                    <td style="padding: 6px; text-align: right;">${{ item.costo | number:'1.2-2' }}</td>
+                    <td style="padding: 6px; text-align: right;">${{ (item.costo * (item.cantidad || 1)) | number:'1.2-2' }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="6" style="padding: 16px; text-align: center;">No hay artículos agregados</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top ion-align-items-start">
+        <ion-col size="12" size-md="4">
+          <ion-button expand="block" color="primary" (click)="abrirModalAgregarItem()">+ Agregar</ion-button>
+          <ion-button expand="block" color="danger" [disabled]="itemSeleccionadoIndex === null" (click)="quitarItem()">- Quitar</ion-button>
+        </ion-col>
+
+        <!-- FINANCIERO / TOTALES -->
+        <ion-col size="12" size-md="8">
+          <ion-item lines="none">
+            <ion-label slot="start">SUBTOTAL:</ion-label>
+            <ion-input readonly slot="end" [value]="'$' + (compra.subtotal | number:'1.2-2')"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label slot="start">DESCTO:</ion-label>
+            <ion-input type="number" slot="end" [(ngModel)]="compra.descuento" (ionInput)="calcularTotales()"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label slot="start">O. CARGOS:</ion-label>
+            <ion-input type="number" slot="end" [(ngModel)]="compra.otros_cargos" (ionInput)="calcularTotales()"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label slot="start">IVA:</ion-label>
+            <ion-input readonly slot="end" [value]="'$' + (compra.iva | number:'1.2-2')"></ion-input>
+          </ion-item>
+          <ion-item lines="none">
+            <ion-label slot="start"><strong>TOTAL:</strong></ion-label>
+            <ion-input readonly slot="end" [value]="'$' + (compra.total | number:'1.2-2')"></ion-input>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="6">
+          <ion-button expand="block" color="success" (click)="grabarCompra()">Grabar</ion-button>
+        </ion-col>
+        <ion-col size="6">
+          <ion-button expand="block" color="medium" fill="outline" (click)="cancelar()">Cancelar</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+</ion-content>
