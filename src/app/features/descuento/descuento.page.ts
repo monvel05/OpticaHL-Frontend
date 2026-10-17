@@ -33,6 +33,7 @@ import {
 } from 'ionicons/icons';
 import { DescuentoService, Promocion } from '../../core/services/descuento.service';
 import { CajaService } from '../../core/services/caja.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-descuento',
@@ -40,6 +41,7 @@ import { CajaService } from '../../core/services/caja.service';
   styleUrls: ['./descuento.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule,
     DatePipe,
     FormsModule,

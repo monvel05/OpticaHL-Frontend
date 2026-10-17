@@ -14,6 +14,7 @@ import {
   removeCircleOutline, checkmarkCircleOutline, arrowBackOutline 
 } from 'ionicons/icons';
 import { CajaService } from '../../core/services/caja.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-cortecaja',
@@ -21,6 +22,7 @@ import { CajaService } from '../../core/services/caja.service';
   styleUrls: ['./cortecaja.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule,
     FormsModule,
     RouterLink,

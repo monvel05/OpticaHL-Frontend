@@ -21,6 +21,7 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { HistorialOrdenComponent } from '../../shared/components/historial-orden/historial-orden.component';
 import { CrritoPage } from '../crrito/crrito.page';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 // Iconos
 import {
@@ -46,6 +47,7 @@ interface ItemCotizacion {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    BotonSoporteComponent,
     IonFabButton, IonLabel, IonAvatar, IonItem, IonCard, IonCol,
     IonRow, IonGrid, IonButton, IonSearchbar, IonButtons, IonIcon,
     IonFab, IonContent, IonHeader, IonTitle, IonToolbar, IonMenuButton,

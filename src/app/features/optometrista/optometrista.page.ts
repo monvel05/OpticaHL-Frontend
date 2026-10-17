@@ -17,6 +17,7 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
 import { ClienteFormComponent } from '../../shared/components/cliente-form/cliente-form.component';
 import { FormularioRecetaComponent } from '../../shared/components/formulario-receta/formulario-receta.component';
 import { AuthService } from 'src/app/core/services/auth.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-optometrista',
@@ -25,6 +26,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    BotonSoporteComponent,
     IonHeader, IonToolbar, IonTitle, IonContent, IonListHeader, IonLabel, 
     IonCard, IonCardContent, IonSearchbar, IonList, IonItem, IonAvatar, 
     IonIcon, IonSpinner, IonButton, IonGrid, IonRow, IonCol, IonButtons, IonMenuButton

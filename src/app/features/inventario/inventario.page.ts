@@ -41,6 +41,7 @@ import {
 } from '../../core/services/inventario.service';
 import { AuthService } from '../../core/services/auth.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 import {
   add,
@@ -74,6 +75,7 @@ import {
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    BotonSoporteComponent,
     CommonModule,
     FormsModule,
     DecimalPipe,

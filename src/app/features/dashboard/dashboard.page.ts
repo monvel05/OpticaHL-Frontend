@@ -38,6 +38,7 @@ import {
   VentaReporte,
   DescuentoReporte
 } from '../../core/services/dashboard.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 Chart.register(...registerables);
 
@@ -48,6 +49,7 @@ Chart.register(...registerables);
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    BotonSoporteComponent,
     CommonModule,
     FormsModule,
     DatePipe,

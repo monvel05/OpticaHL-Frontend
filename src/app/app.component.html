@@ -23,6 +23,13 @@
       <ion-footer>
         <ion-list>
           <ion-menu-toggle auto-hide="false">
+            <ion-item button (click)="abrirModalSoporte()" lines="none" style="margin-bottom: 2px;">
+              <ion-icon slot="start" name="help-buoy-outline" color="warning"></ion-icon>
+              <ion-label color="warning" style="font-weight: 500;">Reportar Falla / Función</ion-label>
+            </ion-item>
+          </ion-menu-toggle>
+
+          <ion-menu-toggle auto-hide="false">
             <ion-item button (click)="logout()" lines="none">
               <ion-icon slot="start" name="log-out-outline" color="danger"></ion-icon>
               <ion-label color="danger">Cerrar Sesión</ion-label>

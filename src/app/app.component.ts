@@ -6,10 +6,12 @@ import { Subscription } from 'rxjs';
 import { 
   IonApp, IonRouterOutlet, IonMenu, IonHeader, IonToolbar, IonTitle, 
   IonContent, IonList, IonItem, IonIcon, IonLabel, IonMenuToggle, IonFooter,
+  ModalController
 } from '@ionic/angular/standalone'; 
 
-// Servicios
+// Servicios y Componentes
 import { AuthService, Usuario } from './core/services/auth.service';
+import { ModalSoporteComponent } from './shared/components/modal-soporte/modal-soporte.component';
 
 // Importación y registro de Iconos
 import { addIcons } from 'ionicons';
@@ -17,7 +19,7 @@ import {
   cubeOutline, cashOutline, documentTextOutline, 
   peopleOutline, logOutOutline, cartOutline, eyeOutline, barChartOutline, receiptOutline,
   lockClosedOutline, keyOutline, checkmarkCircleOutline, alertCircleOutline, closeCircleOutline,
-  businessOutline, pricetagOutline
+  businessOutline, pricetagOutline, helpBuoyOutline, warningOutline, bulbOutline, sendOutline
 } from 'ionicons/icons';
 
 // Interfaz para la configuración de las rutas
@@ -72,7 +74,11 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Dashboard', url: '/dashboard', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] }
   ];
 
-  constructor(private authService: AuthService, private router: Router) {
+  constructor(
+    private authService: AuthService, 
+    private router: Router,
+    private modalCtrl: ModalController
+  ) {
     // 1. Registramos los iconos globalmente para Standalone
     addIcons({
       'cube-outline': cubeOutline,
@@ -91,6 +97,10 @@ export class AppComponent implements OnInit, OnDestroy {
       'close-circle-outline': closeCircleOutline,
       'business-outline': businessOutline,
       'pricetag-outline': pricetagOutline,
+      'help-buoy-outline': helpBuoyOutline,
+      'warning-outline': warningOutline,
+      'bulb-outline': bulbOutline,
+      'send-outline': sendOutline,
       lockClosedOutline,
       keyOutline
     });
@@ -116,6 +126,19 @@ export class AppComponent implements OnInit, OnDestroy {
     // Limpieza de suscripciones para evitar memory leaks
     if (this.authSub) this.authSub.unsubscribe();
     if (this.userSub) this.userSub.unsubscribe();
+  }
+
+  /**
+   * Abre el modal de reporte de falla o petición de función hacia soporte
+   */
+  async abrirModalSoporte() {
+    const modal = await this.modalCtrl.create({
+      component: ModalSoporteComponent,
+      componentProps: {
+        rutaActual: this.router.url
+      }
+    });
+    await modal.present();
   }
 
   /**

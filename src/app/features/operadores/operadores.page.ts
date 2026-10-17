@@ -21,6 +21,7 @@ import {
 import { OperadoresService, Operador, FiltrosOperador, CatalogosOperador } from '../../core/services/operadores.service';
 import { ModalOperadorComponent } from '../../shared/components/modal-operador/modal-operador.component';
 import { AuthService } from 'src/app/core/services/auth.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-operadores',
@@ -28,6 +29,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
   styleUrls: ['./operadores.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, 
     IonBadge, IonButton, IonIcon, 
     IonSkeletonText, IonButtons, IonMenuButton, IonSearchbar, IonSelect, 

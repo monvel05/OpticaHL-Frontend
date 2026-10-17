@@ -8,9 +8,10 @@ import {
   IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, 
   IonSearchbar, IonButton, IonCard, IonCardHeader, IonCardTitle, 
   IonCardContent, IonItem, IonLabel, IonInput, IonList, IonIcon, 
-  IonTextarea, ToastController 
+  IonTextarea, ToastController, IonButtons, IonMenuButton
 } from '@ionic/angular/standalone';
 import { environment } from 'src/environments/environment';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 interface ItemRefaccion {
   nombre: string;
@@ -29,13 +30,14 @@ interface Cliente {
   styleUrls: ['./refraccion.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule,
     DecimalPipe,
     FormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol,
     IonSearchbar, IonButton, IonCard, IonCardHeader, IonCardTitle,
     IonCardContent, IonItem, IonLabel, IonInput, IonList, IonIcon,
-    IonTextarea
+    IonTextarea, IonButtons, IonMenuButton
   ]
 })
 export class RefraccionPage implements OnInit {

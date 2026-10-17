@@ -1,0 +1,94 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>
+      Mesa de Ayuda y Soporte
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cerrar()" [disabled]="enviando">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding modal-content-container">
+  
+  <!-- TARJETA INFORMATIVA Y DATOS DEL SOLICITANTE -->
+  <div style="background: #ffffff; border-radius: 12px; padding: 16px; border: 1px solid #e2e8f0; margin-bottom: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+      <ion-icon name="help-buoy-outline" style="font-size: 24px; color: #930500;"></ion-icon>
+      <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #1e293b;">¿Detectaste una falla o necesitas una función?</h3>
+    </div>
+    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.5;">
+      Tu reporte se enviará de forma directa a <b>soporte@opthospitaldelentes.com</b> con tu información de usuario.
+    </p>
+
+    <!-- DATOS DE QUIEN HACE LA PETICIÓN -->
+    <div style="margin-top: 12px; padding-top: 10px; border-top: 1px dashed #cbd5e1; display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #334155;">
+      <div>👤 <b>Solicitante:</b> <span style="font-weight: 700; color: #0f172a;">{{ nombreSolicitante }}</span></div>
+      <div>🏷️ <b>Rol:</b> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: 600;">{{ rolUsuario }}</span></div>
+      <div>🏢 <b>Sucursal:</b> {{ usuario?.id_sucursal || 'General' }}</div>
+      <div>📍 <b>Pantalla:</b> <code>{{ rutaActual || 'General' }}</code></div>
+    </div>
+  </div>
+
+  <ion-list lines="full">
+    <!-- RADIO BUTTONS: TIPO DE SOLICITUD -->
+    <ion-item-divider color="light">
+      <ion-label>1. Tipo de Solicitud *</ion-label>
+    </ion-item-divider>
+
+    <ion-radio-group [(ngModel)]="tipoReporte">
+      <ion-item lines="full" button (click)="tipoReporte = 'falla'">
+        <ion-icon name="warning-outline" slot="start" color="danger"></ion-icon>
+        <ion-label>
+          <h3 style="font-weight: 700; color: #dc2626; margin: 0;">Reportar una falla en el sistema</h3>
+          <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Errores, pantallas congeladas, cobros que no pasan o anomalías</p>
+        </ion-label>
+        <ion-radio slot="end" value="falla"></ion-radio>
+      </ion-item>
+
+      <ion-item lines="full" button (click)="tipoReporte = 'funcion'">
+        <ion-icon name="bulb-outline" slot="start" color="primary"></ion-icon>
+        <ion-label>
+          <h3 style="font-weight: 700; color: #2563eb; margin: 0;">Petición de nueva función o sugerencia</h3>
+          <p style="font-size: 12px; color: #64748b; margin: 2px 0 0 0;">Nuevas opciones, mejoras en la interfaz o ideas para optimizar tu trabajo</p>
+        </ion-label>
+        <ion-radio slot="end" value="funcion"></ion-radio>
+      </ion-item>
+    </ion-radio-group>
+
+    <!-- ÁREA DE TEXTO DESCRIPTIVA -->
+    <ion-item-divider color="light" style="margin-top: 16px;">
+      <ion-label>2. Descripción de lo que necesitas *</ion-label>
+    </ion-item-divider>
+
+    <ion-item lines="none" style="margin-top: 6px;">
+      <ion-textarea
+        [(ngModel)]="descripcion"
+        rows="6"
+        [autoGrow]="true"
+        placeholder="{{ tipoReporte === 'falla' ? 'Explica con detalle qué sucedió, qué estabas haciendo y qué mensaje o comportamiento incorrecto observaste...' : 'Describe la función o sugerencia que necesitas: qué te gustaría que haga el sistema y cómo te ayudaría en tu día a día...' }}">
+      </ion-textarea>
+    </ion-item>
+    <div class="field-hint" style="padding: 4px 16px;">
+      {{ tipoReporte === 'falla' ? 'Tip: Si tienes el folio de venta o código del artículo relacionado, inclúyelo en la descripción.' : 'Tip: Describe claramente el objetivo para que podamos programarlo de la mejor forma.' }}
+    </div>
+  </ion-list>
+
+  <!-- BOTONES DE ACCIÓN -->
+  <div style="margin-top: 24px; display: flex; gap: 12px; justify-content: flex-end;">
+    <ion-button fill="outline" color="medium" (click)="cerrar()" [disabled]="enviando">
+      Cancelar
+    </ion-button>
+    <ion-button color="primary" (click)="enviar()" [disabled]="!descripcion.trim() || enviando">
+      @if (enviando) {
+        <ion-spinner name="crescent" slot="start"></ion-spinner>
+        Enviando a Soporte...
+      } @else {
+        <ion-icon name="send-outline" slot="start"></ion-icon>
+        Enviar Reporte
+      }
+    </ion-button>
+  </div>
+</ion-content>

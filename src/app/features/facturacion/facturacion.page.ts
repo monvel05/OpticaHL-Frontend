@@ -16,6 +16,7 @@ import {
   closeOutline, checkmarkCircle, logoWhatsapp
 } from 'ionicons/icons';
 import { FacturacionService, ConceptoFactura } from '../../core/services/facturacion.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-facturacion',
@@ -23,6 +24,7 @@ import { FacturacionService, ConceptoFactura } from '../../core/services/factura
   styleUrls: ['./facturacion.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule, FormsModule, ReactiveFormsModule,
     IonHeader, IonToolbar, IonTitle, IonContent, IonGrid, IonRow, IonCol, 
     IonCard, IonCardHeader, IonCardTitle, IonCardSubtitle, IonCardContent, 

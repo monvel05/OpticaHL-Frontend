@@ -9,8 +9,10 @@ import { environment } from '@env';
 // 1. INTERFACES ACTUALIZADAS
 export interface Usuario {
   id_operador: number;
-  nombre_completo: string;
-  usuario_login: string; 
+  nombre_completo?: string;
+  nombre?: string;
+  usuario_login?: string; 
+  usuario?: string;
   roles: string[];
   id_sucursal: number; // Vital para la separación de datos por sucursal en el backend
 }
@@ -67,6 +69,12 @@ export class AuthService {
             usuarioLogueado.roles = [usuarioLogueado.roles];
           }
 
+          // Normalizar propiedades de nombre y usuario
+          usuarioLogueado.nombre_completo = usuarioLogueado.nombre_completo || usuarioLogueado.nombre || usuarioLogueado.usuario_login || usuarioLogueado.usuario;
+          usuarioLogueado.nombre = usuarioLogueado.nombre || usuarioLogueado.nombre_completo;
+          usuarioLogueado.usuario_login = usuarioLogueado.usuario_login || usuarioLogueado.usuario;
+          usuarioLogueado.usuario = usuarioLogueado.usuario || usuarioLogueado.usuario_login;
+
           // Guardar caché en memoria
           this.currentToken = response.token;
           
@@ -103,7 +111,13 @@ export class AuthService {
 
       if (token && !this.isTokenExpired(token) && usuarioJson && usuarioJson !== 'undefined' && usuarioJson !== 'null') {
         this.currentToken = token; // Cargar a memoria
-        this.currentUserSubject.next(JSON.parse(usuarioJson));
+        const parsedUsuario = JSON.parse(usuarioJson);
+        parsedUsuario.nombre_completo = parsedUsuario.nombre_completo || parsedUsuario.nombre || parsedUsuario.usuario_login || parsedUsuario.usuario;
+        parsedUsuario.nombre = parsedUsuario.nombre || parsedUsuario.nombre_completo;
+        parsedUsuario.usuario_login = parsedUsuario.usuario_login || parsedUsuario.usuario;
+        parsedUsuario.usuario = parsedUsuario.usuario || parsedUsuario.usuario_login;
+
+        this.currentUserSubject.next(parsedUsuario);
         this.authState.next(true);
       } else {
         await this.logout();

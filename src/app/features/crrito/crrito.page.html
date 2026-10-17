@@ -6,9 +6,12 @@
       </ion-button>
     </ion-buttons>
     <ion-title style="font-weight: bold;">Cotización y Órdenes</ion-title>
-    @if (folioRx) {
-      <ion-note slot="end" style="color: white; margin-right: 15px; font-weight: bold;">Rx: {{ folioRx }}</ion-note>
-    }
+    <ion-buttons slot="end">
+      @if (folioRx) {
+        <ion-note style="color: white; margin-right: 10px; font-weight: bold;">Rx: {{ folioRx }}</ion-note>
+      }
+      <app-boton-soporte></app-boton-soporte>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 

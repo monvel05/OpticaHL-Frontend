@@ -17,9 +17,9 @@ import { AuthService } from 'src/app/core/services/auth.service';
 import { OrdenService } from '../../core/services/orden.service';
 import { CajaService } from '../../core/services/caja.service';
 
-// MODALES
 import { ModalPagoComponent } from '../../shared/components/modal-pago/modal-pago.component';
 import { ModalCobroRapidoComponent } from '../../shared/components/modalcobrorapido/modalcobrorapido.component';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-caja',
@@ -28,6 +28,7 @@ import { ModalCobroRapidoComponent } from '../../shared/components/modalcobrorap
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Default,
   imports: [ 
+    BotonSoporteComponent, 
     CommonModule,
     FormsModule,
     ReactiveFormsModule,

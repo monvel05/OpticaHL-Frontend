@@ -20,6 +20,7 @@ import {
 import { SucursalesService, Sucursal, FiltrosSucursal } from '../../core/services/sucursales.service';
 import { ModalSucursalComponent } from '../../shared/components/modal-sucursal/modal-sucursal.component';
 import { AuthService } from 'src/app/core/services/auth.service';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-sucursales',
@@ -27,6 +28,7 @@ import { AuthService } from 'src/app/core/services/auth.service';
   styleUrls: ['./sucursales.page.scss'],
   standalone: true,
   imports: [
+    BotonSoporteComponent,
     CommonModule, FormsModule, IonHeader, IonToolbar, IonTitle, IonContent, 
     IonBadge, IonButton, IonIcon, 
     IonSkeletonText, IonButtons, IonMenuButton, IonSearchbar, IonSelect, 

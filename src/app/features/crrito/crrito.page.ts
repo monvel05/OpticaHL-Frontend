@@ -26,6 +26,7 @@ import { ArticulosService } from '../../core/services/articulos.service';
 import { OrdenService } from '../../core/services/orden.service';
 import { DescuentoService, Promocion } from '../../core/services/descuento.service';
 import { Cliente } from '../../shared/interfaces/cliente.interface';
+import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 @Component({
   selector: 'app-crrito',
@@ -34,6 +35,7 @@ import { Cliente } from '../../shared/interfaces/cliente.interface';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.Eager,
   imports: [
+    BotonSoporteComponent,
     CommonModule, 
     FormsModule,
     IonHeader, 
