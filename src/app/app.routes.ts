@@ -94,7 +94,18 @@ export const routes: Routes = [
     redirectTo: 'dashboard',
     pathMatch: 'full'
   },
-  
+    {
+    path: 'proveedores',
+    loadComponent: () => import('./features/proveedores/proveedores.page').then( m => m.ProveedoresPage)
+  },
+  {
+    path: 'compras',
+    loadComponent: () => import('./features/compras/compras.page').then( m => m.ComprasPage)
+  },
+  {
+    path: 'vales-inventario',
+    loadComponent: () => import('./features/vales-inventario/vales-inventario.page').then( m => m.ValesInventarioPage)
+  },
   // ==========================================
   // RUTAS PRUEBAS O REDIRECCIONES
   // ==========================================
@@ -106,5 +117,6 @@ export const routes: Routes = [
   {
     path: '**', // Comodín al final
     redirectTo: 'auth/login' 
-  }
+  },
+
 ];
