@@ -7,6 +7,8 @@ export interface Proveedor {
   id_proveedor?: number;
   tipo_cliente: 'Persona' | 'Negocio';
   razon_social: string;
+  nombre?: string;
+  telefono?: string;
   domicilio?: string;
   colonia?: string;
   localidad?: string;
