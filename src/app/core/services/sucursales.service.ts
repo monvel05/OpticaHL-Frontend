@@ -8,6 +8,7 @@ export interface Sucursal {
   id_sucursal: string;
   nombre: string;
   direccion?: string;
+  telefono?: string;
   activo: boolean;
 }
 
@@ -32,8 +33,8 @@ export class SucursalesService {
 
   // Sucursales mock de respaldo en caso de desconexión temporal de la API
   private mockSucursales: Sucursal[] = [
-    { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes', direccion: 'Centro, Calvillo', activo: true },
-    { id_sucursal: 'HL02', nombre: 'Sucursal Norte', direccion: 'Plaza Principal, Calvillo', activo: true }
+    { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes', direccion: 'Centro, Calvillo', telefono: '4951234567', activo: true },
+    { id_sucursal: 'HL02', nombre: 'Sucursal Norte', direccion: 'Plaza Principal, Calvillo', telefono: '4959876543', activo: true }
   ];
 
   /**
@@ -66,7 +67,8 @@ export class SucursalesService {
             filtradas = filtradas.filter(s => 
               s.id_sucursal.toLowerCase().includes(q) || 
               s.nombre.toLowerCase().includes(q) ||
-              (s.direccion && s.direccion.toLowerCase().includes(q))
+              (s.direccion && s.direccion.toLowerCase().includes(q)) ||
+              (s.telefono && s.telefono.toLowerCase().includes(q))
             );
           }
         }

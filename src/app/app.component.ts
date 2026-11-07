@@ -70,7 +70,7 @@ export class AppComponent implements OnInit, OnDestroy {
     { title: 'Sucursales', url: '/sucursales', icon: 'business-outline', roles: ['ADMINISTRADOR', 'MOSTRADOR', 'CAJA', 'CAJER@', 'OPTOMETRISTA', 'INVENTARIO', 'CONTADOR'] },
     { title: 'Optometrista', url: '/optometrista', icon: 'eye-outline', roles: ['OPTOMETRISTA', 'ADMINISTRADOR'] },
     { title: 'Dashboard', url: '/dashboard', icon: 'bar-chart-outline', roles: ['ADMINISTRADOR'] },
-    { title: 'Proveedores', url: '/proveedores', icon: 'people-outline', roles: ['ADMINISTRADOR'] }
+    { title: 'Proveedores', url: '/proveedores', icon: 'people-outline', roles: ['ADMINISTRADOR', 'INVENTARIO'] }
 
   ];
 

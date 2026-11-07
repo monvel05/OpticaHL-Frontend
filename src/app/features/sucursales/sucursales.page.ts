@@ -6,7 +6,7 @@ import {
   IonBadge, IonButton, IonIcon, 
   IonSkeletonText, IonButtons, IonMenuButton, IonSearchbar, IonSelect, 
   IonSelectOption, IonGrid, IonRow, IonCol, IonCard, IonCardHeader, 
-  IonCardContent, IonChip, IonToggle, 
+  IonCardContent, 
   IonRefresher, IonRefresherContent, ModalController, ToastController, AlertController 
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
@@ -14,7 +14,7 @@ import {
   businessOutline, addCircleOutline, searchOutline, filterOutline, 
   gridOutline, listOutline, createOutline, trashOutline, powerOutline, 
   logOutOutline, refreshOutline, checkmarkCircleOutline, closeCircleOutline, 
-  locationOutline, sparklesOutline
+  locationOutline, sparklesOutline, callOutline
 } from 'ionicons/icons';
 
 import { SucursalesService, Sucursal, FiltrosSucursal } from '../../core/services/sucursales.service';
@@ -64,7 +64,7 @@ export class SucursalesPage implements OnInit {
       businessOutline, addCircleOutline, searchOutline, filterOutline, 
       gridOutline, listOutline, createOutline, trashOutline, powerOutline, 
       logOutOutline, refreshOutline, checkmarkCircleOutline, closeCircleOutline, 
-      locationOutline, sparklesOutline
+      locationOutline, sparklesOutline, callOutline
     });
   }
 
@@ -88,7 +88,6 @@ export class SucursalesPage implements OnInit {
         this.cargando.set(false);
         if (event) event.target.complete();
         this.mostrarToast('Error al consultar lista de sucursales.', 'danger');
-        this.cdr.markForCheck();
       }
     });
   }
@@ -100,7 +99,8 @@ export class SucursalesPage implements OnInit {
   }
 
   onSearchChange(event: any) {
-    this.filtros.busqueda = event.detail.value || '';
+    const val = event.detail?.value || '';
+    this.filtros.busqueda = val;
     this.cargarSucursales();
   }
 
@@ -114,52 +114,42 @@ export class SucursalesPage implements OnInit {
     });
 
     await modal.present();
-    const { data } = await modal.onWillDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data === true) {
       this.cargarSucursales();
     }
   }
 
-  async abrirModalEditarSucursal(sucursal: Sucursal) {
+  async abrirModalEditarSucursal(suc: Sucursal) {
     const modal = await this.modalCtrl.create({
       component: ModalSucursalComponent,
       componentProps: {
-        sucursalActual: sucursal
+        sucursalActual: suc
       }
     });
 
     await modal.present();
-    const { data } = await modal.onWillDismiss();
+    const { data } = await modal.onDidDismiss();
     if (data === true) {
       this.cargarSucursales();
     }
   }
 
-  async confirmarCambioEstado(sucursal: Sucursal, event: any) {
-    event.stopPropagation();
-    const nuevoEstado = !sucursal.activo;
-    const accionText = nuevoEstado ? 'activar' : 'desactivar';
+  async confirmarCambioEstado(suc: Sucursal, event?: Event) {
+    if (event) event.stopPropagation();
+
+    const nuevoEstado = !suc.activo;
+    const accionTexto = nuevoEstado ? 'activar' : 'desactivar';
 
     const alert = await this.alertCtrl.create({
-      header: `¿${nuevoEstado ? 'Activar' : 'Desactivar'} Sucursal?`,
-      message: `¿Estás seguro de que deseas ${accionText} la sucursal "${sucursal.nombre}" (${sucursal.id_sucursal})?`,
+      header: `¿Deseas ${accionTexto} esta sucursal?`,
+      message: `La sucursal "${suc.nombre}" quedará en estado ${nuevoEstado ? 'activo' : 'inactivo'}.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: nuevoEstado ? 'Activar' : 'Desactivar',
-          role: 'confirm',
           handler: () => {
-            this.sucursalesService.cambiarEstadoSucursal(sucursal.id_sucursal, nuevoEstado).subscribe({
-              next: (res) => {
-                if (res.exito !== false) {
-                  this.mostrarToast(`Sucursal ${nuevoEstado ? 'activada' : 'desactivada'} con éxito.`, 'success');
-                  this.cargarSucursales();
-                } else {
-                  this.mostrarToast(res.mensaje || 'No se pudo cambiar el estado.', 'danger');
-                }
-              },
-              error: () => this.mostrarToast('Error al actualizar el estado de la sucursal.', 'danger')
-            });
+            this.ejecutarCambioEstado(suc, nuevoEstado);
           }
         }
       ]
@@ -168,35 +158,54 @@ export class SucursalesPage implements OnInit {
     await alert.present();
   }
 
-  async confirmarEliminacion(sucursal: Sucursal, event?: any) {
+  private ejecutarCambioEstado(suc: Sucursal, nuevoEstado: boolean) {
+    this.sucursalesService.cambiarEstadoSucursal(suc.id_sucursal, nuevoEstado).subscribe({
+      next: (res) => {
+        if (res.exito !== false) {
+          this.mostrarToast(res.mensaje || 'Estado actualizado con éxito.', 'success');
+          this.cargarSucursales();
+        } else {
+          this.mostrarToast(res.mensaje || 'Error al actualizar estado.', 'danger');
+        }
+      },
+      error: () => this.mostrarToast('Error de comunicación con el servidor.', 'danger')
+    });
+  }
+
+  async confirmarEliminacion(suc: Sucursal, event?: Event) {
     if (event) event.stopPropagation();
 
     const alert = await this.alertCtrl.create({
-      header: 'Confirmar Eliminación',
-      message: `¿Deseas borrar los datos de la sucursal "${sucursal.nombre}" (${sucursal.id_sucursal})?\n\nSi la sucursal cuenta con operadores o registros asociados, el sistema la desactivará para resguardar el historial.`,
+      header: '¿Eliminar sucursal?',
+      message: `¿Estás seguro de que deseas eliminar permanentemente la sucursal "${suc.nombre}" (${suc.id_sucursal})? Si contiene registros vinculados, será desactivada automáticamente.`,
       buttons: [
         { text: 'Cancelar', role: 'cancel' },
         {
           text: 'Eliminar',
           role: 'destructive',
           handler: () => {
-            this.sucursalesService.eliminarSucursal(sucursal.id_sucursal).subscribe({
-              next: (res) => {
-                if (res.exito !== false) {
-                  this.mostrarToast(res.mensaje || 'Sucursal procesada con éxito.', 'success');
-                  this.cargarSucursales();
-                } else {
-                  this.mostrarToast(res.mensaje || 'Error al eliminar la sucursal.', 'danger');
-                }
-              },
-              error: () => this.mostrarToast('Error de comunicación con el servidor.', 'danger')
-            });
+            this.ejecutarEliminacion(suc.id_sucursal);
           }
         }
       ]
     });
 
     await alert.present();
+  }
+
+  private ejecutarEliminacion(id: string) {
+    this.sucursalesService.eliminarSucursal(id).subscribe({
+      next: (res) => {
+        if (res.exito !== false) {
+          const color = res.desactivado ? 'warning' : 'success';
+          this.mostrarToast(res.mensaje || 'Sucursal procesada con éxito.', color);
+          this.cargarSucursales();
+        } else {
+          this.mostrarToast(res.mensaje || 'Error al eliminar sucursal.', 'danger');
+        }
+      },
+      error: () => this.mostrarToast('Error de comunicación con el servidor.', 'danger')
+    });
   }
 
   async logout() {

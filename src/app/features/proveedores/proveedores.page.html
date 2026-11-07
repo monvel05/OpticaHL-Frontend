@@ -1,11 +1,22 @@
 <ion-header>
   <ion-toolbar color="primary">
-    <ion-title>Buscar Proveedor</ion-title>
+    <ion-buttons slot="start">
+      <ion-menu-button></ion-menu-button>
+    </ion-buttons>
+    <ion-title>Módulo de Proveedores</ion-title>
+
+    <ion-buttons slot="end">
+      <!-- 🖨️ Botón Imprimir / Reimprimir Etiquetas -->
+      <ion-button (click)="abrirModalReimpresion()" title="Imprimir / Reimprimir Etiquetas de Código de Barras">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        <span class="ion-hide-sm-down">Imprimir Etiquetas</span>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content class="ion-padding">
-  <ion-card class="ion-padding">
+<ion-content class="ion-padding" color="light">
+  <ion-card class="ion-padding" style="border-radius: 14px; box-shadow: 0 4px 14px rgba(0,0,0,0.06); background: #fff;">
     <ion-grid>
       <ion-row class="ion-align-items-center">
         <ion-col size="12" size-md="4">
@@ -21,43 +32,55 @@
         <ion-col size="12" size-md="8">
           <ion-item>
             <ion-label position="stacked">Proveedor:</ion-label>
-            <ion-input [(ngModel)]="terminoBusqueda" (keyup.enter)="buscar()"></ion-input>
+            <ion-input [(ngModel)]="terminoBusqueda" (keyup.enter)="buscar()" placeholder="Buscar por razón social o nombre..."></ion-input>
           </ion-item>
         </ion-col>
       </ion-row>
 
       <ion-row class="ion-margin-vertical">
-        <ion-col size="6">
+        <ion-col size="12" size-md="4">
           <ion-button expand="block" color="medium" (click)="buscar()">Buscar</ion-button>
         </ion-col>
-        <ion-col size="6">
-          <ion-button expand="block" color="primary" (click)="abrirModalNuevo()">Nuevo Proveedor</ion-button>
+        <ion-col size="12" size-md="4">
+          <ion-button expand="block" color="primary" (click)="abrirModalNuevo()">+ Nuevo Proveedor</ion-button>
+        </ion-col>
+        <ion-col size="12" size-md="4">
+          <ion-button expand="block" color="dark" fill="outline" (click)="abrirModalReimpresion()">
+            <ion-icon slot="start" name="barcode-outline"></ion-icon>
+            Etiquetas Código Barras
+          </ion-button>
         </ion-col>
       </ion-row>
 
-      <!-- TABLA DE PROVEEDORES (Representación fiel al sistema heredado) -->
+      <!-- TABLA DE PROVEEDORES -->
       <ion-row>
         <ion-col size="12">
-          <div style="overflow-x: auto; max-height: 300px;">
+          <div style="overflow-x: auto; max-height: 320px; border: 1px solid #e2e8f0; border-radius: 8px;">
             <table class="tabla-proveedores" style="width: 100%; border-collapse: collapse;">
               <thead>
-                <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc;">
-                  <th style="padding: 8px; text-align: left;">CVEP</th>
-                  <th style="padding: 8px; text-align: left;">RAZON SOCIAL</th>
+                <tr style="background-color: #f8fafc; border-bottom: 2px solid #cbd5e1;">
+                  <th style="padding: 10px; text-align: left; color: #475569;">CVEP</th>
+                  <th style="padding: 10px; text-align: left; color: #475569;">RAZON SOCIAL / NOMBRE</th>
+                  <th style="padding: 10px; text-align: left; color: #475569;">TELÉFONO</th>
+                  <th style="padding: 10px; text-align: left; color: #475569;">EMAIL</th>
                 </tr>
               </thead>
               <tbody>
                 @for (p of proveedores; track p.id_proveedor) {
                   <tr 
                     (click)="seleccionar(p)" 
-                    [style.background-color]="proveedorSeleccionado?.id_proveedor === p.id_proveedor ? '#d0e1fd' : 'transparent'"
-                    style="cursor: pointer; border-bottom: 1px solid #eee;">
-                    <td style="padding: 8px;">{{ p.id_proveedor }}</td>
-                    <td style="padding: 8px;">{{ p.razon_social }}</td>
+                    [style.background-color]="proveedorSeleccionado?.id_proveedor === p.id_proveedor ? '#dbeafe' : 'transparent'"
+                    style="cursor: pointer; border-bottom: 1px solid #f1f5f9; transition: background 0.15s ease;">
+                    <td style="padding: 10px; font-weight: bold; color: #1e293b;">{{ p.id_proveedor }}</td>
+                    <td style="padding: 10px; font-weight: 600; color: #0f172a;">{{ p.razon_social || p.nombre }}</td>
+                    <td style="padding: 10px; color: #64748b;">{{ p.tel_negocio || p.celular || p.telefono || 'N/A' }}</td>
+                    <td style="padding: 10px; color: #64748b;">{{ p.email || 'N/A' }}</td>
                   </tr>
                 } @empty {
                   <tr>
-                    <td colspan="2" style="padding: 16px; text-align: center;">Sin resultados</td>
+                    <td colspan="4" style="padding: 24px; text-align: center; color: #94a3b8;">
+                      No se encontraron proveedores.
+                    </td>
                   </tr>
                 }
               </tbody>
@@ -67,14 +90,16 @@
       </ion-row>
 
       <ion-row class="ion-margin-top">
-        <ion-col size="6">
-          <ion-button expand="block" color="tertiary" [disabled]="!proveedorSeleccionado" (click)="irACompras()">
-            Compras
+        <ion-col size="12" size-md="6">
+          <ion-button expand="block" color="tertiary" [disabled]="!proveedorSeleccionado" (click)="irACompras()" style="font-weight: bold;">
+            <ion-icon slot="start" name="cart-outline"></ion-icon>
+            Hacer Encargo / Compra
           </ion-button>
         </ion-col>
-        <ion-col size="6">
+        <ion-col size="12" size-md="6">
           <ion-button expand="block" color="secondary" [disabled]="!proveedorSeleccionado" (click)="abrirModalEditar()">
-            Editar Datos
+            <ion-icon slot="start" name="create-outline"></ion-icon>
+            Editar Datos Proveedor
           </ion-button>
         </ion-col>
       </ion-row>

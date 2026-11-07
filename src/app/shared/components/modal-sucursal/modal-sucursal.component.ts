@@ -40,6 +40,7 @@ export class ModalSucursalComponent implements OnInit {
   public formData: Partial<Sucursal> = {
     id_sucursal: '',
     nombre: '',
+    telefono: '',
     direccion: '',
     activo: true
   };
@@ -79,6 +80,7 @@ export class ModalSucursalComponent implements OnInit {
     const dataProcesada: Sucursal = {
       id_sucursal: this.formData.id_sucursal.trim().toUpperCase(),
       nombre: this.formData.nombre.trim(),
+      telefono: this.formData.telefono ? this.formData.telefono.trim() : '',
       direccion: this.formData.direccion ? this.formData.direccion.trim() : '',
       activo: Boolean(this.formData.activo)
     };

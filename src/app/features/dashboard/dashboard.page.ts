@@ -69,13 +69,13 @@ export class DashboardPage implements OnInit {
 
   // Estado de Filtros
   public filtros: FiltrosDashboard = {
-    idSucursal: 0, // Todas
-    rangoTiempo: 'MENSUAL',
+    idSucursal: '0', // Todas
+    rangoTiempo: 'TODO',
     fechaInicio: '',
     fechaFin: ''
   };
 
-  public sucursalesCatalog: { id: number; nombre: string }[] = [];
+  public sucursalesCatalog: { id: string | number; nombre: string }[] = [];
   public cargando = false;
 
   // 1. Datos Distribución Multisucursal
@@ -233,7 +233,7 @@ export class DashboardPage implements OnInit {
   }
 
   public onSucursalChange(event: any) {
-    this.filtros.idSucursal = Number(event.detail.value);
+    this.filtros.idSucursal = event.detail.value;
     this.cargarDashboard();
   }
 
@@ -362,25 +362,25 @@ export class DashboardPage implements OnInit {
 
     // 5. Productividad Personal
     this.dashboardService.getProductividadPersonal(this.filtros).subscribe({
-      next: (prod) => {
+      next: (prod: any) => {
         this.productividadMostrador = prod.mostrador;
         this.productividadOptometristas = prod.optometristas;
 
         this.barMostradorData = {
-          labels: prod.mostrador.map(m => m.nombre),
+          labels: prod.mostrador.map((m: any) => m.nombre),
           datasets: [{
             label: 'Monto Ventas ($)',
-            data: prod.mostrador.map(m => m.ventasCerradasMonto),
+            data: prod.mostrador.map((m: any) => m.ventasCerradasMonto),
             backgroundColor: '#3880ff',
             borderRadius: 6
           }]
         };
 
         this.barOptoData = {
-          labels: prod.optometristas.map(o => o.nombre),
+          labels: prod.optometristas.map((o: any) => o.nombre),
           datasets: [{
             label: 'Exámenes / Refracciones',
-            data: prod.optometristas.map(o => o.refraccionesCompletadas),
+            data: prod.optometristas.map((o: any) => o.refraccionesCompletadas),
             backgroundColor: '#2dd36f',
             borderRadius: 6
           }]
