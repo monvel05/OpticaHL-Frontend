@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
 import { CommonModule, CurrencyPipe, DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ModalController } from '@ionic/angular/standalone';
+import { ModalController, AlertController, ToastController } from '@ionic/angular/standalone';
 import {
   IonHeader,
   IonToolbar,
@@ -40,6 +40,7 @@ import {
   Articulo,
 } from '../../core/services/inventario.service';
 import { AuthService } from '../../core/services/auth.service';
+import { ProveedoresService } from '../../core/services/proveedores.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
 import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
@@ -65,7 +66,9 @@ import {
   removeOutline,
   cashOutline,
   statsChartOutline,
-  funnelOutline
+  funnelOutline,
+  barcodeOutline,
+  printOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -112,6 +115,9 @@ export class InventarioPage implements OnInit {
   private inventarioService = inject(InventarioService);
   private authService = inject(AuthService);
   private modalCtrl = inject(ModalController);
+  private alertCtrl = inject(AlertController);
+  private toastCtrl = inject(ToastController);
+  private provService = inject(ProveedoresService);
 
   segmentoActual: string = 'ARMAZON';
   searchTerm: string = '';
@@ -159,7 +165,9 @@ export class InventarioPage implements OnInit {
       removeOutline,
       cashOutline,
       statsChartOutline,
-      funnelOutline
+      funnelOutline,
+      barcodeOutline,
+      printOutline
     });
   }
 
@@ -389,5 +397,58 @@ export class InventarioPage implements OnInit {
           this.recalcularKPIs();
         },
       });
+  }
+  async reimprimirEtiquetaRapida(producto?: Articulo, event?: Event) {
+    if (event) {
+      event.stopPropagation();
+    }
+    const alert = await this.alertCtrl.create({
+      header: 'Reimprimir Etiqueta Zebra',
+      subHeader: producto ? `Artículo: ${producto.nombre}` : 'Ingresa el código o SKU del producto',
+      inputs: [
+        {
+          name: 'codigo',
+          type: 'text',
+          placeholder: 'Código / SKU',
+          value: producto ? (producto.codigo || String(producto.id_articulo)) : ''
+        },
+        {
+          name: 'cantidad',
+          type: 'number',
+          placeholder: 'Cantidad de etiquetas',
+          value: '1',
+          min: 1
+        }
+      ],
+      buttons: [
+        { text: 'Cancelar', role: 'cancel' },
+        {
+          text: 'Imprimir',
+          handler: (data) => {
+            if (!data.codigo) {
+              this.mostrarToast('Ingresa un código válido', 'warning');
+              return false;
+            }
+            const cant = parseInt(data.cantidad) || 1;
+            this.provService.reimprimirEtiqueta(data.codigo, cant).subscribe({
+              next: (res: any) => this.mostrarToast(res.message || 'Etiqueta enviada a la impresora Zebra', 'success'),
+              error: (err: any) => this.mostrarToast(err.error?.message || 'Error al conectar con la impresora', 'danger')
+            });
+            return true;
+          }
+        }
+      ]
+    });
+    await alert.present();
+  }
+
+  private async mostrarToast(message: string, color: 'success' | 'warning' | 'danger') {
+    const toast = await this.toastCtrl.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'bottom'
+    });
+    await toast.present();
   }
 }

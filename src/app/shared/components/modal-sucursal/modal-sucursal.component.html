@@ -42,6 +42,17 @@
       </ion-input>
     </ion-item>
 
+    <!-- TELÉFONO DE SUCURSAL -->
+    <ion-item>
+      <ion-label position="stacked">Número de Teléfono</ion-label>
+      <ion-input 
+        type="tel"
+        [(ngModel)]="formData.telefono" 
+        placeholder="Ej. 4951234567"
+        maxlength="20">
+      </ion-input>
+    </ion-item>
+
     <!-- DIRECCIÓN DE SUCURSAL -->
     <ion-item>
       <ion-label position="stacked">Dirección / Ubicación</ion-label>

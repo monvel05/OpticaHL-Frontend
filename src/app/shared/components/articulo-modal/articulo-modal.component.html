@@ -1,0 +1,102 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Artículos</ion-title>
+    <ion-button slot="end" fill="clear" (click)="cerrar()">✕</ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-grid>
+    <ion-row>
+      <ion-col size="12" size-md="6">
+        <ion-item>
+          <ion-label position="stacked">MARCA</ion-label>
+          <ion-input [(ngModel)]="articulo.marca" placeholder="Ej. RAY-BAN"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-item>
+          <ion-label position="stacked">GRUPO</ion-label>
+          <ion-input [(ngModel)]="articulo.grupo" placeholder="Ej. OFTÁLMICO / SOLAR"></ion-input>
+        </ion-item>
+      </ion-col>
+
+      <ion-col size="12" size-md="6">
+        <ion-item>
+          <ion-label position="stacked">CÓDIGO *</ion-label>
+          <ion-input [(ngModel)]="articulo.codigo" placeholder="Ej. ARMAZON-001"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="6">
+        <ion-item>
+          <ion-label position="stacked">MODELO</ion-label>
+          <ion-input [(ngModel)]="articulo.modelo"></ion-input>
+        </ion-item>
+      </ion-col>
+
+      <ion-col size="4">
+        <ion-item>
+          <ion-label position="stacked">VARILLAS</ion-label>
+          <ion-input [(ngModel)]="articulo.varillas"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="4">
+        <ion-item>
+          <ion-label position="stacked">PUENTE</ion-label>
+          <ion-input [(ngModel)]="articulo.puente"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="4">
+        <ion-item>
+          <ion-label position="stacked">FLEX</ion-label>
+          <ion-select [(ngModel)]="articulo.flex" interface="popover">
+            <ion-select-option value="SI">SI</ion-select-option>
+            <ion-select-option value="NO">NO</ion-select-option>
+          </ion-select>
+        </ion-item>
+      </ion-col>
+
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked">FORMA</ion-label>
+          <ion-input [(ngModel)]="articulo.forma"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked">COLOR</ion-label>
+          <ion-input [(ngModel)]="articulo.color"></ion-input>
+        </ion-item>
+      </ion-col>
+
+      <ion-col size="12">
+        <ion-item>
+          <ion-label position="stacked">DESCRIPCIÓN *</ion-label>
+          <ion-textarea [(ngModel)]="articulo.descripcion" rows="2"></ion-textarea>
+        </ion-item>
+      </ion-col>
+
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked">COSTO ($)</ion-label>
+          <ion-input type="number" [(ngModel)]="articulo.costo" placeholder="0.00"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="6">
+        <ion-item>
+          <ion-label position="stacked">P. VENTA (CON IVA)</ion-label>
+          <ion-input type="number" [(ngModel)]="articulo.precio_venta" placeholder="0.00"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-margin-top">
+      <ion-col size="6">
+        <ion-button expand="block" color="primary" (click)="guardar()">OK</ion-button>
+      </ion-col>
+      <ion-col size="6">
+        <ion-button expand="block" color="medium" fill="outline" (click)="cerrar()">Cancelar</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

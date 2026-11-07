@@ -1,0 +1,109 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>Vale</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding">
+  <ion-card class="ion-padding">
+    <ion-grid>
+      <!-- HEADER CON PROVEEDOR Y FOLIO -->
+      <ion-row style="background-color: #8bb5e3; color: black; padding: 10px; border-radius: 4px;">
+        <ion-col size="8">
+          <p><strong>CVE:</strong> {{ vale.cve }}</p>
+          <p><strong>PROVEEDOR:</strong> {{ vale.proveedor }}</p>
+        </ion-col>
+        <ion-col size="4" class="ion-text-right">
+          <p><strong>FOLIO:</strong> {{ vale.folio }}</p>
+          <p><strong>FECHA:</strong> {{ vale.fecha }}</p>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="12" class="ion-text-center">
+          <h2><strong>VALE DE {{ tipoVale }}</strong></h2>
+        </ion-col>
+      </ion-row>
+
+      <!-- BÚSQUEDA DE CÓDIGO -->
+      <ion-row class="ion-align-items-center">
+        <ion-col size="8" size-md="4">
+          <ion-item>
+            <ion-label position="stacked">CODIGO</ion-label>
+            <ion-input [(ngModel)]="codigoBusqueda" (keyup.enter)="agregarMaterial()"></ion-input>
+          </ion-item>
+        </ion-col>
+        <ion-col size="4" size-md="2">
+          <ion-button expand="block" color="medium" (click)="agregarMaterial()">Buscar</ion-button>
+        </ion-col>
+      </ion-row>
+
+      <!-- TABLA DETALLE DEL VALE -->
+      <ion-row class="ion-margin-top">
+        <ion-col size="10">
+          <div style="overflow-x: auto; min-height: 200px; border: 1px solid #ccc;">
+            <table style="width: 100%; border-collapse: collapse;">
+              <thead>
+                <tr style="background-color: #f2f2f2; border-bottom: 2px solid #ccc;">
+                  <th style="padding: 6px;">FOLIO</th>
+                  <th style="padding: 6px;">ITEM</th>
+                  <th style="padding: 6px;">CODIGO</th>
+                  <th style="padding: 6px;">DESCRIPCION DE PRODUCTO O SERVICIO</th>
+                  <th style="padding: 6px;">CANTIDAD</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (det of detalles; track $index) {
+                  <tr 
+                    (click)="detalleSeleccionadoIndex = $index"
+                    [style.background-color]="detalleSeleccionadoIndex === $index ? '#d0e1fd' : 'transparent'"
+                    style="cursor: pointer; border-bottom: 1px solid #eee;">
+                    <td style="padding: 6px; text-align: center;">{{ vale.folio }}</td>
+                    <td style="padding: 6px; text-align: center;">{{ $index + 1 }}</td>
+                    <td style="padding: 6px;">{{ det.codigo }}</td>
+                    <td style="padding: 6px;">{{ det.descripcion }}</td>
+                    <td style="padding: 6px; text-align: center;">{{ det.cantidad }}</td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="5" style="padding: 16px; text-align: center;">Sin ítems en el vale</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </ion-col>
+
+        <ion-col size="2">
+          <ion-button expand="block" color="primary" (click)="agregarMaterial()">Agregar Material</ion-button>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="12" size-md="6">
+          <ion-button color="danger" fill="outline" [disabled]="detalleSeleccionadoIndex === null" (click)="eliminarDetalle()">
+            Eliminar Detalle
+          </ion-button>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top">
+        <ion-col size="12">
+          <ion-item>
+            <ion-label position="stacked">Observaciones:</ion-label>
+            <ion-textarea [(ngModel)]="vale.observaciones" rows="2"></ion-textarea>
+          </ion-item>
+        </ion-col>
+      </ion-row>
+
+      <ion-row class="ion-margin-top ion-justify-content-end">
+        <ion-col size="4" size-md="2">
+          <ion-button expand="block" color="success" (click)="guardarVale()">Guardar</ion-button>
+        </ion-col>
+        <ion-col size="4" size-md="2">
+          <ion-button expand="block" color="medium" fill="outline" (click)="cancelar()">Cancelar</ion-button>
+        </ion-col>
+      </ion-row>
+    </ion-grid>
+  </ion-card>
+</ion-content>

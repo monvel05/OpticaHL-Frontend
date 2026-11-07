@@ -56,6 +56,9 @@
       <ion-icon name="calendar-outline" class="filter-icon"></ion-icon>
       <span class="filter-label">Periodo:</span>
       <ion-segment [value]="filtros.rangoTiempo" (ionChange)="onRangoTiempoChange($event)" class="custom-segment">
+        <ion-segment-button value="TODO">
+          <ion-label>Histórico</ion-label>
+        </ion-segment-button>
         <ion-segment-button value="DIARIO">
           <ion-label>Diario</ion-label>
         </ion-segment-button>

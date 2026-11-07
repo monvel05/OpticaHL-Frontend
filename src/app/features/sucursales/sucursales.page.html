@@ -147,6 +147,13 @@
                     <span>{{ suc.direccion || 'Sin dirección registrada' }}</span>
                   </div>
 
+                  @if (suc.telefono) {
+                    <div class="sucursal-detail-item" style="margin-top: 6px;">
+                      <ion-icon name="call-outline" class="detail-icon" style="color: var(--ion-color-success);"></ion-icon>
+                      <span style="font-weight: 600;">{{ suc.telefono }}</span>
+                    </div>
+                  }
+
                   <div class="card-actions-footer">
                     <ion-button 
                       fill="outline" 
@@ -202,6 +209,7 @@
             <tr>
               <th>Código</th>
               <th>Nombre de la Sucursal</th>
+              <th>Teléfono</th>
               <th>Dirección / Ubicación</th>
               <th>Estado</th>
               <th class="text-right">Acciones</th>
@@ -214,6 +222,16 @@
                   <span class="code-pill">{{ suc.id_sucursal }}</span>
                 </td>
                 <td class="font-weight-bold">{{ suc.nombre }}</td>
+                <td>
+                  @if (suc.telefono) {
+                    <span style="font-weight: 600; color: #2c3e50;">
+                      <ion-icon name="call-outline" style="vertical-align: middle; margin-right: 4px;"></ion-icon>
+                      {{ suc.telefono }}
+                    </span>
+                  } @else {
+                    <span style="color: #999;">Sin teléfono</span>
+                  }
+                </td>
                 <td>{{ suc.direccion || 'Sin dirección registrada' }}</td>
                 <td>
                   <ion-badge [color]="suc.activo ? 'success' : 'medium'">
@@ -234,7 +252,7 @@
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center empty-td">
+                <td colspan="6" class="text-center empty-td">
                   No hay sucursales registradas que coincidan con la búsqueda.
                 </td>
               </tr>

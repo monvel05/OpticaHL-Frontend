@@ -1,0 +1,133 @@
+<ion-header>
+  <ion-toolbar color="primary">
+    <ion-title>{{ proveedor.id_proveedor ? 'Editar Proveedor' : 'Nuevo Proveedor' }}</ion-title>
+    <ion-button slot="end" fill="clear" color="light" (click)="cerrar()">✕</ion-button>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding modal-contenido">
+  <ion-grid>
+    <!-- TIPO DE CLIENTE -->
+    <ion-row class="ion-margin-bottom">
+      <ion-col size="12">
+        <ion-radio-group [value]="proveedor.tipo_cliente" (ionChange)="proveedor.tipo_cliente = $event.detail.value">
+          <ion-item lines="none" class="campo-item">
+            <ion-label><strong>Tipo de Cliente:</strong></ion-label>
+            <ion-radio value="Persona">Persona</ion-radio>
+            <ion-radio value="Negocio" class="ion-margin-start">Negocio</ion-radio>
+          </ion-item>
+        </ion-radio-group>
+      </ion-col>
+    </ion-row>
+
+    <!-- DATOS GENERALES -->
+    <ion-row>
+      <ion-col size="12">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">RAZÓN SOCIAL *</ion-label>
+          <ion-input [value]="proveedor.razon_social" (ionInput)="proveedor.razon_social = $event.detail.value!" placeholder="Nombre o Empresa"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <!-- DIRECCIÓN -->
+    <ion-row class="ion-margin-top">
+      <ion-col size="12" size-md="8">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">DOMICILIO DEL NEGOCIO</ion-label>
+          <ion-input [value]="proveedor.domicilio" (ionInput)="proveedor.domicilio = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="4">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">COLONIA</ion-label>
+          <ion-input [value]="proveedor.colonia" (ionInput)="proveedor.colonia = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-margin-top">
+      <ion-col size="12" size-md="5">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">LOCALIDAD</ion-label>
+          <ion-input [value]="proveedor.localidad" (ionInput)="proveedor.localidad = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="5">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">ESTADO</ion-label>
+          <ion-input [value]="proveedor.estado" (ionInput)="proveedor.estado = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="2">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">C.P.</ion-label>
+          <ion-input [value]="proveedor.cp" (ionInput)="proveedor.cp = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <!-- CONTACTO -->
+    <ion-row class="ion-margin-top">
+      <ion-col size="4" size-md="2">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">LADA</ion-label>
+          <ion-input [value]="proveedor.lada" (ionInput)="proveedor.lada = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="8" size-md="4">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">TEL. NEGOCIO</ion-label>
+          <ion-input [value]="proveedor.tel_negocio" (ionInput)="proveedor.tel_negocio = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="4" size-md="2">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">EXT.</ion-label>
+          <ion-input [value]="proveedor.ext" (ionInput)="proveedor.ext = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="8" size-md="4">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">EMAIL</ion-label>
+          <ion-input type="email" [value]="proveedor.email" (ionInput)="proveedor.email = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <!-- RESPONSABLE Y OBSERVACIONES -->
+    <ion-row class="ion-margin-top">
+      <ion-col size="12" size-md="7">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">RESPONSABLE</ion-label>
+          <ion-input [value]="proveedor.responsable" (ionInput)="proveedor.responsable = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+      <ion-col size="12" size-md="5">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">CELULAR</ion-label>
+          <ion-input [value]="proveedor.celular" (ionInput)="proveedor.celular = $event.detail.value!"></ion-input>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <ion-row class="ion-margin-top">
+      <ion-col size="12">
+        <ion-item fill="outline" class="campo-item">
+          <ion-label position="stacked">OBSERVACIONES</ion-label>
+          <ion-textarea [value]="proveedor.observaciones" (ionInput)="proveedor.observaciones = $event.detail.value!" rows="2"></ion-textarea>
+        </ion-item>
+      </ion-col>
+    </ion-row>
+
+    <!-- BOTONES -->
+    <ion-row class="ion-margin-top ion-padding-top">
+      <ion-col size="6">
+        <ion-button expand="block" color="success" (click)="guardar()">✓ Guardar</ion-button>
+      </ion-col>
+      <ion-col size="6">
+        <ion-button expand="block" color="danger" fill="outline" (click)="cerrar()">✕ Cerrar</ion-button>
+      </ion-col>
+    </ion-row>
+  </ion-grid>
+</ion-content>

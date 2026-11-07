@@ -70,9 +70,7 @@ export class LoginPage implements OnInit {
     if (this.loginForm.valid) {
       const credentials = {
         usuario: this.loginForm.value.usuario,
-        usuario_login: this.loginForm.value.usuario,
         password: this.loginForm.value.password,
-        contrasena: this.loginForm.value.password,
         sucursal: this.loginForm.value.sucursal_actual,
         id_sucursal: this.loginForm.value.sucursal_actual,
         sucursal_actual: this.loginForm.value.sucursal_actual
@@ -86,21 +84,21 @@ export class LoginPage implements OnInit {
           let rolesUsuario = usuarioData?.roles || usuarioData?.rol || usuarioData?.role || usuarioData?.id_rol || res?.roles || [];
 
           if ((!rolesUsuario || rolesUsuario.length === 0) && 
-              (credentials.usuario === 'admin_mon' || credentials.usuario_login === 'admin_mon')) {
+              (credentials.usuario === 'admin_mon' || credentials.usuario === 'admin_mon')) {
             rolesUsuario = ['ADMINISTRADOR'];
             usuarioData.roles = ['ADMINISTRADOR'];
             usuarioData.rol = 'ADMINISTRADOR';
           }
 
           if ((!rolesUsuario || rolesUsuario.length === 0) && 
-              (credentials.usuario === 'juan_mostrador' || credentials.usuario_login === 'juan_mostrador')) {
+              (credentials.usuario === 'juan_mostrador' || credentials.usuario === 'juan_mostrador')) {
             rolesUsuario = ['MOSTRADOR'];
             usuarioData.roles = ['MOSTRADOR'];
             usuarioData.rol = 'MOSTRADOR';
           }
 
           if ((!rolesUsuario || rolesUsuario.length === 0 || rolesUsuario === 2) && 
-              (credentials.usuario === 'amendoza' || credentials.usuario_login === 'amendoza')) {
+              (credentials.usuario === 'amendoza' || credentials.usuario === 'amendoza')) {
             rolesUsuario = ['OPTOMETRISTA'];
             usuarioData.roles = ['OPTOMETRISTA'];
             usuarioData.id_rol = 2;
