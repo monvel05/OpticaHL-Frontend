@@ -1,6 +1,12 @@
 <ion-header>
   <ion-toolbar color="primary">
     <ion-title>Compras</ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="abrirModalReimpresion()">
+        <ion-icon slot="start" name="print-outline"></ion-icon>
+        Reimprimir Etiqueta
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
@@ -88,7 +94,9 @@
       <ion-row class="ion-margin-top ion-align-items-start">
         <ion-col size="12" size-md="4">
           <ion-button expand="block" color="primary" (click)="abrirModalAgregarItem()">+ Agregar</ion-button>
-          <ion-button expand="block" color="danger" [disabled]="itemSeleccionadoIndex === null" (click)="quitarItem()">- Quitar</ion-button>
+          <ion-button expand="block" color="danger" [disabled]="itemSeleccionadoIndex === null" (click)="quitarItem()" class="ion-margin-top">
+            Quitar
+          </ion-button>
         </ion-col>
 
         <!-- FINANCIERO / TOTALES -->

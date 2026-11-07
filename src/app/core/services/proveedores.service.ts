@@ -31,6 +31,8 @@ export class ProveedoresService {
 
   constructor(private http: HttpClient) { }
 
+  // ==================== PROVEEDORES ====================
+
   getProveedores(query: string = '', buscarPor: string = 'NOMBRE'): Observable<Proveedor[]> {
     return this.http.get<Proveedor[]>(`${this.API}/proveedores?q=${query}&buscarPor=${buscarPor}`);
   }
@@ -42,13 +44,32 @@ export class ProveedoresService {
     return this.http.post(`${this.API}/proveedores`, proveedor);
   }
 
-  // src/app/shared/services/proveedores.service.ts
+  // ==================== COMPRAS Y VALES ====================
 
   guardarCompra(compra: any, items: any[]): Observable<any> {
     return this.http.post(`${this.API}/proveedores/compras`, { compra, items });
   }
 
   guardarVale(vale: any, detalles: any[]): Observable<any> {
-    return this.http.post(`${this.API}/vales`, { vale, detalles });
+    return this.http.post(`${this.API}/proveedores/vales`, { vale, detalles });
+  }
+
+  // ==================== IMPRESIÓN ZEBRA ====================
+
+  // Imprimir lote completo de etiquetas al registrar una compra
+  imprimirEtiquetasZebra(items: any[], nombreImpresora: string = 'ZebraDesigner'): Observable<any> {
+    return this.http.post(`${this.API}/proveedores/imprimir-etiquetas`, {
+      items,
+      nombreImpresora
+    });
+  }
+
+  // Reimprimir etiquetas de un artículo individual por su código o ID
+  reimprimirEtiqueta(codigo: string, cantidad: number = 1, nombreImpresora: string = 'ZebraDesigner'): Observable<any> {
+    return this.http.post(`${this.API}/proveedores/reimprimir-etiqueta`, {
+      codigo,
+      cantidad,
+      nombreImpresora
+    });
   }
 }
