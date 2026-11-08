@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { IonContent, IonItem, IonIcon, IonInput, IonSelect, IonSelectOption, IonButton, ToastController } from '@ionic/angular/standalone';
@@ -26,24 +26,22 @@ import { personOutline, keyOutline, businessOutline, arrowForwardOutline } from 
 })
 export class LoginPage implements OnInit {
   loginForm: FormGroup;
-  public sucursalesActivas: Sucursal[] = [
-    { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes', activo: true },
-    { id_sucursal: 'HL02', nombre: 'Sucursal Norte', activo: true }
-  ];
+  public sucursalesActivas: Sucursal[] = [];
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
     private sucursalesService: SucursalesService,
     private router: Router,
-    private toastController: ToastController
+    private toastController: ToastController,
+    private cdr: ChangeDetectorRef
   ) {
     addIcons({ personOutline, keyOutline, businessOutline, arrowForwardOutline });
 
     this.loginForm = this.fb.group({
       usuario: ['', [Validators.required]],         
       password: ['', [Validators.required]],        
-      sucursal_actual: ['HL01', [Validators.required]] 
+      sucursal_actual: ['', [Validators.required]] 
     });
   }
 
@@ -51,18 +49,24 @@ export class LoginPage implements OnInit {
     this.cargarSucursalesActivas();
   }
 
+  ionViewWillEnter() {
+    this.cargarSucursalesActivas();
+  }
+
   cargarSucursalesActivas() {
     this.sucursalesService.obtenerSucursales({ activo: 'true' }).subscribe({
       next: (sucursales) => {
         if (sucursales && sucursales.length > 0) {
-          this.sucursalesActivas = sucursales;
+          // Filtrar estrictamente solo aquellas donde activo sea verdadero
+          this.sucursalesActivas = sucursales.filter(s => s.activo === true);
           const actualVal = this.loginForm.get('sucursal_actual')?.value;
           if (!this.sucursalesActivas.some(s => s.id_sucursal === actualVal)) {
             this.loginForm.patchValue({ sucursal_actual: this.sucursalesActivas[0].id_sucursal });
           }
+          this.cdr.detectChanges();
         }
       },
-      error: (err) => console.warn('No se pudieron cargar sucursales activas en login, usando respaldo:', err)
+      error: (err) => console.warn('No se pudieron cargar sucursales activas en login:', err)
     });
   }
 

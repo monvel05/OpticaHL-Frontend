@@ -181,7 +181,7 @@ export class InventarioPage implements OnInit {
       } else {
         this.sucursales = [
           { id: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-          { id: 'HL02', nombre: 'Sucursal Norte' }
+          { id: 'MAT', nombre: 'Sucursal Matriz Centro' }
         ];
       }
 

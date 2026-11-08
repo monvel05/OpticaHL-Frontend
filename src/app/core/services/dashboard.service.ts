@@ -118,13 +118,13 @@ export class DashboardService {
         return [
           { id: '0', nombre: 'Todas las Sucursales' },
           { id: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-          { id: 'HL02', nombre: 'Sucursal Norte' }
+          { id: 'MAT', nombre: 'Sucursal Matriz Centro' }
         ];
       }),
       catchError(() => of([
         { id: '0', nombre: 'Todas las Sucursales' },
         { id: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-        { id: 'HL02', nombre: 'Sucursal Norte' }
+        { id: 'MAT', nombre: 'Sucursal Matriz Centro' }
       ]))
     );
   }

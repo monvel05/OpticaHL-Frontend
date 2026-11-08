@@ -136,7 +136,7 @@ export class FormularioArticuloComponent implements OnInit {
       } else {
         this.sucursalesLista = [
           { id: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-          { id: 'HL02', nombre: 'Sucursal Norte' }
+          { id: 'MAT', nombre: 'Sucursal Matriz Centro' }
         ];
       }
 
