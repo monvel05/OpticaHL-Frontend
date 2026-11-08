@@ -157,11 +157,11 @@ export class InventarioService {
     return this.http.get<{ success: boolean; data: { id_sucursal: string; nombre: string }[] }>(`${this.URL_INVENTARIO}/sucursales`).pipe(
       map(res => res && res.data && res.data.length > 0 ? res.data : [
         { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-        { id_sucursal: 'HL02', nombre: 'Sucursal Norte' }
+        { id_sucursal: 'MAT', nombre: 'Sucursal Matriz Centro' }
       ]),
       catchError(() => of([
         { id_sucursal: 'HL01', nombre: 'Matriz Hospital de Lentes' },
-        { id_sucursal: 'HL02', nombre: 'Sucursal Norte' }
+        { id_sucursal: 'MAT', nombre: 'Sucursal Matriz Centro' }
       ]))
     );
   }
