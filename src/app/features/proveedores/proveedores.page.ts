@@ -9,9 +9,10 @@ import {
   IonMenuButton, AlertController, ToastController
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
-import { printOutline, barcodeOutline, cartOutline, createOutline, addOutline } from 'ionicons/icons';
+import { printOutline, barcodeOutline, cartOutline, createOutline, addOutline, pricetagOutline } from 'ionicons/icons';
 import { ProveedoresService, Proveedor } from '../../core/services/proveedores.service';
 import { ProveedorModalComponent } from '../../shared/components/proveedor-modal/proveedor-modal.component';
+import { ModalMarcasComponent } from '../../shared/components/modal-marcas/modal-marcas.component';
 
 @Component({
   selector: 'app-proveedores',
@@ -37,7 +38,7 @@ export class ProveedoresPage implements OnInit {
     private toastCtrl: ToastController,
     private router: Router
   ) {
-    addIcons({ printOutline, barcodeOutline, cartOutline, createOutline, addOutline });
+    addIcons({ printOutline, barcodeOutline, cartOutline, createOutline, addOutline, pricetagOutline });
   }
 
   ngOnInit() {
@@ -55,6 +56,14 @@ export class ProveedoresPage implements OnInit {
 
   seleccionar(p: Proveedor) {
     this.proveedorSeleccionado = p;
+  }
+
+  async abrirModalMarcas() {
+    const modal = await this.modalCtrl.create({
+      component: ModalMarcasComponent,
+    });
+    await modal.present();
+    await modal.onWillDismiss();
   }
 
   async abrirModalNuevo() {

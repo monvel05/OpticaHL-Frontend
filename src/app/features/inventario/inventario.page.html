@@ -6,6 +6,11 @@
     <ion-title style="font-weight: bold">Gestión e Inventario General</ion-title>
     <ion-buttons slot="end">
       <app-boton-soporte></app-boton-soporte>
+      <!-- Botón Marcas y Proveedores -->
+      <ion-button (click)="abrirModalMarcas()" fill="outline" color="light" size="small" style="font-weight: bold; margin-right: 6px;" title="Catálogo de Marcas y Proveedores">
+        <ion-icon slot="start" name="pricetag-outline"></ion-icon>
+        <span class="ion-hide-sm-down">Marcas</span>
+      </ion-button>
       <!-- Botón Reimprimir Etiquetas Zebra -->
       <ion-button (click)="reimprimirEtiquetaRapida()" fill="outline" color="light" size="small" style="font-weight: bold; margin-right: 6px;" title="Reimprimir Etiqueta Código de Barras">
         <ion-icon slot="start" name="barcode-outline"></ion-icon>

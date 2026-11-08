@@ -1,0 +1,186 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar color="primary">
+    <ion-title style="font-weight: 700;">
+      {{ modoSeleccion ? 'Seleccionar / Gestionar Marca' : 'Catálogo de Marcas & Proveedores' }}
+    </ion-title>
+    <ion-buttons slot="end">
+      <ion-button (click)="cargarDatos()" title="Refrescar">
+        <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+      <ion-button (click)="cerrar()">
+        <ion-icon name="close-outline" slot="icon-only"></ion-icon>
+      </ion-button>
+    </ion-buttons>
+  </ion-toolbar>
+
+  <!-- Barra de Búsqueda y Botón Nueva Marca -->
+  <ion-toolbar color="primary">
+    <div style="display: flex; gap: 8px; padding: 4px 12px; align-items: center;">
+      <ion-searchbar
+        [(ngModel)]="busqueda"
+        (ionInput)="onBuscarChange()"
+        placeholder="Buscar marca o proveedor..."
+        [debounce]="300"
+        style="flex: 1; --background: white; --color: #1e293b; --placeholder-color: #64748b; border-radius: 8px;">
+      </ion-searchbar>
+      
+      @if (!mostrandoFormulario) {
+        <ion-button fill="solid" color="success" (click)="abrirCrear()" style="font-weight: bold; white-space: nowrap;">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          + Nueva Marca
+        </ion-button>
+      }
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ion-padding" color="light">
+  <!-- FORMULARIO DE ALTA / EDICIÓN -->
+  @if (mostrandoFormulario) {
+    <ion-card style="margin-bottom: 20px; border-radius: 12px; border: 2px solid #3b82f6; box-shadow: 0 4px 12px rgba(59,130,246,0.12); background: white;">
+      <ion-card-header style="background: #eff6ff; padding: 12px 16px; border-bottom: 1px solid #dbeafe;">
+        <ion-card-title style="font-size: 16px; font-weight: 700; color: #1e40af; display: flex; align-items: center; gap: 8px;">
+          <ion-icon name="pricetag-outline"></ion-icon>
+          {{ marcaEditando ? 'Editar Marca: ' + marcaEditando.nombre : 'Registrar Nueva Marca' }}
+        </ion-card-title>
+      </ion-card-header>
+
+      <ion-card-content style="padding: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 14px;">
+          <div>
+            <label style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">
+              Nombre de la Marca *
+            </label>
+            <ion-input
+              [(ngModel)]="formMarca.nombre"
+              placeholder="Ej. Ray-Ban, Carrera, Vogue..."
+              style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; background: #f8fafc; font-size: 14px;">
+            </ion-input>
+          </div>
+
+          <div>
+            <label style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">
+              Proveedor Distribuidor Asignado
+            </label>
+            <ion-select
+              [(ngModel)]="formMarca.id_proveedor"
+              placeholder="Seleccionar proveedor..."
+              interface="popover"
+              style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 4px 12px; background: #f8fafc; font-size: 14px;">
+              <ion-select-option [value]="null">-- Sin proveedor asignado --</ion-select-option>
+              @for (prov of proveedores; track prov.id_proveedor) {
+                <ion-select-option [value]="prov.id_proveedor">
+                  {{ prov.razon_social || prov.nombre }} (#{{ prov.id_proveedor }})
+                </ion-select-option>
+              }
+            </ion-select>
+          </div>
+
+          <div>
+            <label style="font-size: 13px; font-weight: 600; color: #334155; margin-bottom: 4px; display: block;">
+              Descripción / Observaciones (Opcional)
+            </label>
+            <ion-textarea
+              [(ngModel)]="formMarca.descripcion"
+              placeholder="Detalles de la marca, tipo de armazones, líneas de producto..."
+              [rows]="2"
+              style="border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; background: #f8fafc; font-size: 14px;">
+            </ion-textarea>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 8px;">
+            <ion-button fill="outline" color="medium" (click)="cancelarFormulario()">
+              Cancelar
+            </ion-button>
+            <ion-button color="primary" (click)="guardarMarca()" style="font-weight: 700;">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              {{ marcaEditando ? 'Guardar Cambios' : (modoSeleccion ? 'Registrar y Seleccionar' : 'Registrar Marca') }}
+            </ion-button>
+          </div>
+        </div>
+      </ion-card-content>
+    </ion-card>
+  }
+
+  <!-- LISTA DE MARCAS -->
+  @if (cargando) {
+    <div class="ion-text-center ion-padding" style="margin-top: 40px;">
+      <ion-spinner name="crescent" color="primary"></ion-spinner>
+      <p style="color: #64748b; font-size: 14px; margin-top: 8px;">Cargando catálogo de marcas...</p>
+    </div>
+  } @else {
+    @if (marcas.length === 0) {
+      <div class="ion-text-center ion-padding" style="margin-top: 60px;">
+        <ion-icon name="pricetag-outline" style="font-size: 56px; color: #94a3b8;"></ion-icon>
+        <h3 style="color: #334155; font-weight: 600;">No se encontraron marcas</h3>
+        <p style="color: #64748b; font-size: 14px;">Registra tu primera marca con el botón "+ Nueva Marca".</p>
+      </div>
+    } @else {
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 13px; color: #64748b; font-weight: 500;">
+          Total de marcas registradas: <strong>{{ marcas.length }}</strong>
+        </span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">
+        @for (m of marcas; track m.id_marca) {
+          <div style="background: white; border-radius: 10px; padding: 14px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
+                <h4 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">
+                  {{ m.nombre }}
+                </h4>
+                <ion-badge color="light" style="color: #475569; font-size: 11px; padding: 3px 6px;">
+                  #{{ m.id_marca }}
+                </ion-badge>
+              </div>
+
+              <!-- Proveedor Asociado -->
+              <div style="margin-top: 8px; display: flex; align-items: center; gap: 6px; font-size: 13px; color: #334155;">
+                <ion-icon name="business-outline" style="color: #0284c7;"></ion-icon>
+                <span>Proveedor:</span>
+                @if (m.proveedor_nombre) {
+                  <strong style="color: #0369a1;">{{ m.proveedor_nombre }}</strong>
+                } @else {
+                  <span style="color: #94a3b8; font-style: italic;">Sin asignar</span>
+                }
+              </div>
+
+              <!-- Total artículos -->
+              <div style="margin-top: 4px; display: flex; align-items: center; gap: 6px; font-size: 12px; color: #64748b;">
+                <ion-icon name="cube-outline" style="color: #10b981;"></ion-icon>
+                <span>Artículos en inventario: <strong>{{ m.total_articulos || 0 }}</strong></span>
+              </div>
+
+              @if (m.descripcion) {
+                <p style="margin: 8px 0 0 0; font-size: 12px; color: #64748b; font-style: italic;">
+                  {{ m.descripcion }}
+                </p>
+              }
+            </div>
+
+            <!-- Botones de Acción -->
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 12px; padding-top: 8px; border-top: 1px solid #f1f5f9;">
+              <div>
+                @if (modoSeleccion) {
+                  <ion-button fill="solid" color="success" size="small" (click)="seleccionar(m)" style="font-weight: 600;">
+                    <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                    Seleccionar
+                  </ion-button>
+                }
+              </div>
+              <div style="display: flex; gap: 4px;">
+                <ion-button fill="clear" color="primary" size="small" (click)="abrirEditar(m)" title="Editar marca">
+                  <ion-icon slot="icon-only" name="create-outline"></ion-icon>
+                </ion-button>
+                <ion-button fill="clear" color="danger" size="small" (click)="confirmarEliminar(m)" title="Desactivar marca">
+                  <ion-icon slot="icon-only" name="trash-outline"></ion-icon>
+                </ion-button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+</ion-content>

@@ -169,6 +169,25 @@ export class MostradorPage implements OnInit, OnDestroy {
     });
   }
 
+  obtenerSucursalActiva() {
+    const userSuc = this.authService.obtenerSucursalActual();
+    if (userSuc) {
+      this.sucursalActualId = typeof userSuc === 'number' ? (userSuc === 1 ? 'HL01' : String(userSuc)) : String(userSuc);
+    } else {
+      const stored = localStorage.getItem('id_sucursal') || localStorage.getItem('sucursal_activa');
+      if (stored) {
+        this.sucursalActualId = stored;
+      }
+    }
+  }
+
+  ngOnDestroy() {
+    if (this.intervaloTraspasos) {
+      clearInterval(this.intervaloTraspasos);
+      this.intervaloTraspasos = null;
+    }
+  }
+
   ionViewWillEnter() {
     this.cargarPromocionesVigentes();
     this.cargarConteoTraspasos();

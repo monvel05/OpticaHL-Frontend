@@ -61,10 +61,20 @@
         </ion-item>
 
         @if (tipoArticulo !== 'SERVICIO') {
-          <div class="brand-selector-container" style="padding: 10px 15px 5px 15px;">
-            <app-selector-entidad label="Seleccionar Marca *" icon="pricetag-outline" [opciones]="marcasDisponibles"
-              (seleccionado)="onMarcaSelected($event)">
-            </app-selector-entidad>
+          <div class="brand-selector-container" style="padding: 6px 15px 5px 15px; display: flex; align-items: center; gap: 8px;">
+            <div style="flex: 1;">
+              <app-selector-entidad
+                label="Seleccionar Marca *"
+                icon="pricetag-outline"
+                [opciones]="marcasDisponibles"
+                [valorSeleccionado]="articulo.marcaId"
+                (seleccionado)="onMarcaSelected($event)">
+              </app-selector-entidad>
+            </div>
+            <ion-button fill="outline" color="primary" size="small" (click)="abrirModalGestionMarcas()" title="Crear o gestionar marcas" style="margin-top: 8px; font-weight: 600; white-space: nowrap; --border-radius: 8px;">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              + Marca
+            </ion-button>
           </div>
         }
       </ion-card-content>

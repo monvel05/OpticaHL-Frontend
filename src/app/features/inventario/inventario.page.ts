@@ -42,6 +42,7 @@ import {
 import { AuthService } from '../../core/services/auth.service';
 import { ProveedoresService } from '../../core/services/proveedores.service';
 import { FormularioArticuloComponent } from '../../shared/components/formulario-articulo/formulario-articulo.component';
+import { ModalMarcasComponent } from '../../shared/components/modal-marcas/modal-marcas.component';
 import { BotonSoporteComponent } from '../../shared/components/boton-soporte/boton-soporte.component';
 
 import {
@@ -326,6 +327,14 @@ export class InventarioPage implements OnInit {
   toggleFiltroAlertas() {
     this.soloAlertas = !this.soloAlertas;
     this.filtrar();
+  }
+
+  async abrirModalMarcas() {
+    const modal = await this.modalCtrl.create({
+      component: ModalMarcasComponent,
+    });
+    await modal.present();
+    await modal.onWillDismiss();
   }
 
   async agregarProducto() {
