@@ -6,6 +6,11 @@
     <ion-title>Módulo de Proveedores</ion-title>
 
     <ion-buttons slot="end">
+      <!-- Botón Catálogo de Marcas -->
+      <ion-button (click)="abrirModalMarcas()" fill="outline" color="light" size="small" style="font-weight: bold; margin-right: 6px;" title="Catálogo de Marcas y Proveedores">
+        <ion-icon slot="start" name="pricetag-outline"></ion-icon>
+        <span class="ion-hide-sm-down">Marcas</span>
+      </ion-button>
       <!-- 🖨️ Botón Imprimir / Reimprimir Etiquetas -->
       <ion-button (click)="abrirModalReimpresion()" title="Imprimir / Reimprimir Etiquetas de Código de Barras">
         <ion-icon slot="start" name="print-outline"></ion-icon>

@@ -4,6 +4,7 @@ import {
   OnInit,
   inject,
   ChangeDetectionStrategy,
+  ChangeDetectorRef
 } from '@angular/core';
 
 import { FormsModule } from '@angular/forms';
@@ -15,8 +16,10 @@ import {
   ModalController, AlertController 
 } from '@ionic/angular/standalone';
 import { SelectorEntidadComponent } from '../selector-entidad/selector-entidad.component';
+import { ModalMarcasComponent } from '../modal-marcas/modal-marcas.component';
 
 import { InventarioService } from 'src/app/core/services/inventario.service';
+import { MarcaService } from 'src/app/core/services/marca.service';
 import { addIcons } from 'ionicons';
 import {
   barcodeOutline,
@@ -33,7 +36,8 @@ import {
   cubeOutline,
   addOutline,
   removeOutline,
-  buildOutline
+  buildOutline,
+  eyeOutline
 } from 'ionicons/icons';
 
 @Component({
@@ -74,7 +78,9 @@ export class FormularioArticuloComponent implements OnInit {
 
   private modalCtrl = inject(ModalController);
   private inventarioService = inject(InventarioService);
+  private marcaService = inject(MarcaService);
   private alertController = inject(AlertController);
+  private cdr = inject(ChangeDetectorRef);
 
   tituloVista: string = '';
 
@@ -95,14 +101,7 @@ export class FormularioArticuloComponent implements OnInit {
   public stocksSucursales: { [key: string]: number } = {};
   public sucursalesLista: { id: string; nombre: string }[] = [];
 
-  marcasDisponibles: any[] = [
-    { id: 1, nombre: 'Ray-Ban' },
-    { id: 2, nombre: 'Oakley' },
-    { id: 3, nombre: 'Vogue' },
-    { id: 4, nombre: 'Prada' },
-    { id: 5, nombre: 'Carrera' },
-    { id: 6, nombre: 'Genérica / Económica' },
-  ];
+  marcasDisponibles: any[] = [];
 
   constructor() {
     addIcons({
@@ -120,12 +119,14 @@ export class FormularioArticuloComponent implements OnInit {
       cubeOutline,
       addOutline,
       removeOutline,
-      buildOutline
+      buildOutline,
+      eyeOutline
     });
   }
 
   ngOnInit() {
     this.definirTituloYValores();
+    this.cargarMarcas();
 
     this.inventarioService.obtenerSucursales().subscribe((sucs) => {
       if (sucs && sucs.length > 0) {
@@ -150,6 +151,7 @@ export class FormularioArticuloComponent implements OnInit {
           this.stocksSucursales[suc.id] = 0;
         }
       });
+      this.cdr.markForCheck();
     });
 
     if (this.articuloExistente) {
@@ -167,6 +169,82 @@ export class FormularioArticuloComponent implements OnInit {
         forma: this.articuloExistente.estilo || '',
         descripcion: this.articuloExistente.descripcion || '',
       };
+    }
+  }
+
+  cargarMarcas() {
+    this.marcaService.obtenerMarcas({ activo: 'true' }).subscribe({
+      next: (marcas) => {
+        if (marcas && marcas.length > 0) {
+          this.marcasDisponibles = marcas.map(m => ({
+            id: m.id_marca,
+            nombre: m.nombre
+          }));
+        } else {
+          this.marcasDisponibles = [
+            { id: 1, nombre: 'Ray-Ban' },
+            { id: 2, nombre: 'Oakley' },
+            { id: 3, nombre: 'Vogue' },
+            { id: 4, nombre: 'Prada' },
+            { id: 5, nombre: 'Carrera' },
+            { id: 6, nombre: 'Genérica / Económica' }
+          ];
+        }
+
+        // Si tenemos un nombre de marca existente, asociar su ID
+        if (this.articulo.marcaNombre) {
+          const mEncontrada = this.marcasDisponibles.find(
+            m => m.nombre.toLowerCase().trim() === this.articulo.marcaNombre.toLowerCase().trim()
+          );
+          if (mEncontrada) {
+            this.articulo.marcaId = mEncontrada.id;
+          }
+        }
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error al cargar marcas desde API:', err);
+        this.marcasDisponibles = [
+          { id: 1, nombre: 'Ray-Ban' },
+          { id: 2, nombre: 'Oakley' },
+          { id: 3, nombre: 'Vogue' },
+          { id: 4, nombre: 'Prada' },
+          { id: 5, nombre: 'Carrera' },
+          { id: 6, nombre: 'Genérica / Económica' }
+        ];
+        this.cdr.markForCheck();
+      }
+    });
+  }
+
+  async abrirModalGestionMarcas() {
+    const modal = await this.modalCtrl.create({
+      component: ModalMarcasComponent,
+      componentProps: {
+        modoSeleccion: true
+      }
+    });
+
+    await modal.present();
+    const { data, role } = await modal.onWillDismiss();
+
+    if (role === 'confirm' && data?.marca) {
+      const nueva = data.marca;
+      this.marcaService.obtenerMarcas({ activo: 'true' }).subscribe({
+        next: (marcas) => {
+          if (marcas && marcas.length > 0) {
+            this.marcasDisponibles = marcas.map(m => ({
+              id: m.id_marca,
+              nombre: m.nombre
+            }));
+          }
+          this.articulo.marcaId = nueva.id_marca;
+          this.articulo.marcaNombre = nueva.nombre;
+          this.cdr.markForCheck();
+        }
+      });
+    } else {
+      this.cargarMarcas();
     }
   }
 

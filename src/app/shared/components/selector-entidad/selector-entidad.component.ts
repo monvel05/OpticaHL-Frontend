@@ -29,6 +29,9 @@ export class SelectorEntidadComponent {
   
   // Recibe la lista de datos [{id: 1, nombre: 'Ray-Ban'}, ...]
   @Input() opciones: any[] = [];
+  
+  // Valor pre-seleccionado (id o nombre)
+  @Input() valorSeleccionado: any = null;
 
   // CORREGIDO: Cambiamos el nombre a 'seleccionado' para que coincida exactamente con tu formulario
   @Output() seleccionado = new EventEmitter<any>();
@@ -41,9 +44,10 @@ export class SelectorEntidadComponent {
     const idSeleccionado = event.detail.value;
     
     // Buscamos el objeto completo (id y nombre) dentro de las opciones disponibles
-    const objetoCompleto = this.opciones.find(opc => opc.id === idSeleccionado);
+    const objetoCompleto = this.opciones.find(opc => opc.id === idSeleccionado || opc.nombre === idSeleccionado);
     
     if (objetoCompleto) {
+      this.valorSeleccionado = objetoCompleto.id;
       // Emitimos el objeto entero { id: 1, nombre: 'Ray-Ban' } hacia el formulario
       this.seleccionado.emit(objetoCompleto);
     }
