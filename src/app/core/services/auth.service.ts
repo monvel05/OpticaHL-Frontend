@@ -81,6 +81,7 @@ export class AuthService {
           // Persistencia en Capacitor
           await Preferences.set({ key: 'auth_token', value: response.token });
           await Preferences.set({ key: 'usuario', value: JSON.stringify(usuarioLogueado) });
+          try { localStorage.setItem('auth_token', response.token); localStorage.setItem('usuario', JSON.stringify(usuarioLogueado)); } catch (_) {}
           
           // Actualizar estados reactivos
           this.currentUserSubject.next(usuarioLogueado);
@@ -93,6 +94,7 @@ export class AuthService {
   async logout(): Promise<void> {
     this.currentToken = null; // Limpiar memoria
     await Preferences.clear(); // Limpiar persistencia
+    try { localStorage.removeItem('auth_token'); localStorage.removeItem('usuario'); } catch (_) {}
     
     this.currentUserSubject.next(null);
     this.authState.next(false);
@@ -117,6 +119,7 @@ export class AuthService {
         parsedUsuario.usuario_login = parsedUsuario.usuario_login || parsedUsuario.usuario;
         parsedUsuario.usuario = parsedUsuario.usuario || parsedUsuario.usuario_login;
 
+        try { localStorage.setItem('usuario', JSON.stringify(parsedUsuario)); } catch (_) {}
         this.currentUserSubject.next(parsedUsuario);
         this.authState.next(true);
       } else {

@@ -269,6 +269,9 @@
         <ion-toolbar color="primary">
           <ion-title>Solicitudes de Traspaso y Fichas de Salida</ion-title>
           <ion-buttons slot="end">
+            <ion-button (click)="cargarSolicitudesTraspaso()" title="Actualizar lista de traspasos">
+              <ion-icon name="refresh-outline" slot="icon-only"></ion-icon>
+            </ion-button>
             <ion-button (click)="cerrarModalTraspasos()">
               <ion-icon name="close-outline" slot="icon-only"></ion-icon>
             </ion-button>
@@ -291,6 +294,10 @@
             </ion-segment-button>
           </ion-segment>
         </ion-toolbar>
+        <div style="background: #e2e8f0; padding: 6px 16px; font-size: 13px; color: #1e293b; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #cbd5e1;">
+          <span>🏢 Tu sucursal activa: <strong>{{ sucursalActualId }}</strong></span>
+          <span style="font-size: 12px; color: #64748b;">Pulsa 🔄 para refrescar</span>
+        </div>
       </ion-header>
 
       <ion-content class="ion-padding" color="light">
@@ -345,9 +352,32 @@
                     }
 
                     <!-- BOTONES DE ACCIÓN SEGÚN EL ROL DE SUCURSAL Y ESTATUS -->
-                    <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid #f1f5f9; flex-wrap: wrap;">
-                      <!-- Si la solicitud está PENDIENTE y somos el origen (quien tiene el producto): Aceptar/Rechazar -->
-                      @if (sol.estatus === 'PENDIENTE' && (esOrigen || sucursalActualId === 'HL01')) {
+                    <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin-top: 14px; padding-top: 10px; border-top: 1px solid #f1f5f9; flex-wrap: wrap;">
+                      <!-- Indicador de rol y estado -->
+                      @if (sol.estatus === 'PENDIENTE') {
+                        @if (esOrigen) {
+                          <span style="font-size: 12px; color: #0284c7; font-weight: 600; margin-right: auto;">
+                            🔔 Tu sucursal debe autorizar la salida de este producto
+                          </span>
+                        } @else if (esDestino) {
+                          <span style="font-size: 12px; color: #d97706; font-style: italic; margin-right: auto;">
+                            ⏳ Esperando que {{ sol.sucursal_origen }} autorice y despache el producto
+                          </span>
+                        }
+                      } @else if (sol.estatus === 'ACEPTADA') {
+                        @if (esDestino) {
+                          <span style="font-size: 12px; color: #16a34a; font-weight: 600; margin-right: auto;">
+                            📦 Producto en tránsito. Confirma al recibirlo físicamente:
+                          </span>
+                        } @else if (esOrigen) {
+                          <span style="font-size: 12px; color: #475569; font-style: italic; margin-right: auto;">
+                            🚚 Traspaso aceptado y descontado. Esperando recepción en destino.
+                          </span>
+                        }
+                      }
+
+                      <!-- Si la solicitud está PENDIENTE y somos el origen o admin: Aceptar/Rechazar -->
+                      @if (sol.estatus === 'PENDIENTE' && (esOrigen || esAdmin)) {
                         <ion-button fill="outline" color="danger" size="small" (click)="responderTraspaso(sol, 'RECHAZAR')">
                           Rechazar
                         </ion-button>
@@ -357,8 +387,8 @@
                         </ion-button>
                       }
 
-                      <!-- Si ya fue ACEPTADA y somos el destino (quien la recibe): Confirmar Recepción -->
-                      @if (sol.estatus === 'ACEPTADA' && (esDestino || sucursalActualId === 'HL01')) {
+                      <!-- Si ya fue ACEPTADA y somos el destino o admin: Confirmar Recepción -->
+                      @if (sol.estatus === 'ACEPTADA' && (esDestino || esAdmin)) {
                         <ion-button color="primary" size="small" (click)="confirmarRecepcion(sol)" style="font-weight: bold;">
                           <ion-icon slot="start" name="checkmark-outline"></ion-icon>
                           Confirmar Recepción Físico

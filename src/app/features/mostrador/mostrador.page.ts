@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ChangeDetectionStrategy, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -64,7 +64,7 @@ interface ItemCotizacion {
     IonSegment, IonSegmentButton
   ]
 })
-export class MostradorPage implements OnInit {
+export class MostradorPage implements OnInit, OnDestroy {
   private clienteService = inject(ClienteService);
   private articulosService = inject(ArticulosService);
   private descuentoService = inject(DescuentoService);
@@ -111,6 +111,11 @@ export class MostradorPage implements OnInit {
   cargandoSolicitudes: boolean = false;
   solicitudesPendientesCount: number = 0;
   filtroEstatusTraspaso: string = 'TODOS';
+  private intervaloTraspasos: any = null;
+
+  get esAdmin(): boolean {
+    return this.authService.obtenerRolesActuales().some(r => r.toUpperCase().includes('ADMIN'));
+  }
 
   constructor() {
     addIcons({
@@ -122,16 +127,26 @@ export class MostradorPage implements OnInit {
       downloadOutline, businessOutline, checkmarkOutline, arrowForwardOutline, alertCircleOutline
     });
 
-    const user = JSON.parse(localStorage.getItem('usuario') || '{}');
-    if (user.id_sucursal) {
-      this.sucursalActualId = String(user.id_sucursal);
-    }
+    this.obtenerSucursalActiva();
+
+    this.authService.currentUser$.subscribe(u => {
+      if (u && u.id_sucursal) {
+        this.sucursalActualId = String(u.id_sucursal);
+        this.cargarConteoTraspasos();
+      }
+    });
   }
 
   ngOnInit() {
+    this.obtenerSucursalActiva();
     this.clientesFiltrados = [];
     this.cargarPromocionesVigentes();
     this.cargarConteoTraspasos();
+
+    if (this.intervaloTraspasos) clearInterval(this.intervaloTraspasos);
+    this.intervaloTraspasos = setInterval(() => {
+      this.cargarConteoTraspasos();
+    }, 20000);
 
     this.articulosService.getArticulosStream().subscribe({
       next: (articulos: any[]) => {
